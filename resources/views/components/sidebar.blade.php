@@ -20,8 +20,8 @@
     
                 <li class="nav-heading">MENU</li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('laboratory*') ? '' : 'collapsed' }}"
-                        href="{{ url('/laboratory') }}">
+                    <a class="nav-link {{ request()->is('laboratories*') ? '' : 'collapsed' }}"
+                        href="{{ url('/laboratories') }}">
                         <i class="bi bi-view-stacked"></i>
                         <span>Lab Management</span>
                     </a>

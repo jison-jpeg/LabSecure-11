@@ -16,7 +16,7 @@ Route::middleware(['auth', 'verified'])
 
 // Laboratory Management
 Route::middleware(['auth', 'verified'])
-    ->prefix('laboratory')
+    ->prefix('laboratories')
     ->group(function () {
         Route::get('/', [LaboratoryController::class, 'viewLaboratories'])->name('laboratories');
     });

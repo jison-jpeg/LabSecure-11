@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $adminRole = Role::where('name', 'admin')->first();
+        $studentRole = Role::where('name', 'student')->first();
+        $instructorRole = Role::where('name', 'instructor')->first();
+
         // Admin User
         User::create([
             'rfid_number' => '1234567890',
@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
             'username' => 'admin',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
-            'role_id' => Role::where('name', 'admin')->first()->id,
+            'role_id' => $adminRole->id,
         ]);
 
         // Student User
@@ -38,7 +38,9 @@ class UserSeeder extends Seeder
             'username' => 'student',
             'email' => 'student@example.com',
             'password' => Hash::make('password'),
-            'role_id' => Role::where('name', 'student')->first()->id,
+            'role_id' => $studentRole->id,
+            'department_id' => 1,
+            'college_id' => 1,
         ]);
 
         // Instructor User
@@ -51,7 +53,9 @@ class UserSeeder extends Seeder
             'username' => 'instructor',
             'email' => 'instructor@example.com',
             'password' => Hash::make('password'),
-            'role_id' => Role::where('name', 'instructor')->first()->id,
+            'role_id' => $instructorRole->id,
+            'department_id' => 1,
+            'college_id' => 1,
         ]);
     }
 }

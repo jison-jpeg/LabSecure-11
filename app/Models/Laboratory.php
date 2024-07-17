@@ -12,10 +12,9 @@ class Laboratory extends Model
     protected $table = "laboratories";
 
     protected $fillable = [
-        'roomNumber',
+        'name',
         'building',
-        'laboratoryType',
-        'occupancyStatus',
-        'lockStatus',
+        'type',
+        'status',
     ];
 }

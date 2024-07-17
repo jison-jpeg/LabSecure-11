@@ -15,7 +15,6 @@
 
         <section class="section dashboard">
             <div class="row">
-
                 <!-- Left side columns -->
                 <div class="col-lg-12">
                     {{-- Alert Logged-in as what auth role --}}
@@ -37,35 +36,12 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Computer Laboratories</h5>
-                            {{-- @include('components.cards.lab') --}}
-
-                            {{-- <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    <li class="page-item {{ $laboratories->previousPageUrl() ? '' : 'disabled' }}">
-                                        <a class="page-link" href="{{ $laboratories->previousPageUrl() }}" tabindex="-1"
-                                            aria-disabled="true">Previous</a>
-                                    </li>
-                                    @for ($i = 1; $i <= $laboratories->lastPage(); $i++)
-                                        <li class="page-item {{ $i == $laboratories->currentPage() ? 'active' : '' }}">
-                                            <a class="page-link" href="{{ $laboratories->url($i) }}">{{ $i }}</a>
-                                        </li>
-                                    @endfor
-                                    <li class="page-item {{ $laboratories->nextPageUrl() ? '' : 'disabled' }}">
-                                        <a class="page-link" href="{{ $laboratories->nextPageUrl() }}">Next</a>
-                                    </li>
-                                </ul>
-                            </nav> --}}
+                            @include('admin.partials.laboratories', ['laboratories' => $laboratories])
                         </div>
-
-
-
                     </div>
-
                 </div>
                 <!-- End Left side columns -->
-
             </div>
         </section>
-
     </main>
 </x-app-layout>

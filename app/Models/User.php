@@ -26,6 +26,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'college_id',
+        'department_id',
+
     ];
 
     /**
@@ -56,20 +59,27 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function admin()
+
+    public function college()
     {
-        return $this->hasOne(Admin::class);
+        return $this->belongsTo(College::class);
     }
 
-    public function instructor()
+    public function department()
     {
-        return $this->hasOne(Instructor::class);
+        return $this->belongsTo(Department::class);
     }
 
-    public function student()
+    public function attendances()
     {
-        return $this->hasOne(Student::class);
+        return $this->hasMany(Attendance::class, 'student_id');
     }
+    
+    public function schedules()
+    {
+        return $this->belongsToMany(Schedule::class, 'schedule_user');
+    }
+    
 
     public function getFullNameAttribute()
     {
@@ -86,5 +96,20 @@ class User extends Authenticatable
         }
 
         return $fullName;
+    }
+
+    public function isStudent()
+    {
+        return $this->role->name === 'student';
+    }
+
+    public function isInstructor()
+    {
+        return $this->role->name === 'instructor';
+    }
+
+    public function isAdmin()
+    {
+        return $this->role->name === 'admin';
     }
 }
