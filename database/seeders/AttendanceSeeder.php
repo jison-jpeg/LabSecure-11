@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Attendance;
-use App\Models\Subject;
+use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -16,49 +16,26 @@ class AttendanceSeeder extends Seeder
      */
     public function run(): void
     {
-        // Retrieve all the users with student role
-        $students = User::where('role_id', 3)->get();
+        // Retrieve all users with student and instructor roles
+        $users = User::where('role_id', 2)->orWhere('role_id', 3)->get();
 
-        // Retrieve all the users with instructor role
-        $instructors = User::where('role_id', 2)->get();
+        // Retrieve all schedules
+        $schedules = Schedule::all();
 
-        // Retrieve all subjects
-        $subjects = Subject::all();
+        // Possible attendance statuses
+        $statuses = ['Present', 'Absent', 'Late', 'Excused', 'Incomplete'];
 
-        // Possible attendance status
-        $status = ['Present', 'Absent', 'Late', 'Excused', 'Incomplete'];
-
-        // Loop through all the students
-        foreach ($students as $student) {
-            // Loop through all the subjects
-            foreach ($subjects as $subject) {
-                // Create 5 attendance record
-                for ($i = 0; $i < 2; $i++) {
-                    Attendance::create([
-                        'user_id' => $student->id,
-                        'subject_id' => $subject->id,
-                        'date' => Carbon::now()->subDays($i),
-                        'status' => $status[array_rand($status)],
-                    ]);
-                }
-                
-            }
-        }
-
-        // Loop through all the instructors
-        foreach ($instructors as $instructor) {
-            // Loop through all the subjects
-            foreach ($subjects as $subject) {
-                // Create 5 attendance record
-                for ($i = 0; $i < 2; $i++) {
-                    Attendance::create([
-                        'user_id' => $instructor->id,
-                        'subject_id' => $subject->id,
-                        'date' => Carbon::now()->subDays($i),
-                        'status' => $status[array_rand($status)],
-                    ]);
-                }
-                
+        // Create attendance records
+        foreach ($schedules as $schedule) {
+            foreach ($users as $user) {
+                Attendance::create([
+                    'user_id' => $user->id,
+                    'schedule_id' => $schedule->id,
+                    'time_in' => Carbon::now(),
+                    'time_out' => Carbon::now(),
+                    'date' => Carbon::now(),
+                    'status' => $statuses[array_rand($statuses)],
+                ]);
             }
         }
     }

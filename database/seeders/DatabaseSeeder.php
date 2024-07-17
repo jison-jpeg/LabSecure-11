@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             SubjectSeeder::class,
-            AttendanceSeeder::class,
             ScheduleSeeder::class,
+            AttendanceSeeder::class,
 
         ]);
     }
