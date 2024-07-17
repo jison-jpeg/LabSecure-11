@@ -52,25 +52,3 @@
     </main>
 </x-app-layout>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-        $(document).on('click', '.pagination a', function(event) {
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            fetch_data(page);
-        });
-
-        function fetch_data(page) {
-            $.ajax({
-                url: "/users/get-users?page=" + page,
-                success: function(data) {
-                    $('#users-table').html(data); // Ensure this is the correct element
-                },
-                error: function(xhr) {
-                    console.error("AJAX request failed: ", xhr);
-                }
-            });
-        }
-    });
-</script>
-

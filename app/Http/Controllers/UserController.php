@@ -10,7 +10,7 @@ class UserController extends Controller
     // View all users
     public function viewUsers()
     {
-        $users = User::paginate(1); // Adjust the pagination limit as needed
+        $users = User::paginate(10); // Adjust the pagination limit as needed
         return view('admin.user', compact('users'));
     }
 

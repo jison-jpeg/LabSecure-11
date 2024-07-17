@@ -26,7 +26,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('users')
     ->group(function () {
         Route::get('/', [UserController::class, 'viewUsers'])->name('users');
-        Route::get('/get-users', [UserController::class, 'getUsers'])->name('users.get'); // This route should match the AJAX call
     });
     
 // General Profile
