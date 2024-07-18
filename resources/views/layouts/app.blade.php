@@ -32,6 +32,8 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+
 </head>
 
 <body class="font-sans antialiased">
@@ -59,7 +61,7 @@
 
     <!-- Template Main JS File -->
     <script src="assets/js/main.js"></script>
-
+    @livewireScripts
 </body>
 
 </html>
