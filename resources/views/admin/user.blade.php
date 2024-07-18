@@ -50,5 +50,31 @@
         </section>
 
     </main>
-</x-app-layout>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('delete-form');
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            const deleteButton = document.getElementById('delete-selected');
+            const selectAllCheckbox = document.getElementById('select-all');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    toggleDeleteButton();
+                });
+            });
+
+            selectAllCheckbox.addEventListener('change', function () {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+                toggleDeleteButton();
+            });
+
+            function toggleDeleteButton() {
+                const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+                deleteButton.disabled = !anyChecked;
+            }
+        });
+    </script>
+</x-app-layout>

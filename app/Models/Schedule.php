@@ -37,4 +37,9 @@ class Schedule extends Model
     {
         return $this->belongsToMany(User::class, 'schedule_user');
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }

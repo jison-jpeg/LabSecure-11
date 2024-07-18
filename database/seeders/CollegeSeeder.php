@@ -13,8 +13,14 @@ class CollegeSeeder extends Seeder
      */
     public function run(): void
     {
-        College::create(['name' => 'College of Technologies', 'department_id' => 1, 'section' => 'A']);
-        College::create(['name' => 'College of Technologies', 'department_id' => 1, 'section' => 'B']);
-        College::create(['name' => 'College of Technologies', 'department_id' => 1, 'section' => 'C']);
+        College::create([
+            'name' => 'College of Technologies',
+        ]);
+        College::create([
+            'name' => 'College of Arts and Sciences',
+        ]);
+        College::create([
+            'name' => 'College of Business Administration',
+        ]);
     }
 }

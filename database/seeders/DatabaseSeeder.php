@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
 
         // Run the seeders class
         $this->call([
-            DepartmentSeeder::class,
             CollegeSeeder::class,
+            DepartmentSeeder::class,
             LaboratorySeeder::class,
             RoleSeeder::class,
             UserSeeder::class,

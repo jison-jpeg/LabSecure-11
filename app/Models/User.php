@@ -72,12 +72,12 @@ class User extends Authenticatable
 
     public function attendances()
     {
-        return $this->hasMany(Attendance::class, 'student_id');
+        return $this->hasMany(Attendance::class);
     }
     
     public function schedules()
     {
-        return $this->belongsToMany(Schedule::class, 'schedule_user');
+        return $this->belongsToMany(Schedule::class);
     }
     
 
