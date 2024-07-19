@@ -112,4 +112,16 @@ class User extends Authenticatable
     {
         return $this->role->name === 'admin';
     }
+
+    // Scope Search
+    public function scopeSearch($query, $value)
+    {
+        return $query->where('first_name', 'like', '%' . $value . '%')
+            ->orWhere('middle_name', 'like', '%' . $value . '%')
+            ->orWhere('last_name', 'like', '%' . $value . '%')
+            ->orWhere('suffix', 'like', '%' . $value . '%')
+            ->orWhere('username', 'like', '%' . $value . '%')
+            ->orWhere('email', 'like', '%' . $value . '%');
+    }
+
 }

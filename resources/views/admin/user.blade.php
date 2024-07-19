@@ -32,10 +32,13 @@
                                 <div class="card-body">
                                     <h5 class="card-title">User Management</h5>
 
-                                    <!-- Default Table -->
-                                    @include('admin.partials.users', ['users' => $users])
-
+                                    <!-- User Table -->
+                                    {{-- @include('admin.partials.users', ['users' => $users]) --}}
                                     <!-- End Default Table Example -->
+                                    {{-- User Table Livewire --}}
+                                    @livewire('user-table')
+                                    <!-- End User Table Livewire -->
+
                                 </div>
                             </div>
 
@@ -50,7 +53,7 @@
 
     </main>
 
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('delete-form');
             const checkboxes = document.querySelectorAll('.user-checkbox');
@@ -75,5 +78,5 @@
                 deleteButton.disabled = !anyChecked;
             }
         });
-    </script>
+    </script> --}}
 </x-app-layout>
