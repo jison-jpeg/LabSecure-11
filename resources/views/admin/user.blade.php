@@ -46,14 +46,17 @@
                                         <h5 class="card-title">User Management</h5>
                                     </div>
 
+                                    
+
                                     <!-- User Table -->
                                     {{-- @include('admin.partials.users', ['users' => $users]) --}}
                                     <!-- End Default Table Example -->
 
                                     {{-- User Table Livewire --}}
+                                    
                                     @livewire('user-table')
                                     <!-- End User Table Livewire -->
-                                </div>
+
                             </div>
                         </div>
                     </div>

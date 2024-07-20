@@ -50,6 +50,7 @@ class UserTable extends Component
     public function delete(User $user)
     {
         $user->delete();
+        
     }
 
     public function render()
