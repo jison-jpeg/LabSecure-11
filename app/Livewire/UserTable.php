@@ -24,7 +24,7 @@ class UserTable extends Component
     public $sortDir = 'DESC';
 
     #[Url()]
-    public $perPage = 2;
+    public $perPage = 10;
 
     public function updatedSearch(){
         $this->resetPage();
@@ -33,7 +33,7 @@ class UserTable extends Component
     public function clear()
     {
         $this->search = '';
-        $this->role = '';
+        $this->role = '';        
     }
 
     public function setSortBy($sortByField)

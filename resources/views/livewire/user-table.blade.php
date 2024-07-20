@@ -1,12 +1,24 @@
 <div>
     {{-- Search --}}
-    <form>
-        <div class="row mb-5 g-3">
+    <div class="row mb-5 g-1 align-items-center">
+        <div class="col-12 col-md-1">
+            <select wire:model.live="perPage" name="perPage" class="form-select">
+                <option value="2">2</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        
+        <form class="col-12 col-md-9 row g-1 align-items-center">
             <div class="col-12 col-md-4">
                 <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                     placeholder="Search users...">
             </div>
-            <div class="col-12 col-md-2">
+            <div class="col-12 col-md-3">
                 <select wire:model.live="role" name="role" class="form-select">
                     <option value="">User Type</option>
                     <option value="1">Admin</option>
@@ -17,12 +29,13 @@
             <div class="col-12 col-md-2">
                 <button class="btn btn-secondary w-100" type="reset" wire:click="clear">Clear Filters</button>
             </div>
-            <div class="col-12 col-md-2 ms-md-auto text-md-end">
-                <button class="btn btn-primary w-100" wire:click="addUser">Add User</button>
-            </div>
+        </form>
+        
+        <div class="col-12 col-md-2 ms-md-auto text-md-end">
+            <button class="btn btn-primary w-100" wire:click="addUser">Add User</button>
         </div>
-    </form>
-
+    </div>
+    
     <div class="overflow-auto">
         <table class="table">
             <thead>
