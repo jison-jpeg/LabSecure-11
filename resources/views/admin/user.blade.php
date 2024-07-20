@@ -45,6 +45,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="card-title">User Management</h5>
                                     </div>
+
                                     <!-- User Table -->
                                     {{-- @include('admin.partials.users', ['users' => $users]) --}}
                                     <!-- End Default Table Example -->

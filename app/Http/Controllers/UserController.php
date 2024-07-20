@@ -36,14 +36,4 @@ class UserController extends Controller
         return view('admin.user', compact('users', 'roles'));
     }
 
-    // Bulk delete users
-    public function bulkDelete(Request $request)
-    {
-        $userIds = $request->input('user_ids');
-        if ($userIds) {
-            User::whereIn('id', $userIds)->delete();
-            return redirect()->route('users')->with('success', 'Selected users deleted successfully.');
-        }
-        return redirect()->route('users')->with('error', 'No users selected for deletion.');
-    }
 }
