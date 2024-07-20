@@ -34,12 +34,10 @@
         </div>
         <div class="col-12 col-md-2">
             <div class="d-flex justify-content-end ">
-                <a href="#" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</a>
+                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
             </div>
         </div>
     </div>
-    
-    
 
     <div class="overflow-auto">
         <table class="table">
@@ -126,4 +124,5 @@
             {!! $users->links() !!}
         </div>
     </div>
+    @include('livewire.includes.user-modal')
 </div>

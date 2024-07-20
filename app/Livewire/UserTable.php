@@ -47,6 +47,17 @@ class UserTable extends Component
         $this->sortDir = 'DESC';
     }
 
+    public $first_name = '';
+    public $middle_name = '';
+    public $last_name = '';
+    public $suffix = '';
+    public $username = '';
+    public $email = '';
+    public $password = '';
+    public $role_id = '';
+    public $college_id = '';
+    public $department_id = '';
+
     public function delete(User $user)
     {
         $user->delete();
