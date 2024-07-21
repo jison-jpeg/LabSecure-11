@@ -24,7 +24,8 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
+                        Filters</button>
                 </div>
             </div>
         </div>
@@ -44,18 +45,22 @@
                     <a href="#">
                         <div class="card info-card sales-card lab-card">
                             <div class="action">
-                                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                                <a class="icon" href="#" data-bs-toggle="dropdown"><i
+                                        class="bi bi-three-dots"></i></a>
                                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                                     <li class="dropdown-header text-start">
                                         <h6>Action</h6>
                                     </li>
                                     <li><a class="dropdown-item" href="#">View</a></li>
                                     <li><a class="dropdown-item" href="#">Edit</a></li>
-                                    <li><a class="dropdown-item text-danger" href="#">Delete LAB {{$laboratory->id}}</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#">Delete LAB
+                                            {{ $laboratory->id }}</a></li>
                                 </ul>
                             </div>
                             <div class="card-body mt-3">
-                                <h5 class="badge rounded-pill bg-success">{{ $laboratory->status ?? 'N/A' }}</h5>
+                                <h5 class="badge rounded-pill {{ $laboratory->status == 'Occupied' ? 'bg-warning text-black' : ($laboratory->status == 'Locked' ? 'bg-danger' : ($laboratory->status == 'Available' ? 'bg-success' : 'bg-secondary')) }}">
+                                    {{ $laboratory->status }}
+                                </h5>
                                 <div class="row mt-4 sub-header">
                                     <div class="col-6 text-start text-truncate">
                                         <h6 class="text-muted">TYPE</h6>

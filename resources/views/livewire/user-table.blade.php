@@ -1,7 +1,7 @@
 <div>
-    <div class="row mb-5">
+    <div class="row mb-4">
         <div class="col-md-10">
-    
+
             {{-- perpage --}}
             <div class="row g-1">
                 <div class="col-md-2">
@@ -14,12 +14,12 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-    
+
                 <div class="col-12 col-md-4">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search users...">
                 </div>
-    
+
                 <div class="col-12 col-md-2">
                     <select wire:model.live="role" name="role" class="form-select">
                         <option value="">User Type</option>
@@ -28,20 +28,24 @@
                         <option value="3">Student</option>
                     </select>
                 </div>
-    
+
                 <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
+                        Filters</button>
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-2">
-            <div class="d-flex justify-content-end ">
-                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
-            </div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+                Vertically centered
+            </button>
+            <x-modal :modalTitle="$title" :eventName="$event">
+            </x-modal>
+
         </div>
     </div>
 
-    <div class="overflow-auto">
+    <div class="">
         <table class="table">
             <thead>
                 <tr>
@@ -101,20 +105,15 @@
                         {{-- <td>{{ $user->created_at->diffForHumans() }}</td> --}}
                         {{-- <td>{{ $user->updated_at->diffForHumans() }}</td> --}}
                         <td class="text-center">
-                            <div class="action">
-                                <a href="#" id="dropdownMenuLink{{ $user->id }}" data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
+                            <div class="btn-group dropstart">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end"
-                                    aria-labelledby="dropdownMenuLink{{ $user->id }}">
-                                    <li class="dropdown-header text-start">
-                                        <h6>Action</h6>
-                                    </li>
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><a class="dropdown-item" href="#">View</a></li>
                                     <li><a class="dropdown-item" href="#">Edit</a></li>
-                                    <li><a wire:click="delete({{ $user->id }})" class="dropdown-item text-danger"
-                                            href="#">Delete</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#">Delete User
+                                            {{ $user->first_name }}</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -126,5 +125,4 @@
             {!! $users->links() !!}
         </div>
     </div>
-    @include('livewire.includes.user-modal')
 </div>

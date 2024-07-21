@@ -10,6 +10,8 @@ use Livewire\WithPagination;
 class UserTable extends Component
 {
     use WithPagination;
+    public $title = 'Create User';
+    public $event = 'create-user';
 
     #[Url(history: true)]
     public $search = '';

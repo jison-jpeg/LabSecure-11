@@ -24,15 +24,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
 
-                    {{-- Add Button --}}
-                    <div class="mt-3 mb-3">
-                        @if (Auth::user()->role->name === 'admin')
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                            Add Laboratory
-                        </button>
-                        @endif
-                    </div>
-                    
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Computer Laboratories</h5>
