@@ -37,10 +37,12 @@
         </div>
         <div class="col-12 col-md-2">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-                Vertically centered
-            </button>
-            <x-modal :modalTitle="$title" :eventName="$event">
-            </x-modal>
+                Create User
+              </button>
+            {{-- <x-modal :modalTitle="$title" :eventName="$event">
+            </x-modal> --}}
+
+            @livewire('create-user')
 
         </div>
     </div>
@@ -110,10 +112,10 @@
                                     <i class="bi bi-three-dots"></i>
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><a class="dropdown-item" href="#">View</a></li>
-                                    <li><a class="dropdown-item" href="#">Edit</a></li>
-                                    <li><a class="dropdown-item text-danger" href="#">Delete User
-                                            {{ $user->first_name }}</a></li>
+                                    <li><button class="dropdown-item" href="#">View</button></li>
+                                    <li><button class="dropdown-item">Edit</button></li>
+                                    {{-- delete user --}}
+                                    <li><button wire:click="delete({{$user->id}})" class="dropdown-item text-danger" href="#">Delete User {{ $user->id }}</button>
                                 </ul>
                             </div>
                         </td>
