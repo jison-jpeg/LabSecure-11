@@ -36,7 +36,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Computer Laboratories</h5>
-                            @include('admin.partials.laboratories', ['laboratories' => $laboratories])
+                            @livewire('laboratory-table')
                         </div>
                     </div>
                 </div>

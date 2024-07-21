@@ -20,4 +20,13 @@ class Laboratory extends Model
     {
         return $this->hasMany(Schedule::class);
     }
+
+    // Scope Search
+    public function scopeSearch($query, $value)
+    {
+        return $query->where('name', 'like', '%' . $value . '%')
+            ->orWhere('location', 'like', '%' . $value . '%')
+            ->orWhere('type', 'like', '%' . $value . '%')
+            ->orWhere('status', 'like', '%' . $value . '%');
+    }
 }

@@ -5,11 +5,13 @@
             {{-- perpage --}}
             <div class="row g-1">
                 <div class="col-md-2">
-                    <select wire:model="perPage" name="perPage" class="form-select">
-                        <option value="5">5</option>
+                    <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
                         <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
                     </select>
                 </div>
     
@@ -72,14 +74,14 @@
                         'name' => 'role_id',
                         'displayName' => 'Role',
                     ])
-                    @include('livewire.includes.table-sortable-th', [
+                    {{-- @include('livewire.includes.table-sortable-th', [
                         'name' => 'created_at',
                         'displayName' => 'Created At',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'updated_at',
                         'displayName' => 'Updated At',
-                    ])
+                    ]) --}}
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -96,8 +98,8 @@
                         <td><span
                                 class="badge rounded-pill {{ $user->role->name == 'admin' ? 'bg-danger' : ($user->role->name == 'instructor' ? 'bg-success' : 'bg-secondary') }}">{{ $user->role->name }}</span>
                         </td>
-                        <td>{{ $user->created_at->diffForHumans() }}</td>
-                        <td>{{ $user->updated_at->diffForHumans() }}</td>
+                        {{-- <td>{{ $user->created_at->diffForHumans() }}</td> --}}
+                        {{-- <td>{{ $user->updated_at->diffForHumans() }}</td> --}}
                         <td class="text-center">
                             <div class="action">
                                 <a href="#" id="dropdownMenuLink{{ $user->id }}" data-bs-toggle="dropdown"

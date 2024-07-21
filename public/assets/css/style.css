@@ -248,28 +248,13 @@ h6 {
     }
 }
 
-/* Tenant Cards */
-.card-link .lab-card {
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease; /* Add transition for background-color and transform properties */
+.sub-header .h1 {
+    size: 20px;
 }
 
-.card-link:hover .lab-card {
-    background-color: #716ad11f; /* Change the background color on hover */
-    transform: translateY(
-        -5px
-    ); /* Apply a translateY transformation for the floating effect */
-}
-
-/* Lab Cards */
-.dashboard .lab-card {
-    padding-bottom: 10px;
-}
-
-.dashboard .lab-card h6 {
-    font-size: 28px;
-    color: #012970;
-    font-weight: 700;
+.sub-header h6,
+span {
+    font-size: 15px;
     margin: 0;
     padding: 0;
 }
@@ -338,6 +323,16 @@ h6 {
     color: #798eb3;
     padding: 15px;
 }
+.sub-lab-title {
+    font-size: 20vh;
+    font-weight: 500;
+    color: #012970;
+    font-family: "Poppins", sans-serif;
+    line-height: 0.8; /* Adjust line height */
+    margin: 0; /* Remove margin */
+    padding: 0; /* Remove padding */
+    display: inline-block; /* Ensure it takes only the necessary space */
+}
 
 .card-title {
     padding: 20px 0 15px 0;
@@ -347,6 +342,27 @@ h6 {
     font-family: "Poppins", sans-serif;
 }
 
+.lab-title {
+    padding: 20px 0 0 0;
+    font-weight: 500;
+    color: #012970;
+    font-family: "Poppins", sans-serif;
+}
+
+.lab-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.lab-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.lab-card a {
+    text-decoration: none;
+    color: inherit;
+}
 .card-title span {
     color: #899bbd;
     font-size: 14px;
@@ -924,15 +940,15 @@ h6 {
 }
 
 th.sortable {
-  cursor: pointer;
+    cursor: pointer;
 }
 th.sortable:after {
-  content: '\25b2'; /* Unicode character for upward triangle */
-  font-size: 0.7em;
-  margin-left: 5px;
+    content: "\25b2"; /* Unicode character for upward triangle */
+    font-size: 0.7em;
+    margin-left: 5px;
 }
 th.sortable.desc:after {
-  content: '\25bc'; /* Unicode character for downward triangle */
+    content: "\25bc"; /* Unicode character for downward triangle */
 }
 
 .header-title span {
@@ -972,21 +988,7 @@ th.sortable.desc:after {
     padding: 8px 15px;
 }
 
-.dashboard .action .dropdown-header {
-    padding: 8px 15px;
-}
-
 .dashboard .filter .dropdown-header h6 {
-    text-transform: uppercase;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: #aab7cf;
-    margin-bottom: 0;
-    padding: 0;
-}
-
-.dashboard .action .dropdown-header h6 {
     text-transform: uppercase;
     font-size: 14px;
     font-weight: 600;
@@ -1000,15 +1002,52 @@ th.sortable.desc:after {
     padding: 8px 15px;
 }
 
+/* Action dropdown */
+.dashboard .action {
+    position: absolute;
+    right: 0px;
+    top: 15px;
+}
+
+.dashboard .action .icon {
+    color: #aab7cf;
+    padding-right: 20px;
+    padding-bottom: 5px;
+    transition: 0.3s;
+    font-size: 16px;
+}
+
+.dashboard .action .icon:hover,
+.dashboard .action .icon:focus {
+    color: #4154f1;
+}
+
+.dashboard .action .dropdown-header {
+    padding: 8px 15px;
+}
+
+.dashboard .action .dropdown-header h6 {
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #aab7cf;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.dashboard .action .dropdown-item {
+    padding: 8px 15px;
+}
+
 /* Info Cards */
 .dashboard .info-card {
     padding-bottom: 10px;
 }
 
 .dashboard .info-card h6 {
-    font-size: 28px;
+    font-size: 15px;
     color: #012970;
-    font-weight: 700;
     margin: 0;
     padding: 0;
 }

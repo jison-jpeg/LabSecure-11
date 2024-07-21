@@ -1,5 +1,5 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xxl-5 mb-5 mt-5">
-    @foreach ($laboratories as $lab)
+    @foreach ($laboratories as $laboratory)
         <div class="col mb-4">
             <div class="card lab-card h-100">
                 <div class="filter position-relative">
