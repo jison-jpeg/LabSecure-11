@@ -33,12 +33,13 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    @flasher_render
 
 </head>
 
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-
+        @flasher_render
         <x-header />
         <x-sidebar />
         <!-- Page Content -->

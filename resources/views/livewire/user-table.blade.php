@@ -39,10 +39,11 @@
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verticalycentered">
                 Create User
               </button>
-            {{-- <x-modal :modalTitle="$title" :eventName="$event">
-            </x-modal> --}}
 
-            @livewire('create-user')
+              <livewire:create-user />
+              {{-- <x-modal :modalTitle="$title" :eventName="$event">
+              </x-modal> --}}
+
 
         </div>
     </div>
@@ -112,10 +113,9 @@
                                     <i class="bi bi-three-dots"></i>
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><button class="dropdown-item" href="#">View</button></li>
-                                    <li><button class="dropdown-item">Edit</button></li>
-                                    {{-- delete user --}}
-                                    <li><button wire:click="delete({{$user->id}})" class="dropdown-item text-danger" href="#">Delete User {{ $user->id }}</button>
+                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
+                                    <li><button @click="$dispatch('edit-mode',{id:{{$user->id}}})" type="button" class="dropdown-item" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#verticalycentered">Edit</button></li>
+                                    <li><button wire:click="delete({{$user->id}})" wire:confirm="Are you sure you want to delete '{{$user->first_name}} {{$user->last_name}}'"  type="button" class="dropdown-item text-danger" href="#">Delete User {{ $user->id }}</button>
                                 </ul>
                             </div>
                         </td>

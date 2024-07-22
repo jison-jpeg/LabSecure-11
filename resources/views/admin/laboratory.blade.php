@@ -27,7 +27,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Computer Laboratories</h5>
-                            @livewire('laboratory-table')
+                            <livewire:laboratory-table />
                         </div>
                     </div>
                 </div>

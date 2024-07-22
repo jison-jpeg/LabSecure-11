@@ -53,6 +53,16 @@ class LaboratoryTable extends Component
         $laboratory->delete();
     }
 
+    public function placeholder(){
+        return <<<'HTML'
+        <div class="placeholder-glow">
+            <div class="placeholder col-12">
+
+            </div>
+            </div>
+        HTML;
+    }
+
     public function render()
     {
         return view('livewire.laboratory-table', [

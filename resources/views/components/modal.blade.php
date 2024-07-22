@@ -12,7 +12,7 @@
             </div>
             <div class="modal-footer">
                 <button @click="$dispatch('{{$eventName}}-close')" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button @click="$dispatch('{{$eventName}}')" type="button" class="btn btn-primary">Save changes</button>
+                <button @click="$dispatch('{{$eventName}}')" type="submit" class="btn btn-primary">Save changes</button>
             </div>
         </div>
     </div>

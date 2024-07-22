@@ -5,11 +5,14 @@ namespace App\Livewire;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 class UserTable extends Component
 {
     use WithPagination;
+
+    public $user;
     public $title = 'Create User';
     public $event = 'create-user';
 
@@ -52,7 +55,8 @@ class UserTable extends Component
     public function delete(User $user)
     {
         $user->delete();
-        
+        notyf('User deleted successfully');
+
     }
 
     public function render()
@@ -65,5 +69,11 @@ class UserTable extends Component
                 ->orderBy($this->sortBy, $this->sortDir)
                 ->paginate($this->perPage),
         ]);
+    }
+
+    #[On('refresh-user-table')]
+    public function refreshUserTable()
+    {
+        $this->user=User::all();
     }
 }
