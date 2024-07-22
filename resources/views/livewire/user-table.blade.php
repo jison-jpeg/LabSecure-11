@@ -36,7 +36,7 @@
             </div>
         </div>
         <div class="col-12 col-md-2">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#verticalycentered">
                 Create User
               </button>
 
@@ -48,7 +48,7 @@
         </div>
     </div>
 
-    <div class="">
+    <div class="overflow-auto">
         <table class="table">
             <thead>
                 <tr>
@@ -115,7 +115,7 @@
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
                                     <li><button @click="$dispatch('edit-mode',{id:{{$user->id}}})" type="button" class="dropdown-item" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#verticalycentered">Edit</button></li>
-                                    <li><button wire:click="delete({{$user->id}})" wire:confirm="Are you sure you want to delete '{{$user->first_name}} {{$user->last_name}}'"  type="button" class="dropdown-item text-danger" href="#">Delete User {{ $user->id }}</button>
+                                    <li><button wire:click="delete({{$user->id}})" wire:confirm="Are you sure you want to delete '{{$user->first_name}} {{$user->last_name}}'"  type="button" class="dropdown-item text-danger" href="#">Delete {{$user->username}}</button>
                                 </ul>
                             </div>
                         </td>

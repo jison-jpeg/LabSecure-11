@@ -57,5 +57,7 @@ class UserSeeder extends Seeder
             'department_id' => 1,
             'college_id' => 1,
         ]);
+
+        User::factory(30)->create();
     }
 }

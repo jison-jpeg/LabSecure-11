@@ -30,7 +30,6 @@ class DatabaseSeeder extends Seeder
             SubjectSeeder::class,
             ScheduleSeeder::class,
             AttendanceSeeder::class,
-
         ]);
     }
 }

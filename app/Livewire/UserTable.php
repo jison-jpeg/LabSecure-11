@@ -22,28 +22,29 @@ class UserTable extends Component
     #[Url(history: true)]
     public $role = '';
 
-    #[Url(history:true)]
+    #[Url(history: true)]
     public $sortBy = 'created_at';
 
-    #[Url(history:true)]
+    #[Url(history: true)]
     public $sortDir = 'DESC';
 
     #[Url()]
     public $perPage = 10;
 
-    public function updatedSearch(){
+    public function updatedSearch()
+    {
         $this->resetPage();
     }
 
     public function clear()
     {
         $this->search = '';
-        $this->role = '';        
+        $this->role = '';
     }
 
     public function setSortBy($sortByField)
     {
-        if($this->sortBy === $sortByField) {
+        if ($this->sortBy === $sortByField) {
             $this->sortDir = ($this->sortDir == "ASC") ? 'DESC' : "ASC";
             return;
         }
@@ -55,8 +56,10 @@ class UserTable extends Component
     public function delete(User $user)
     {
         $user->delete();
-        notyf('User deleted successfully');
-
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('User deleted successfully');
     }
 
     public function render()
@@ -74,6 +77,6 @@ class UserTable extends Component
     #[On('refresh-user-table')]
     public function refreshUserTable()
     {
-        $this->user=User::all();
+        $this->user = User::all();
     }
 }

@@ -61,7 +61,10 @@ class CreateUser extends Component
 
         
         $this->dispatch('refresh-user-table');
-        notyf('User created successfully');
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('User created successfully');
         $this->reset();
     }
 
@@ -103,7 +106,10 @@ class CreateUser extends Component
             'email' => $this->email,
         ]);
 
-        notyf('User updated successfully');
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('User updated successfully');
         $this->dispatch('refresh-user-table');
         $this->reset();
     }
