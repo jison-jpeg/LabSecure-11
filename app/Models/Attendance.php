@@ -42,4 +42,25 @@ class Attendance extends Model
         }
         $this->save();
     }
+
+    // Scope Search
+    public function scopeSearch($query, $value)
+    {
+        return $query->whereHas('user', function ($query) use ($value) {
+            $query->where('first_name', 'like', '%' . $value . '%')
+                ->orWhere('middle_name', 'like', '%' . $value . '%')
+                ->orWhere('last_name', 'like', '%' . $value . '%')
+                ->orWhere('suffix', 'like', '%' . $value . '%')
+                ->orWhere('username', 'like', '%' . $value . '%')
+                ->orWhere('email', 'like', '%' . $value . '%');
+        })->orWhereHas('schedule', function ($query) use ($value) {
+            $query->where('name', 'like', '%' . $value . '%')
+                ->orWhere('location', 'like', '%' . $value . '%')
+                ->orWhere('type', 'like', '%' . $value . '%')
+                ->orWhere('status', 'like', '%' . $value . '%');
+        })->orWhere('date', 'like', '%' . $value . '%')
+            ->orWhere('time_in', 'like', '%' . $value . '%')
+            ->orWhere('time_out', 'like', '%' . $value . '%')
+            ->orWhere('status', 'like', '%' . $value . '%');
+    }
 }

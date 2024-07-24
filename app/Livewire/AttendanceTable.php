@@ -2,28 +2,27 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
+use App\Models\Attendance;
 use Livewire\Component;
 use Livewire\Attributes\Url;
-use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
-class UserTable extends Component
+class AttendanceTable extends Component
 {
     use WithPagination;
 
-    public $user;
-    public $title = 'Create User';
-    public $event = 'create-user';
+    public $attendance;
+    public $title = 'Attendance Records';
+    public $event = 'create-attendance';
 
     #[Url(history: true)]
     public $search = '';
 
     #[Url(history: true)]
-    public $role = '';
+    public $status = '';
 
     #[Url(history: true)]
-    public $sortBy = 'created_at';
+    public $sortBy = 'date';
 
     #[Url(history: true)]
     public $sortDir = 'DESC';
@@ -39,7 +38,7 @@ class UserTable extends Component
     public function clear()
     {
         $this->search = '';
-        $this->role = '';
+        $this->status = '';
     }
 
     public function setSortBy($sortByField)
@@ -53,31 +52,34 @@ class UserTable extends Component
         $this->sortDir = 'DESC';
     }
 
-    public function delete(User $user)
+    public function delete(Attendance $attendance)
     {
-        $user->delete();
+        $attendance->delete();
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
-            ->success('User deleted successfully');
-        
+            ->success('Attendance record deleted successfully');
     }
 
     public function render()
     {
-        return view('livewire.user-table', [
-            'users' => User::search($this->search)
-                ->when($this->role !== '', function ($query) {
-                    $query->where('role_id', $this->role);
+        return view('livewire.attendance-table', [
+            'attendances' => Attendance::with(['user', 'schedule'])
+                ->whereHas('user', function($query) {
+                    $query->where('first_name', 'like', '%'.$this->search.'%')
+                          ->orWhere('last_name', 'like', '%'.$this->search.'%');
+                })
+                ->when($this->status !== '', function ($query) {
+                    $query->where('status', $this->status);
                 })
                 ->orderBy($this->sortBy, $this->sortDir)
                 ->paginate($this->perPage),
         ]);
     }
 
-    #[On('refresh-user-table')]
-    public function refreshUserTable()
+    #[On('refresh-attendance-table')]
+    public function refreshAttendanceTable()
     {
-        $this->user = User::all();
+        $this->attendance = Attendance::all();
     }
 }

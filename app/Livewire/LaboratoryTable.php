@@ -55,6 +55,7 @@ class LaboratoryTable extends Component
 
     public function delete(Laboratory $laboratory)
     {
+        $this->dispatch('refresh-laboratory-table');
         $laboratory->delete();
         notyf()
             ->position('x', 'right')
@@ -85,7 +86,7 @@ class LaboratoryTable extends Component
         ]);
     }
 
-    #[On('refresh-user-table')]
+    #[On('refresh-laboratory-table')]
     public function refreshUserTable()
     {
         $this->laboratory = Laboratory::all();

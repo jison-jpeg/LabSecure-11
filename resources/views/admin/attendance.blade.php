@@ -43,11 +43,11 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title">User Management</h5>
+                                        <h5 class="card-title">User Attendance</h5>
                                     </div>
 
                                     {{-- User Table Livewire --}}
-                                    @livewire('user-table')
+                                    @livewire('attendance-table')
                                     <!-- End User Table Livewire -->
 
                             </div>

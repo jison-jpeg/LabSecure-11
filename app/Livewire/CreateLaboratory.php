@@ -33,6 +33,8 @@ class CreateLaboratory extends Component
 
     public function save()
     {
+        // dd($this->name, $this->location, $this->type, $this->status);
+
         $this->validate([
             'name' => 'required|unique:laboratories',
             'location' => 'required',
@@ -55,15 +57,15 @@ class CreateLaboratory extends Component
     }
 
     #[On('edit-mode')]
-    public function edit(Laboratory $laboratory)
+    public function edit($id)
     {
         $this->editForm = true;
         $this->formTitle = 'Edit Laboratory';
-        $this->laboratory = $laboratory;
-        $this->name = $laboratory->name;
-        $this->location = $laboratory->location;
-        $this->type = $laboratory->type;
-        $this->status = $laboratory->status;
+        $this->laboratory = Laboratory::findOrFail($id);
+        $this->name =  $this->laboratory->name;
+        $this->location =  $this->laboratory->location;
+        $this->type =  $this->laboratory->type;
+        // $this->status =  $this->laboratory->status;
     }
 
     public function update()
@@ -87,6 +89,12 @@ class CreateLaboratory extends Component
         ->position('y', 'top')
         ->success('Laboratory updated successfully');
         $this->dispatch('refresh-laboratory-table');
+        $this->reset();
+    }
+
+    #[On('reset-modal')]
+    public function close(){
+        $this->resetErrorBag();
         $this->reset();
     }
 }

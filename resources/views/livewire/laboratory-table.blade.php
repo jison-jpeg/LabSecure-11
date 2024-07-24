@@ -49,7 +49,8 @@
                                         <h6>Action</h6>
                                     </li>
                                     <li><a class="dropdown-item" href="#">View</a></li>
-                                    <li><a  @click="$dispatch('edit-mode',{id:{{ $laboratory->id }}})" class="dropdown-item" href="#">Edit</a></li>
+                                    <li><a  @click="$dispatch('edit-mode',{id:{{ $laboratory->id }}})" class="dropdown-item" data-bs-toggle="modal"
+                                        data-bs-target="#verticalycentered">Edit</a></li>
                                     <li><a wire:click="delete({{ $laboratory->id }})"  wire:confirm="Are you sure you want to delete laboratory {{ $laboratory->name}} ?" class="dropdown-item text-danger" href="#">Delete LAB
                                             {{ $laboratory->id }}</a></li>
                                 </ul>
@@ -95,8 +96,24 @@
         <div class="d-flex justify-content-start">
             {!! $laboratories->links() !!}
         </div>
-
     </div>
-    {{-- @include('livewire.includes.laboratory-modal') --}}
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            @this.on('refresh-laboratory-table', (event) => {
+                //alert('product created/updated')
+                var myModalEl = document.querySelector('#verticalycentered')
+                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
 
+                setTimeout(() => {
+                    modal.hide();
+                    @this.dispatch('reset-modal');
+                });
+            })
+
+            var mymodal = document.getElementById('verticalycentered')
+            mymodal.addEventListener('hidden.bs.modal', (event) => {
+                @this.dispatch('reset-modal');
+            })
+        })
+    </script>
 </div>
