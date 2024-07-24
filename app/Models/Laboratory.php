@@ -13,7 +13,7 @@ class Laboratory extends Model
         'name',
         'location',
         'type',
-        'status',
+        'status' => 'Available',
     ];
 
     public function schedules()

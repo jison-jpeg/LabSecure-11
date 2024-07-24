@@ -30,10 +30,7 @@
             </div>
         </div>
         <div class="col-12 col-md-2">
-            <div class="d-flex justify-content-end">
-                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addLaboratoryModal">Add
-                    Laboratory</button>
-            </div>
+            <livewire:create-laboratory />
         </div>
     </div>
 
@@ -52,8 +49,8 @@
                                         <h6>Action</h6>
                                     </li>
                                     <li><a class="dropdown-item" href="#">View</a></li>
-                                    <li><a class="dropdown-item" href="#">Edit</a></li>
-                                    <li><a class="dropdown-item text-danger" href="#">Delete LAB
+                                    <li><a  @click="$dispatch('edit-mode',{id:{{ $laboratory->id }}})" class="dropdown-item" href="#">Edit</a></li>
+                                    <li><a wire:click="delete({{ $laboratory->id }})"  wire:confirm="Are you sure you want to delete laboratory {{ $laboratory->name}} ?" class="dropdown-item text-danger" href="#">Delete LAB
                                             {{ $laboratory->id }}</a></li>
                                 </ul>
                             </div>
@@ -76,7 +73,7 @@
                                         <h1 class="lab-title">LAB</h1>
                                     </div>
                                     <div class="col-auto">
-                                        <h5 class="sub-lab-title">{{ $laboratory->id }}</h5>
+                                        <h5 class="sub-lab-title">{{ $laboratory->name }}</h5>
                                     </div>
                                 </div>
                                 <div class="row mt-4 sub-header">

@@ -5,11 +5,16 @@ namespace App\Livewire;
 use App\Models\Laboratory;
 use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 class LaboratoryTable extends Component
 {
     use WithPagination;
+
+    public $laboratory;
+    public $title = 'Create Laboratory';
+    public $event = 'create-laboratory';
 
     #[Url(history: true)]
     public $search = '';
@@ -21,7 +26,7 @@ class LaboratoryTable extends Component
     public $sortBy = 'created_at';
 
     #[Url(history: true)]
-    public $sortDir = 'DESC';
+    public $sortDir = 'ASC';
 
     #[Url(history: true)]
     public $perPage = 8;
@@ -51,6 +56,10 @@ class LaboratoryTable extends Component
     public function delete(Laboratory $laboratory)
     {
         $laboratory->delete();
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Laboratory deleted successfully');
     }
 
     public function placeholder(){
@@ -74,5 +83,11 @@ class LaboratoryTable extends Component
             ->paginate($this->perPage)
                 
         ]);
+    }
+
+    #[On('refresh-user-table')]
+    public function refreshUserTable()
+    {
+        $this->laboratory = Laboratory::all();
     }
 }
