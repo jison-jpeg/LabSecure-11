@@ -36,12 +36,8 @@
             </div>
         </div>
         <div class="col-12 col-md-2">
-            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-                Create User
-              </button>
-
-              <livewire:create-user />
-              {{-- <x-modal :modalTitle="$title" :eventName="$event">
+            <livewire:create-user />
+            {{-- <x-modal :modalTitle="$title" :eventName="$event">
               </x-modal> --}}
 
 
@@ -114,8 +110,13 @@
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button type="button" class="dropdown-item" href="#">Edit</button></li>
-                                    <li><button wire:click="delete({{$user->id}})" wire:confirm="Are you sure you want to delete '{{$user->first_name}} {{$user->last_name}}'"  type="button" class="dropdown-item text-danger" href="#">Delete {{$user->username}}</button>
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})" type="button"
+                                            class="dropdown-item" data-bs-toggle="modal"
+                                            data-bs-target="#verticalycentered">Edit</button></li>
+                                    <li><button wire:click="delete({{ $user->id }})"
+                                            wire:confirm="Are you sure you want to delete '{{ $user->first_name }} {{ $user->last_name }}'"
+                                            type="button" class="dropdown-item text-danger" href="#">Delete
+                                            {{ $user->username }}</button>
                                 </ul>
                             </div>
                         </td>
@@ -127,4 +128,24 @@
             {!! $users->links() !!}
         </div>
     </div>
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            @this.on('refresh-user-table', (event) => {
+                //alert('product created/updated')
+                var myModalEl = document.querySelector('#verticalycentered')
+                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
+
+                setTimeout(() => {
+                    modal.hide();
+                    @this.dispatch('reset-modal');
+                });
+            })
+
+            var mymodal = document.getElementById('verticalycentered')
+            mymodal.addEventListener('hidden.bs.modal', (event) => {
+                @this.dispatch('reset-modal');
+            })
+        })
+    </script>
 </div>

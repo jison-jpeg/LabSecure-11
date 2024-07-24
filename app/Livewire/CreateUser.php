@@ -10,9 +10,9 @@ use Flasher\Notyf\Prime\NotyfInterface;
 
 class CreateUser extends Component
 {
-    public $user;
     public $formTitle = 'Create User';
     public $editForm = false;
+    public $user;
     public $first_name;
     public $middle_name;
     public $last_name;
@@ -70,15 +70,16 @@ class CreateUser extends Component
 
     #[On('reset-modal')]
     public function close(){
+        $this->resetErrorBag();
         $this->reset();
     }
 
     #[On('edit-mode')]
     public function edit($id)
     {
-        $this->editForm = true;
         $this->formTitle = 'Edit User';
-        $this->user = User::find($id);
+        $this->editForm = true;
+        $this->user = User::findOrFail($id);
         $this->first_name = $this->user->first_name;
         $this->middle_name = $this->user->middle_name;
         $this->last_name = $this->user->last_name;
