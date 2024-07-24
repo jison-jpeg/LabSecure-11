@@ -114,7 +114,7 @@
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{$user->id}}})" type="button" class="dropdown-item" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#verticalycentered">Edit</button></li>
+                                    <li><button type="button" class="dropdown-item" href="#">Edit</button></li>
                                     <li><button wire:click="delete({{$user->id}})" wire:confirm="Are you sure you want to delete '{{$user->first_name}} {{$user->last_name}}'"  type="button" class="dropdown-item text-danger" href="#">Delete {{$user->username}}</button>
                                 </ul>
                             </div>
