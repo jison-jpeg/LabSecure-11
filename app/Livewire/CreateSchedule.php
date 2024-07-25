@@ -71,7 +71,7 @@ class CreateSchedule extends Component
         ]);
 
          // Check for schedule conflict
-        $conflicts = $this->getConflicts($this->instructor_id, $this->days_of_week, $this->start_time, $this->end_time);
+         $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time);
 
         if ($conflicts->isNotEmpty()) {
             $this->conflicts = $conflicts;
@@ -102,9 +102,12 @@ class CreateSchedule extends Component
         $this->reset();
     }
 
-    public function getConflicts($instructor_id, $days_of_week, $start_time, $end_time)
+    public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time)
     {
-        return Schedule::where('instructor_id', $instructor_id)
+        return Schedule::where(function ($query) use ($instructor_id, $section_id) {
+                $query->where('instructor_id', $instructor_id)
+                      ->orWhere('section_id', $section_id);
+            })
             ->where(function ($query) use ($days_of_week) {
                 foreach ($days_of_week as $day) {
                     $query->orWhereJsonContains('days_of_week', $day);
@@ -120,7 +123,7 @@ class CreateSchedule extends Component
             })
             ->get();
     }
-    
+
     #[On('reset-modal')]
     public function close(){
         $this->resetErrorBag();

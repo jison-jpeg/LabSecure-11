@@ -11,19 +11,21 @@
                 </div>
                 <div class="modal-body">
                     @if ($conflicts)
-                    <div class="alert alert-danger">
-                        <h5>Conflicting Schedules:</h5>
-                        <ul>
-                            @foreach ($conflicts as $conflict)
-                                <li>
-                                    {{ $conflict->subject->name }} on 
-                                    {{ implode(', ', json_decode($conflict->days_of_week)) }} 
-                                    from {{ $conflict->start_time }} to {{ $conflict->end_time }}
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                        <div class="alert alert-danger">
+                            <h5>Conflicting Schedules:</h5>
+                            <ul>
+                                @foreach ($conflicts as $conflict)
+                                    <li>
+                                        {{ $conflict->instructor->first_name }} {{ $conflict->instructor->last_name }} 
+                                        has {{ $conflict->subject->name }} on 
+                                        {{ implode(', ', json_decode($conflict->days_of_week)) }} 
+                                        from {{ $conflict->start_time }} to {{ $conflict->end_time }}
+                                        in section {{ $conflict->section->name }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-4">
                             <label for="subject_id" class="form-label">Subject</label>
