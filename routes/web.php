@@ -5,6 +5,9 @@ use App\Http\Controllers\LaboratoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\CollegeManagementController;
+use App\Http\Controllers\ScheduleController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,10 +34,22 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 
 // Attendance Management
 Route::middleware(['auth', 'verified'])
-    ->prefix('attendance')
+    ->prefix('attendances')
     ->group(function () {
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
     });
+
+// College Management
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('colleges')
+    ->group(function () {
+        Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
+    });
+
+// Schedule
+Route::middleware('auth')->group(function () {
+    Route::get('/schedules', [ScheduleController::class, 'viewSchedule'])->name('schedule');
+});
 
 // General Profile
 Route::middleware('auth')->group(function () {

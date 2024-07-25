@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Attendance;
 use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 class AttendanceTable extends Component

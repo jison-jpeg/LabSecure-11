@@ -26,8 +26,9 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             LaboratorySeeder::class,
             RoleSeeder::class,
-            UserSeeder::class,
             SubjectSeeder::class,
+            UserSeeder::class,
+            SectionSeeder::class,
             ScheduleSeeder::class,
             AttendanceSeeder::class,
         ]);

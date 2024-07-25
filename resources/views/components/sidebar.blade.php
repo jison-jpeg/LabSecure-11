@@ -36,7 +36,7 @@
             @endif
     
             <li class="nav-item">
-                <a class="nav-link {{ request()->is('attendance*') ? '' : 'collapsed' }}" href="{{ url('/attendance') }}">
+                <a class="nav-link {{ request()->is('attendances*') ? '' : 'collapsed' }}" href="{{ url('/attendances') }}">
                     <i class="bi bi-clipboard2-check"></i>
                     <span>Attendance</span>
                 </a>

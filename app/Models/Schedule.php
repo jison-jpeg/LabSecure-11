@@ -28,6 +28,21 @@ class Schedule extends Model
         return $this->belongsTo(User::class, 'instructor_id');
     }
 
+    public function college()
+    {
+        return $this->belongsTo(College::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+
     public function laboratory()
     {
         return $this->belongsTo(Laboratory::class);
