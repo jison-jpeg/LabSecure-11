@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('college_id')->constrained()->onDelete('cascade');
             $table->foreignId('department_id')->constrained()->onDelete('cascade');
             $table->foreignId('section_id')->constrained()->onDelete('cascade');
-            $table->string('day_of_week');
+            $table->json('days_of_week');;
             $table->time('start_time');
             $table->time('end_time');
             $table->timestamps();
@@ -39,6 +39,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('schedule_user');
         Schema::dropIfExists('schedules');
     }
 };

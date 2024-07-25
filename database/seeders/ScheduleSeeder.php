@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\College;
+use App\Models\Department;
 use App\Models\Laboratory;
 use App\Models\Schedule;
+use App\Models\Section;
 use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -20,6 +23,9 @@ class ScheduleSeeder extends Seeder
         $subject = Subject::first();
         $instructor = User::where('role_id', 2)->first();
         $laboratory = Laboratory::first();
+        $college = College::first();
+        $department = Department::first();
+        $section = Section::first();
 
         // Fetch all the students
         $students = User::where('role_id', 3)->get();
@@ -29,10 +35,10 @@ class ScheduleSeeder extends Seeder
             'subject_id' => $subject->id,
             'instructor_id' => $instructor->id,
             'laboratory_id' => $laboratory->id,
-            'college_id' => 1,
-            'department_id' => 1,
-            'section_id' => 1,
-            'day_of_week' => 'Monday',
+            'college_id' => $college->id,
+            'department_id' => $department->id,
+            'section_id' => $section->id,
+            'days_of_week' => json_encode(['Monday', 'Wednesday', 'Friday']), // Example for multiple days
             'start_time' => '08:00:00',
             'end_time' => '10:00:00',
         ])->students()->attach($students->pluck('id'));

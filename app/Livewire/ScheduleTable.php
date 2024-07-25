@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Schedule;
+use Arr;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -12,6 +13,8 @@ class ScheduleTable extends Component
 {
     use WithPagination;
 
+    public $schedule;
+
     public $title = 'Schedules';
     public $event = 'refresh-schedule-table';
 
@@ -19,7 +22,7 @@ class ScheduleTable extends Component
     public $search = '';
 
     #[Url(history: true)]
-    public $sortBy = 'day_of_week';
+    public $sortBy = 'start_time';
 
     #[Url(history: true)]
     public $sortDir = 'ASC';
@@ -49,25 +52,19 @@ class ScheduleTable extends Component
     }
 
     public function render()
-    {
-        return view('livewire.schedule-table', [
-            'schedules' => Schedule::with(['subject', 'instructor', 'college', 'department', 'section', 'laboratory'])
-                ->whereHas('subject', function ($query) {
-                    $query->where('name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('instructor', function ($query) {
-                    $query->where('first_name', 'like', '%' . $this->search . '%')
-                        ->orWhere('last_name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhere('day_of_week', 'like', '%' . $this->search . '%')
-                ->orderBy($this->sortBy, $this->sortDir)
-                ->paginate($this->perPage),
-        ]);
-    }
+{
+    return view('livewire.schedule-table', [
+        'schedules' => Schedule::search($this->search)
+            ->with('subject', 'instructor', 'college', 'department', 'section', 'laboratory')
+            ->orderBy($this->sortBy, $this->sortDir)
+            ->paginate($this->perPage),
+    ]);
+}
+
 
     #[On('refresh-schedule-table')]
     public function refreshScheduleTable()
     {
-        $this->emit('refresh');
+        $this->schedule = Schedule::all();
     }
 }

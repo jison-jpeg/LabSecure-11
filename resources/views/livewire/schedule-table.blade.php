@@ -1,6 +1,7 @@
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
+
             <div class="row g-1">
                 <div class="col-md-2">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -20,10 +21,11 @@
                 <div class="col-12 col-md-2">
                     <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
                 </div>
-                <div class="col-12 col-md-2">
-                    {{-- <livewire:create-schedule /> --}}
-                </div>
+                
             </div>
+        </div>
+        <div class="col-12 col-md-2">
+            <livewire:create-schedule />
         </div>
     </div>
 
@@ -38,7 +40,7 @@
                     @include('livewire.includes.table-sortable-th', ['name' => 'college.name', 'displayName' => 'College'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'department.name', 'displayName' => 'Department'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'laboratory.name', 'displayName' => 'Laboratory'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'day_of_week', 'displayName' => 'Day of Week'])
+                    @include('livewire.includes.table-sortable-th', ['name' => 'days_of_week', 'displayName' => 'Days of Week'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'start_time', 'displayName' => 'Start Time'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'end_time', 'displayName' => 'End Time'])
                 </tr>
@@ -53,7 +55,7 @@
                         <td>{{ $schedule->college->name }}</td>
                         <td>{{ $schedule->department->name }}</td>
                         <td>{{ $schedule->laboratory->name }}</td>
-                        <td>{{ $schedule->day_of_week }}</td>
+                        <td>{{ implode(', ', json_decode($schedule->days_of_week)) }}</td>
                         <td>{{ $schedule->start_time }}</td>
                         <td>{{ $schedule->end_time }}</td>
                     </tr>
@@ -64,4 +66,23 @@
             {!! $schedules->links() !!}
         </div>
     </div>
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            @this.on('refresh-schedule-table', (event) => {
+                //alert('product created/updated')
+                var myModalEl = document.querySelector('#verticalycentered')
+                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
+
+                setTimeout(() => {
+                    modal.hide();
+                    @this.dispatch('reset-modal');
+                });
+            })
+
+            var mymodal = document.getElementById('verticalycentered')
+            mymodal.addEventListener('hidden.bs.modal', (event) => {
+                @this.dispatch('reset-modal');
+            })
+        })
+    </script>
 </div>

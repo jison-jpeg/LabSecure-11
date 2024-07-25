@@ -13,7 +13,10 @@ class Schedule extends Model
         'subject_id',
         'instructor_id',
         'laboratory_id',
-        'day_of_week',
+        'college_id',
+        'department_id',
+        'section_id',
+        'days_of_week',
         'start_time',
         'end_time',
     ];
@@ -56,5 +59,32 @@ class Schedule extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    // Scope Search
+    public function scopeSearch($query, $value)
+    {
+        return $query->whereHas('subject', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            })
+            ->orWhereHas('instructor', function ($q) use ($value) {
+                $q->where('first_name', 'like', '%' . $value . '%')
+                  ->orWhere('last_name', 'like', '%' . $value . '%');
+            })
+            ->orWhereHas('college', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            })
+            ->orWhereHas('department', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            })
+            ->orWhereHas('section', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            })
+            ->orWhereHas('laboratory', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            })
+            ->orWhereJsonContains('days_of_week', $value)
+            ->orWhere('start_time', 'like', '%' . $value . '%')
+            ->orWhere('end_time', 'like', '%' . $value . '%');
     }
 }

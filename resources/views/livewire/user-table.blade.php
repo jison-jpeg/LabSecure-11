@@ -39,8 +39,6 @@
             <livewire:create-user />
             {{-- <x-modal :modalTitle="$title" :eventName="$event">
               </x-modal> --}}
-
-
         </div>
     </div>
 
