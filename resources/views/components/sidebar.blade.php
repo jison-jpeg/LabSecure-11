@@ -23,14 +23,14 @@
                     <a class="nav-link {{ request()->is('laboratories*') ? '' : 'collapsed' }}"
                         href="{{ url('/laboratories') }}">
                         <i class="bi bi-view-stacked"></i>
-                        <span>Lab Management</span>
+                        <span>Laboratories</span>
                     </a>
                 </li>
     
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('users*') ? '' : 'collapsed' }}" href="{{ url('/users') }}">
                         <i class="bi bi-people"></i>
-                        <span>User Management</span>
+                        <span>Users</span>
                     </a>
                 </li>
             @endif
@@ -38,7 +38,7 @@
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('attendances*') ? '' : 'collapsed' }}" href="{{ url('/attendances') }}">
                     <i class="bi bi-clipboard2-check"></i>
-                    <span>Attendance</span>
+                    <span>Attendances</span>
                 </a>
             </li>
     
@@ -48,7 +48,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('courses*') ? '' : 'collapsed' }}" href="{{ url('/courses') }}">
                         <i class="bi bi-bank"></i>
-                        <span>College Management</span>
+                        <span>Courses</span>
                     </a>
                 </li>
     
@@ -56,21 +56,21 @@
                     <a class="nav-link {{ request()->is('faculties*') ? '' : 'collapsed' }}"
                         href="{{ url('/faculties') }}">
                         <i class="bi bi-mortarboard"></i>
-                        <span>Faculty Management</span>
+                        <span>Faculties</span>
                     </a>
                 </li>
     
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('students*') ? '' : 'collapsed' }}" href="{{ url('/students') }}">
                         <i class="bi bi-person-workspace"></i>
-                        <span>Student Management</span>
+                        <span>Students</span>
                     </a>
                 </li>
     
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('subjects*') ? '' : 'collapsed' }}" href="{{ url('/subjects') }}">
                         <i class="bi bi-book"></i>
-                        <span>Subject Management</span>
+                        <span>Subjects</span>
                     </a>
                 </li>
             @endif
@@ -78,7 +78,7 @@
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('schedules*') ? '' : 'collapsed' }}" href="{{ url('/schedules') }}">
                     <i class="bi bi-calendar2-week"></i>
-                    <span>Class Schedule</span>
+                    <span>Schedules</span>
                 </a>
             </li>
     
