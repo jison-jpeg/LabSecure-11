@@ -14,7 +14,7 @@ class Department extends Model
         'college_id',
     ];
 
-    public function colleges()
+    public function college()
     {
         return $this->belongsTo(College::class);
     }

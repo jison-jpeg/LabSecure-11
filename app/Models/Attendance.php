@@ -43,7 +43,6 @@ class Attendance extends Model
         $this->save();
     }
 
-    // Scope Search
     public function scopeSearch($query, $value)
     {
         return $query->whereHas('user', function ($query) use ($value) {

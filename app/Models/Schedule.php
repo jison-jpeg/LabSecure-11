@@ -61,7 +61,6 @@ class Schedule extends Model
         return $this->hasMany(Attendance::class);
     }
 
-    // Scope Search
     public function scopeSearch($query, $value)
     {
         return $query->whereHas('subject', function ($q) use ($value) {
@@ -90,7 +89,6 @@ class Schedule extends Model
             ->orWhere('end_time', 'like', '%' . $value . '%');
     }
 
-    // Scope Sort
     public function scopeSort($query, $sortBy, $sortDir)
     {
         if (in_array($sortBy, ['subject.name', 'college.name', 'department.name', 'section.name', 'laboratory.name'])) {

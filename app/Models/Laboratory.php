@@ -25,7 +25,6 @@ class Laboratory extends Model
         return $this->hasMany(Schedule::class);
     }
 
-    // Scope Search
     public function scopeSearch($query, $value)
     {
         return $query->where('name', 'like', '%' . $value . '%')

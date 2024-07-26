@@ -13,7 +13,7 @@ class College extends Model
         'name',
     ];
 
-    public function department()
+    public function departments()
     {
         return $this->hasMany(Department::class);
     }
@@ -23,7 +23,6 @@ class College extends Model
         return $this->hasMany(User::class);
     }
 
-    // Scope Search
     public function scopeSearch($query, $search)
     {
         return $query->where('name', 'like', '%' . $search . '%');
