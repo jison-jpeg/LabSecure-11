@@ -13,6 +13,10 @@ class Laboratory extends Model
         'name',
         'location',
         'type',
+        'status',
+    ];
+
+    protected $attributes = [
         'status' => 'Available',
     ];
 

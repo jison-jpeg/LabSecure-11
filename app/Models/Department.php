@@ -16,7 +16,7 @@ class Department extends Model
 
     public function colleges()
     {
-        return $this->hasMany(College::class);
+        return $this->belongsTo(College::class);
     }
 
     public function sections()
