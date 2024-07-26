@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\Schedule;
-use Arr;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -14,18 +13,17 @@ class ScheduleTable extends Component
     use WithPagination;
 
     public $schedule;
-
-    public $title = 'Schedules';
-    public $event = 'refresh-schedule-table';
+    public $title = 'Create Schedule';
+    public $event = 'create-schedule';
 
     #[Url(history: true)]
     public $search = '';
 
     #[Url(history: true)]
-    public $sortBy = 'start_time';
+    public $sortBy = 'created_at';
 
     #[Url(history: true)]
-    public $sortDir = 'ASC';
+    public $sortDir = 'DESC';
 
     #[Url()]
     public $perPage = 10;
@@ -48,19 +46,26 @@ class ScheduleTable extends Component
         }
 
         $this->sortBy = $sortByField;
-        $this->sortDir = 'ASC';
+        $this->sortDir = 'DESC';
+    }
+
+    public function delete(Schedule $schedule)
+    {
+        $schedule->delete();
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Schedule deleted successfully');
     }
 
     public function render()
-{
-    return view('livewire.schedule-table', [
-        'schedules' => Schedule::search($this->search)
-            ->with('subject', 'instructor', 'college', 'department', 'section', 'laboratory')
-            ->orderBy($this->sortBy, $this->sortDir)
-            ->paginate($this->perPage),
-    ]);
-}
-
+    {
+        return view('livewire.schedule-table', [
+            'schedules' => Schedule::search($this->search)
+                ->sort($this->sortBy, $this->sortDir)
+                ->paginate($this->perPage),
+        ]);
+    }
 
     #[On('refresh-schedule-table')]
     public function refreshScheduleTable()

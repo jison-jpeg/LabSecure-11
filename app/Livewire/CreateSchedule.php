@@ -51,8 +51,8 @@ class CreateSchedule extends Component
             'department_id' => 'required',
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
-            'start_time' => 'required',
-            'end_time' => 'required',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
     }
 
@@ -70,15 +70,16 @@ class CreateSchedule extends Component
             'end_time' => 'required',
         ]);
 
-         // Check for schedule conflict
-         $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time);
+        // Check for schedule conflict
+        $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time);
 
         if ($conflicts->isNotEmpty()) {
             $this->conflicts = $conflicts;
             notyf()
+                ->dismissible(true)
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->error('Instructor has a conflicting schedule.');
+                ->error('Oppps! There are conflicting schedules.');
             return;
         }
 
@@ -96,15 +97,16 @@ class CreateSchedule extends Component
 
         $this->dispatch('refresh-schedule-table');
         notyf()
+            ->dismissible(true)
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Schedule created successfully');
         $this->reset();
     }
 
-    public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time)
+    public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)
     {
-        return Schedule::where(function ($query) use ($instructor_id, $section_id) {
+        $query = Schedule::where(function ($query) use ($instructor_id, $section_id) {
                 $query->where('instructor_id', $instructor_id)
                       ->orWhere('section_id', $section_id);
             })
@@ -114,14 +116,17 @@ class CreateSchedule extends Component
                 }
             })
             ->where(function ($query) use ($start_time, $end_time) {
-                $query->whereBetween('start_time', [$start_time, $end_time])
-                      ->orWhereBetween('end_time', [$start_time, $end_time])
-                      ->orWhere(function ($query) use ($start_time, $end_time) {
-                          $query->where('start_time', '<=', $start_time)
-                                ->where('end_time', '>=', $end_time);
-                      });
-            })
-            ->get();
+                $query->where(function ($query) use ($start_time, $end_time) {
+                    $query->where('start_time', '<', $end_time)
+                          ->where('end_time', '>', $start_time);
+                });
+            });
+
+        if ($ignoreScheduleId) {
+            $query->where('id', '!=', $ignoreScheduleId);
+        }
+
+        return $query->get();
     }
 
     #[On('reset-modal')]
@@ -161,6 +166,19 @@ class CreateSchedule extends Component
             'end_time' => 'required',
         ]);
 
+        // Check for schedule conflict
+        $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time, $this->schedule->id);
+
+        if ($conflicts->isNotEmpty()) {
+            $this->conflicts = $conflicts;
+            notyf()
+                ->dismissible(true)
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('Oppps! There are conflicting schedules.');
+            return;
+        }
+
         $this->schedule->update([
             'subject_id' => $this->subject_id,
             'instructor_id' => $this->instructor_id,
@@ -174,6 +192,7 @@ class CreateSchedule extends Component
         ]);
 
         notyf()
+            ->dismissible(true)
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Schedule updated successfully');
