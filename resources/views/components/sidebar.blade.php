@@ -46,7 +46,7 @@
     
             @if (Auth::user()->role !== 'instructor' && Auth::user()->role !== 'student')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('colleges*') ? '' : 'collapsed' }}" href="{{ url('/colleges') }}">
+                    <a class="nav-link {{ request()->is('courses*') ? '' : 'collapsed' }}" href="{{ url('/courses') }}">
                         <i class="bi bi-bank"></i>
                         <span>College Management</span>
                     </a>

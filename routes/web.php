@@ -39,9 +39,9 @@ Route::middleware(['auth', 'verified'])
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
     });
 
-// College Management
+// Courses Management
 Route::middleware(['auth', 'verified', 'role:admin'])
-    ->prefix('colleges')
+    ->prefix('courses')
     ->group(function () {
         Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
     });

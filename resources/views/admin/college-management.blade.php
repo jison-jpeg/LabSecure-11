@@ -1,4 +1,4 @@
-@section('pageTitle', 'Users')
+@section('pageTitle', 'Courses')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -26,7 +26,7 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
-                            <div class="card">
+                            {{-- <div class="card">
                                 <div class="card-body">
                                     <div class="filter">
                                         <a class="icon" href="#" data-bs-toggle="dropdown"><i
@@ -46,11 +46,46 @@
                                         <h5 class="card-title">College Management</h5>
                                     </div>
 
-                                    {{-- User Table Livewire --}}
                                     @livewire('college-table')
-                                    <!-- End User Table Livewire -->
 
+                            </div> --}}
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Bordered Tabs Justified</h5>
+
+                                    <!-- Bordered Tabs Justified -->
+                                    <ul class="nav nav-tabs nav-tabs-bordered d-flex" id="borderedTabJustified"
+                                        role="tablist">
+                                        <li class="nav-item flex-fill" role="presentation">
+                                            <button class="nav-link w-100 active" id="home-tab" data-bs-toggle="tab"
+                                                data-bs-target="#bordered-justified-home" type="button" role="tab"
+                                                aria-controls="home" aria-selected="true">Colleges</button>
+                                        </li>
+                                        <li class="nav-item flex-fill" role="presentation">
+                                            <button class="nav-link w-100" id="profile-tab" data-bs-toggle="tab"
+                                                data-bs-target="#bordered-justified-profile" type="button"
+                                                role="tab" aria-controls="profile" aria-selected="false"
+                                                tabindex="-1">Departments</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content pt-2" id="borderedTabJustifiedContent">
+                                        <div class="tab-pane fade active show" id="bordered-justified-home"
+                                            role="tabpanel" aria-labelledby="home-tab">
+                                            @livewire('college-table')
+                                        </div>
+                                        <div class="tab-pane fade" id="bordered-justified-profile" role="tabpanel"
+                                            aria-labelledby="profile-tab">
+                                            Nesciunt totam et. Consequuntur magnam aliquid eos nulla dolor iure eos
+                                            quia. Accusantium distinctio omnis et atque fugiat. Itaque doloremque
+                                            aliquid sint quasi quia distinctio similique. Voluptate nihil recusandae
+                                            mollitia dolores. Ut laboriosam voluptatum dicta.
+                                        </div>
+                                    </div><!-- End Bordered Tabs Justified -->
+
+                                </div>
                             </div>
+
                         </div>
                     </div>
 
