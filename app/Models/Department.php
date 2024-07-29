@@ -33,4 +33,13 @@ class Department extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    // Scope Search
+    public function scopeSearch($query, $value)
+    {
+        return $query->where('name', 'like', '%' . $value . '%')
+                     ->orWhereHas('college', function($q) use ($value) {
+                         $q->where('name', 'like', '%' . $value . '%');
+                     });
+    }
 }

@@ -76,10 +76,7 @@
                                         </div>
                                         <div class="tab-pane fade" id="bordered-justified-profile" role="tabpanel"
                                             aria-labelledby="profile-tab">
-                                            Nesciunt totam et. Consequuntur magnam aliquid eos nulla dolor iure eos
-                                            quia. Accusantium distinctio omnis et atque fugiat. Itaque doloremque
-                                            aliquid sint quasi quia distinctio similique. Voluptate nihil recusandae
-                                            mollitia dolores. Ut laboriosam voluptatum dicta.
+                                            @livewire('department-table')
                                         </div>
                                     </div><!-- End Bordered Tabs Justified -->
 
