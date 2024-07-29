@@ -10,19 +10,16 @@ use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
-class UserTable extends Component
+class FacultyTable extends Component
 {
     use WithPagination;
 
     public $user;
-    public $title = 'Create User';
-    public $event = 'create-user';
+    public $title = 'Create Faculty';
+    public $event = 'create-faculty';
 
     #[Url(history: true)]
     public $search = '';
-
-    #[Url(history: true)]
-    public $role = '';
 
     #[Url(history: true)]
     public $sortBy = 'created_at';
@@ -32,6 +29,12 @@ class UserTable extends Component
 
     #[Url()]
     public $perPage = 10;
+    
+    #[Url(history: true)]
+    public $college = '';
+
+    #[Url(history: true)]
+    public $department = '';
 
     public function updatedSearch()
     {
@@ -41,7 +44,6 @@ class UserTable extends Component
     public function clear()
     {
         $this->search = '';
-        $this->role = '';
     }
 
     public function setSortBy($sortByField)
@@ -61,16 +63,19 @@ class UserTable extends Component
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
-            ->success('User deleted successfully');
-        
+            ->success('Faculty deleted successfully');
     }
 
     public function render()
     {
-        return view('livewire.user-table', [
-            'users' => User::search($this->search)
-                ->when($this->role !== '', function ($query) {
-                    $query->where('role_id', $this->role);
+        return view('livewire.faculty-table', [
+            'users' => User::where('role_id', 2) // Assuming role_id 2 is for faculty
+                ->search($this->search)
+                ->when($this->college !== '', function ($query) {
+                    $query->where('college_id', $this->college);
+                })
+                ->when($this->department !== '', function ($query) {
+                    $query->where('department_id', $this->department);
                 })
                 ->orderBy($this->sortBy, $this->sortDir)
                 ->paginate($this->perPage),
@@ -79,8 +84,8 @@ class UserTable extends Component
         ]);
     }
 
-    #[On('refresh-user-table')]
-    public function refreshUserTable()
+    #[On('refresh-faculty-table')]
+    public function refreshFacultyTable()
     {
         $this->user = User::all();
     }

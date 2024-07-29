@@ -6,8 +6,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CollegeManagementController;
+use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\ScheduleController;
-
+use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,6 +32,21 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
         Route::get('/', [UserController::class, 'viewUsers'])->name('users');
     });
+
+// Faculty Management
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('faculties')
+    ->group(function () {
+        Route::get('/', [FacultyController::class, 'viewFaculties'])->name('faculties');
+    });
+
+// Student Management
+Route::middleware(['auth', 'verified'])
+    ->prefix('students')
+    ->group(function () {
+        Route::get('/', [StudentController::class, 'viewStudent'])->name('students');
+    });
+
 
 // Attendance Management
 Route::middleware(['auth', 'verified'])
@@ -58,4 +74,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

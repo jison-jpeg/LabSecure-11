@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
-    public function viewDashboard()
+    public function viewStudent()
     {
-        return view('student.dashboard');
+        return view('admin.student');
     }
 }

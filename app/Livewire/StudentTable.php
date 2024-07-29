@@ -2,27 +2,24 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use App\Models\College;
 use App\Models\Department;
-use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
-class UserTable extends Component
+class StudentTable extends Component
 {
     use WithPagination;
 
     public $user;
-    public $title = 'Create User';
-    public $event = 'create-user';
+    public $title = 'Create Student';
+    public $event = 'create-student';
 
     #[Url(history: true)]
     public $search = '';
-
-    #[Url(history: true)]
-    public $role = '';
 
     #[Url(history: true)]
     public $sortBy = 'created_at';
@@ -33,6 +30,12 @@ class UserTable extends Component
     #[Url()]
     public $perPage = 10;
 
+    #[Url(history: true)]
+    public $college = '';
+
+    #[Url(history: true)]
+    public $department = '';
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -41,7 +44,8 @@ class UserTable extends Component
     public function clear()
     {
         $this->search = '';
-        $this->role = '';
+        $this->college = '';
+        $this->department = '';
     }
 
     public function setSortBy($sortByField)
@@ -61,16 +65,20 @@ class UserTable extends Component
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
-            ->success('User deleted successfully');
-        
+            ->success('Student deleted successfully');
     }
 
     public function render()
     {
-        return view('livewire.user-table', [
-            'users' => User::search($this->search)
-                ->when($this->role !== '', function ($query) {
-                    $query->where('role_id', $this->role);
+        return view('livewire.student-table', [
+            'users' => User::with(['college', 'department'])
+                ->where('role_id', 3) // Assuming role_id 3 is for students
+                ->search($this->search)
+                ->when($this->college !== '', function ($query) {
+                    $query->where('college_id', $this->college);
+                })
+                ->when($this->department !== '', function ($query) {
+                    $query->where('department_id', $this->department);
                 })
                 ->orderBy($this->sortBy, $this->sortDir)
                 ->paginate($this->perPage),
@@ -79,8 +87,8 @@ class UserTable extends Component
         ]);
     }
 
-    #[On('refresh-user-table')]
-    public function refreshUserTable()
+    #[On('refresh-student-table')]
+    public function refreshStudentTable()
     {
         $this->user = User::all();
     }
