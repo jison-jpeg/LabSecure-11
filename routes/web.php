@@ -9,6 +9,7 @@ use App\Http\Controllers\CollegeManagementController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\SubjectController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -45,6 +46,13 @@ Route::middleware(['auth', 'verified'])
     ->prefix('students')
     ->group(function () {
         Route::get('/', [StudentController::class, 'viewStudent'])->name('students');
+    });
+
+// Subject Management
+Route::middleware(['auth', 'verified'])
+    ->prefix('subjects')
+    ->group(function () {
+        Route::get('/', [SubjectController::class, 'viewSubject'])->name('subjects');
     });
 
 

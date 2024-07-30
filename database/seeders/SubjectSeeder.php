@@ -17,6 +17,7 @@ class SubjectSeeder extends Seeder
             'name' => 'Mathematics',
             'code' => 'MATH 101',
             'description' => 'This is a mathematics subject',
+            'college_id' => 1,
             'department_id' => 1,
         ]);
 
@@ -24,6 +25,7 @@ class SubjectSeeder extends Seeder
             'name' => 'Science',
             'code' => 'SCI 101',
             'description' => 'This is a science subject',
+            'college_id' => 1,
             'department_id' => 1,
         ]);
 
@@ -31,6 +33,7 @@ class SubjectSeeder extends Seeder
             'name' => 'English',
             'code' => 'ENG 101',
             'description' => 'This is an english subject',
+            'college_id' => 1,
             'department_id' => 1,
         ]);
     }

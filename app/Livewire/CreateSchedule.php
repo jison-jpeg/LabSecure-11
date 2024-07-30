@@ -51,8 +51,8 @@ class CreateSchedule extends Component
             'department_id' => 'required',
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
         ]);
     }
 
@@ -67,7 +67,7 @@ class CreateSchedule extends Component
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
             'start_time' => 'required',
-            'end_time' => 'required',
+            'end_time' => 'required|after:start_time',
         ]);
 
         // Check for schedule conflict
@@ -107,9 +107,9 @@ class CreateSchedule extends Component
     public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)
     {
         $query = Schedule::where(function ($query) use ($instructor_id, $section_id) {
-                $query->where('instructor_id', $instructor_id)
-                      ->orWhere('section_id', $section_id);
-            })
+            $query->where('instructor_id', $instructor_id)
+                ->orWhere('section_id', $section_id);
+        })
             ->where(function ($query) use ($days_of_week) {
                 foreach ($days_of_week as $day) {
                     $query->orWhereJsonContains('days_of_week', $day);
@@ -118,7 +118,7 @@ class CreateSchedule extends Component
             ->where(function ($query) use ($start_time, $end_time) {
                 $query->where(function ($query) use ($start_time, $end_time) {
                     $query->where('start_time', '<', $end_time)
-                          ->where('end_time', '>', $start_time);
+                        ->where('end_time', '>', $start_time);
                 });
             });
 
@@ -130,7 +130,8 @@ class CreateSchedule extends Component
     }
 
     #[On('reset-modal')]
-    public function close(){
+    public function close()
+    {
         $this->resetErrorBag();
         $this->reset();
     }
@@ -163,7 +164,7 @@ class CreateSchedule extends Component
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
             'start_time' => 'required',
-            'end_time' => 'required',
+            'end_time' => 'required|after:start_time',
         ]);
 
         // Check for schedule conflict

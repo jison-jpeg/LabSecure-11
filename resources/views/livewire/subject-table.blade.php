@@ -1,14 +1,10 @@
-@php
-use Carbon\Carbon;
-@endphp
-
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
 
             {{-- Per Page --}}
             <div class="row g-1">
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
@@ -19,9 +15,27 @@ use Carbon\Carbon;
                     </select>
                 </div>
 
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search schedules...">
+                        placeholder="Search subjects...">
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <select wire:model.live="college" name="college" class="form-select">
+                        <option value="">Select College</option>
+                        @foreach ($colleges as $college)
+                            <option value="{{ $college->id }}">{{ $college->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <select wire:model.live="department" name="department" class="form-select">
+                        <option value="">Select Department</option>
+                        @foreach ($departments as $department)
+                            <option value="{{ $department->id }}">{{ $department->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="col-12 col-md-2">
@@ -31,7 +45,7 @@ use Carbon\Carbon;
             </div>
         </div>
         <div class="col-12 col-md-2">
-            <livewire:create-schedule />
+            <livewire:create-subject />
         </div>
     </div>
 
@@ -41,57 +55,37 @@ use Carbon\Carbon;
                 <tr>
                     <th scope="col">#</th>
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'subject.name',
-                        'displayName' => 'Subject',
+                        'name' => 'name',
+                        'displayName' => 'Name',
                     ])
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'instructor.full_name',
-                        'displayName' => 'Instructor',
+                        'name' => 'code',
+                        'displayName' => 'Code',
                     ])
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'section.name',
-                        'displayName' => 'Section',
+                        'name' => 'description',
+                        'displayName' => 'Description',
                     ])
-                    @include('livewire.includes.table-sortable-th', [
+                    {{-- @include('livewire.includes.table-sortable-th', [
                         'name' => 'college.name',
                         'displayName' => 'College',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'department.name',
                         'displayName' => 'Department',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'laboratory.name',
-                        'displayName' => 'Laboratory',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'days_of_week',
-                        'displayName' => 'Days of Week',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'start_time',
-                        'displayName' => 'Start Time',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'end_time',
-                        'displayName' => 'End Time',
-                    ])
+                    ]) --}}
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($schedules as $key => $schedule)
-                    <tr wire:key="{{ $schedule->id }}">
+                @foreach ($subjects as $key => $subject)
+                    <tr wire:key="{{ $subject->id }}">
                         <th scope="row">{{ $key + 1 }}</th>
-                        <td>{{ $schedule->subject->name }}</td>
-                        <td>{{ $schedule->instructor->full_name }}</td>
-                        <td>{{ $schedule->section->name }}</td>
-                        <td>{{ $schedule->college->name }}</td>
-                        <td>{{ $schedule->department->name }}</td>
-                        <td>{{ $schedule->laboratory->name }}</td>
-                        <td>{{ implode(', ', json_decode($schedule->days_of_week)) }}</td>
-                        <td>{{ Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
-                        <td>{{ Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
+                        <td>{{ $subject->name }}</td>
+                        <td>{{ $subject->code }}</td>
+                        <td>{{ $subject->description ?? 'N/A' }}</td>
+                        {{-- <td>{{ $subject->college->name ?? 'N/A' }}</td>
+                        <td>{{ $subject->department->name ?? 'N/A' }}</td> --}}
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -99,12 +93,13 @@ use Carbon\Carbon;
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $schedule->id }}})" type="button"
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $subject->id }}})" type="button"
                                             class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
-                                    <li><button wire:click="delete({{ $schedule->id }})"
-                                            wire:confirm="Are you sure you want to delete this schedule?" type="button"
-                                            class="dropdown-item text-danger" href="#">Delete</button>
+                                    <li><button wire:click="delete({{ $subject->id }})"
+                                            wire:confirm="Are you sure you want to delete '{{ $subject->name }}'"
+                                            type="button" class="dropdown-item text-danger" href="#">Delete
+                                            {{ $subject->name }}</button>
                                 </ul>
                             </div>
                         </td>
@@ -113,13 +108,13 @@ use Carbon\Carbon;
             </tbody>
         </table>
         <div class="d-flex flex-column align-items-start">
-            {!! $schedules->links() !!}
+            {!! $subjects->links() !!}
         </div>
     </div>
 
     <script>
         document.addEventListener('livewire:initialized', () => {
-            @this.on('refresh-schedule-table', (event) => {
+            @this.on('refresh-subject-table', (event) => {
                 var myModalEl = document.querySelector('#verticalycentered')
                 var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
 
