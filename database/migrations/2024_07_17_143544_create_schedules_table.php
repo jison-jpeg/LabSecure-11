@@ -24,14 +24,6 @@ return new class extends Migration
             $table->time('end_time');
             $table->timestamps();
         });
-
-        // Create a pivot table for students and schedules
-        Schema::create('schedule_student', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('schedule_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-        });
     }
 
     /**
@@ -39,7 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('schedule_student');
         Schema::dropIfExists('schedules');
     }
 };

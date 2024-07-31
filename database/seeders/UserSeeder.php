@@ -41,6 +41,7 @@ class UserSeeder extends Seeder
             'role_id' => $studentRole->id,
             'department_id' => 1,
             'college_id' => 1,
+            'section_id' => 1,
         ]);
 
         // Instructor User
