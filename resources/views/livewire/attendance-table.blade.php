@@ -1,3 +1,7 @@
+@php
+use Carbon\Carbon;
+@endphp
+
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
@@ -81,8 +85,9 @@
                         <td>{{ $attendance->user->first_name }}</td>
                         <td>{{ $attendance->schedule }}</td>
                         <td>{{ $attendance->date }}</td>
-                        <td>{{ $attendance->time_in }}</td>
-                        <td>{{ $attendance->time_out }}</td>
+                        <td>{{ Carbon::parse($attendance->time_in)->format('h:i A') }}</td>
+                        <td>{{ Carbon::parse($attendance->time_out)->format('h:i A') }}</td>
+
                         <td>{{ $attendance->status }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">

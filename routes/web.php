@@ -5,6 +5,7 @@ use App\Http\Controllers\LaboratoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ClassController;
 use App\Http\Controllers\CollegeManagementController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\ScheduleController;
@@ -74,6 +75,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 Route::middleware('auth')->group(function () {
     Route::get('/schedules', [ScheduleController::class, 'viewSchedule'])->name('schedule');
 });
+
+// Classes
+Route::middleware('auth')->group(function () {
+    Route::get('/classes', [ClassController::class, 'viewClasses'])->name('classes');
+});
+
 
 // General Profile
 Route::middleware('auth')->group(function () {

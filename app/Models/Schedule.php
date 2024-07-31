@@ -53,58 +53,11 @@ class Schedule extends Model
 
     public function students()
     {
-        return $this->belongsToMany(User::class, 'schedule_user');
+        return $this->belongsToMany(User::class, 'schedule_student');
     }
 
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
-    }
-
-    public function scopeSearch($query, $value)
-    {
-        return $query->whereHas('subject', function ($q) use ($value) {
-                $q->where('name', 'like', '%' . $value . '%');
-            })
-            ->orWhereHas('instructor', function ($q) use ($value) {
-                $q->where('first_name', 'like', '%' . $value . '%')
-                    ->orWhere('middle_name', 'like', '%' . $value . '%')
-                    ->orWhere('last_name', 'like', '%' . $value . '%')
-                    ->orWhere('suffix', 'like', '%' . $value . '%');
-            })
-            ->orWhereHas('college', function ($q) use ($value) {
-                $q->where('name', 'like', '%' . $value . '%');
-            })
-            ->orWhereHas('department', function ($q) use ($value) {
-                $q->where('name', 'like', '%' . $value . '%');
-            })
-            ->orWhereHas('section', function ($q) use ($value) {
-                $q->where('name', 'like', '%' . $value . '%');
-            })
-            ->orWhereHas('laboratory', function ($q) use ($value) {
-                $q->where('name', 'like', '%' . $value . '%');
-            })
-            ->orWhereJsonContains('days_of_week', $value)
-            ->orWhere('start_time', 'like', '%' . $value . '%')
-            ->orWhere('end_time', 'like', '%' . $value . '%');
-    }
-
-    public function scopeSort($query, $sortBy, $sortDir)
-    {
-        if (in_array($sortBy, ['subject.name', 'college.name', 'department.name', 'section.name', 'laboratory.name'])) {
-            $relation = explode('.', $sortBy)[0];
-            $column = explode('.', $sortBy)[1];
-            return $query->join($relation . 's', $relation . 's.id', '=', 'schedules.' . $relation . '_id')
-                         ->orderBy($relation . 's.' . $column, $sortDir)
-                         ->select('schedules.*');
-        } elseif ($sortBy === 'instructor.full_name') {
-            return $query->join('users as instructors', 'instructors.id', '=', 'schedules.instructor_id')
-                         ->orderBy('instructors.first_name', $sortDir)
-                         ->orderBy('instructors.middle_name', $sortDir)
-                         ->orderBy('instructors.last_name', $sortDir)
-                         ->select('schedules.*');
-        } else {
-            return $query->orderBy($sortBy, $sortDir);
-        }
     }
 }
