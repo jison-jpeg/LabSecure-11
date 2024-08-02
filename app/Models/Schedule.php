@@ -51,11 +51,6 @@ class Schedule extends Model
         return $this->belongsTo(Laboratory::class);
     }
 
-    // public function students()
-    // {
-    //     return $this->belongsToMany(User::class, 'schedule_student');
-    // }
-
     public function attendances()
     {
         return $this->hasMany(Attendance::class);

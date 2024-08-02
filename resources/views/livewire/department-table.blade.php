@@ -1,10 +1,10 @@
 <div>
-    <div class="row mb-4">
+    <div class="row mb-4 mt-4">
         <div class="col-md-10">
 
             {{-- Per Page --}}
             <div class="row g-1">
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>

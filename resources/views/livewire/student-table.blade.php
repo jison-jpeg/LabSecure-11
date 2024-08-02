@@ -44,9 +44,11 @@
                 </div>
             </div>
         </div>
+        @if (Auth::user()->role->name === 'admin')
         <div class="col-12 col-md-2">
             <livewire:create-student />
         </div>
+        @endif
     </div>
 
     <div class="overflow-auto">
@@ -86,7 +88,9 @@
                         'name' => 'department.name',
                         'displayName' => 'Department',
                     ])
+                    @if (Auth::user()->role->name === 'admin')
                     <th scope="col" class="text-center">Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -101,6 +105,7 @@
                         <td>{{ $user->suffix }}</td>
                         <td>{{ $user->college->name ?? 'N/A' }}</td>
                         <td>{{ $user->department->name ?? 'N/A' }}</td>
+                        @if (Auth::user()->role->name === 'admin')
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -118,6 +123,7 @@
                                 </ul>
                             </div>
                         </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

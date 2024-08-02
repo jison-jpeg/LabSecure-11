@@ -13,6 +13,8 @@ class Section extends Model
         'name',
         'college_id',
         'department_id',
+        'year_level',
+        'semester',
     ];
 
     public function schedules()
@@ -24,7 +26,7 @@ class Section extends Model
     {
         return $this->belongsTo(College::class);
     }
-    
+
     public function department()
     {
         return $this->belongsTo(Department::class);
@@ -33,10 +35,13 @@ class Section extends Model
     public function scopeSearch($query, $value)
     {
         return $query->where('name', 'like', '%' . $value . '%')
-                     ->orWhere('year_level', 'like', '%' . $value . '%')
-                     ->orWhereHas('department', function($q) use ($value) {
-                         $q->where('name', 'like', '%' . $value . '%');
-                     });
+            ->orWhere('year_level', 'like', '%' . $value . '%')
+            ->orWhere('semester', 'like', '%' . $value . '%')
+            ->orWhereHas('college', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            })
+            ->orWhereHas('department', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            });
     }
-    
 }

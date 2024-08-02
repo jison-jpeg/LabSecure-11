@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,5 +21,10 @@ class ClassController extends Controller
         } else {
             return redirect()->route('unauthorized');
         }
+    }
+
+    public function viewSection(Section $section)
+    {
+        return view('instructor.section', ['section' => $section]);
     }
 }

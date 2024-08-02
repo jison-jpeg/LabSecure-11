@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
             {{-- Per Page --}}
             <div class="row g-1">
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
@@ -19,7 +19,7 @@ use Carbon\Carbon;
                     </select>
                 </div>
 
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search schedules...">
                 </div>

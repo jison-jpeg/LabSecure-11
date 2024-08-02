@@ -72,13 +72,19 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     });
 
 // Schedule
-Route::middleware('auth')->group(function () {
-    Route::get('/schedules', [ScheduleController::class, 'viewSchedule'])->name('schedule');
-});
+Route::middleware(['auth'])
+    ->prefix('schedules')
+    ->group(function () {
+        Route::get('/', [ScheduleController::class, 'viewSchedule'])->name('schedule');
+    });
 
 // Classes
-Route::middleware('auth')->group(function () {
-    Route::get('/classes', [ClassController::class, 'viewClasses'])->name('classes');
+Route::middleware('auth')
+->prefix('classes')
+->group(function () {
+    Route::get('/', [ClassController::class, 'viewClasses'])->name('classes');
+    Route::get('/{section}', [ClassController::class, 'viewSection'])->name('sections');
+
 });
 
 
