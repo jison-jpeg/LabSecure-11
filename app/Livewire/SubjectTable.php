@@ -9,16 +9,24 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class SubjectTable extends Component
 {
     use WithPagination;
 
-    public $title = 'Subjects';
-    public $event = 'refresh-subject-table';
+    public $subject;
+    public $title = 'Create Subject';
+    public $event = 'create-subject';
 
     #[Url(history: true)]
     public $search = '';
+
+    #[Url(history: true)]
+    public $college = '';
+
+    #[Url(history: true)]
+    public $department = '';
 
     #[Url(history: true)]
     public $sortBy = 'created_at';
@@ -28,14 +36,6 @@ class SubjectTable extends Component
 
     #[Url()]
     public $perPage = 10;
-
-    public $subject;
-
-    #[Url(history: true)]
-    public $college = '';
-
-    #[Url(history: true)]
-    public $department = '';
 
     public function updatedSearch()
     {
@@ -71,17 +71,29 @@ class SubjectTable extends Component
 
     public function render()
     {
+        $user = Auth::user();
+
+        $query = Subject::query();
+
+        // If the user is an instructor, filter subjects by the instructor's ID
+        if ($user->role->name === 'instructor') {
+            $query = $query->whereHas('schedules', function($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
+        }
+
+        $subjects = $query->search($this->search)
+                          ->when($this->college !== '', function ($query) {
+                              $query->where('college_id', $this->college);
+                          })
+                          ->when($this->department !== '', function ($query) {
+                              $query->where('department_id', $this->department);
+                          })
+                          ->orderBy($this->sortBy, $this->sortDir)
+                          ->paginate($this->perPage);
+
         return view('livewire.subject-table', [
-            'subjects' => Subject::with(['college', 'department'])
-                ->search($this->search)
-                ->when($this->college !== '', function ($query) {
-                    $query->where('college_id', $this->college);
-                })
-                ->when($this->department !== '', function ($query) {
-                    $query->where('department_id', $this->department);
-                })
-                ->orderBy($this->sortBy, $this->sortDir)
-                ->paginate($this->perPage),
+            'subjects' => $subjects,
             'colleges' => College::all(),
             'departments' => Department::all(),
         ]);
@@ -91,6 +103,5 @@ class SubjectTable extends Component
     public function refreshSubjectTable()
     {
         $this->subject = Subject::all();
-
     }
 }

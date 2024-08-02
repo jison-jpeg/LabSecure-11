@@ -1,10 +1,9 @@
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
-
-            {{-- Per Page --}}
+            {{-- perpage --}}
             <div class="row g-1">
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
@@ -15,9 +14,8 @@
                     </select>
                 </div>
 
-                <div class="col-12 col-md-4">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search classes...">
+                <div class="col-12 col-md-3">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search sections...">
                 </div>
 
                 <div class="col-12 col-md-2">
@@ -32,55 +30,39 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    @include('livewire.includes.table-sortable-th', ['name' => 'subject.name', 'displayName' => 'Subject'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'instructor.full_name', 'displayName' => 'Instructor'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'college.name', 'displayName' => 'College'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'department.name', 'displayName' => 'Department'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'section.name', 'displayName' => 'Section'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'laboratory.name', 'displayName' => 'Laboratory'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'days_of_week', 'displayName' => 'Days of Week'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'start_time', 'displayName' => 'Start Time'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'end_time', 'displayName' => 'End Time'])
+                    @include('livewire.includes.table-sortable-th', ['name' => 'name', 'displayName' => 'Section Name'])
+                    @include('livewire.includes.table-sortable-th', ['name' => 'year_level', 'displayName' => 'Year Level'])
+                    @include('livewire.includes.table-sortable-th', ['name' => 'semester', 'displayName' => 'Semester'])
+                    @include('livewire.includes.table-sortable-th', ['name' => 'department_id', 'displayName' => 'Department'])
+                    <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($schedules as $key => $schedule)
-                    <tr wire:key="{{ $schedule->id }}">
+                @foreach ($sections as $key => $section)
+                    <tr wire:key="{{ $section->id }}">
                         <th scope="row">{{ $key + 1 }}</th>
-                        <td>{{ $schedule->subject->name }}</td>
-                        <td>{{ $schedule->instructor->full_name }}</td>
-                        <td>{{ $schedule->college->name }}</td>
-                        <td>{{ $schedule->department->name }}</td>
-                        <td>{{ $schedule->section->name }}</td>
-                        <td>{{ $schedule->laboratory->name }}</td>
-                        <td>{{ implode(', ', json_decode($schedule->days_of_week, true)) }}</td>
-                        <td>{{ $schedule->start_time }}</td>
-                        <td>{{ $schedule->end_time }}</td>
+                        <td>{{ $section->name }}</td>
+                        <td>{{ $section->year_level }}</td>
+                        <td>{{ $section->semester }}</td>
+                        <td>{{ $section->department->name }}</td>
+                        <td class="text-center">
+                            <div class="btn-group dropstart">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </a>
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
+                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
+                                    <li><button type="button" class="dropdown-item" href="#">Edit</button></li>
+                                    <li><button wire:click="delete({{ $section->id }})" type="button" class="dropdown-item text-danger">Delete {{ $section->name }}</button></li>
+                                </ul>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
         <div class="d-flex flex-column align-items-start">
-            {!! $schedules->links() !!}
+            {!! $sections->links() !!}
         </div>
     </div>
-
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            @this.on('refresh-class-table', (event) => {
-                var myModalEl = document.querySelector('#verticalycentered')
-                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
-
-                setTimeout(() => {
-                    modal.hide();
-                    @this.dispatch('reset-modal');
-                });
-            })
-
-            var mymodal = document.getElementById('verticalycentered')
-            mymodal.addEventListener('hidden.bs.modal', (event) => {
-                @this.dispatch('reset-modal');
-            })
-        })
-    </script>
 </div>

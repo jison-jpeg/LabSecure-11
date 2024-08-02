@@ -41,6 +41,6 @@ class ScheduleSeeder extends Seeder
             'days_of_week' => json_encode(['Monday', 'Wednesday', 'Friday']), // Example for multiple days
             'start_time' => '08:00:00',
             'end_time' => '10:00:00',
-        ])->students()->attach($students->pluck('id'));
+        ]);
     }
 }

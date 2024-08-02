@@ -20,6 +20,7 @@
                         placeholder="Search subjects...">
                 </div>
 
+                @if (Auth::user()->role->name === 'admin')
                 <div class="col-12 col-md-2">
                     <select wire:model.live="college" name="college" class="form-select">
                         <option value="">Select College</option>
@@ -37,6 +38,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
 
                 <div class="col-12 col-md-2">
                     <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
@@ -44,9 +46,11 @@
                 </div>
             </div>
         </div>
+        @if (Auth::user()->role->name === 'admin')
         <div class="col-12 col-md-2">
             <livewire:create-subject />
         </div>
+        @endif
     </div>
 
     <div class="overflow-auto">
@@ -74,7 +78,9 @@
                         'name' => 'department.name',
                         'displayName' => 'Department',
                     ]) --}}
+                    @if (Auth::user()->role->name === 'admin')
                     <th scope="col" class="text-center">Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -86,6 +92,7 @@
                         <td>{{ $subject->description ?? 'N/A' }}</td>
                         {{-- <td>{{ $subject->college->name ?? 'N/A' }}</td>
                         <td>{{ $subject->department->name ?? 'N/A' }}</td> --}}
+                        @if (Auth::user()->role->name === 'admin')
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -103,6 +110,7 @@
                                 </ul>
                             </div>
                         </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

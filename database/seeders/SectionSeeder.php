@@ -15,18 +15,27 @@ class SectionSeeder extends Seeder
     {
         Section::create([
             'name' => 'Section A',
+            'year_level' => '1st Year',
+            'semester' => '1st Semester',
+            'school_year' => '2021-2022',
             'college_id' => 1,
             'department_id' => 1,
         ]);
 
         Section::create([
             'name' => 'Section B',
+            'year_level' => '1st Year',
+            'semester' => '1st Semester',
+            'school_year' => '2021-2022',
             'college_id' => 1,
             'department_id' => 1,
         ]);
 
         Section::create([
             'name' => 'Section C',
+            'year_level' => '1st Year',
+            'semester' => '1st Semester',
+            'school_year' => '2021-2022',
             'college_id' => 1,
             'department_id' => 1,
         ]);
