@@ -9,6 +9,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\CollegeManagementController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use Illuminate\Support\Facades\Route;
@@ -80,12 +81,19 @@ Route::middleware(['auth'])
 
 // Classes
 Route::middleware('auth')
-->prefix('classes')
-->group(function () {
-    Route::get('/', [ClassController::class, 'viewClasses'])->name('classes');
-    Route::get('/{section}', [ClassController::class, 'viewSection'])->name('sections');
+    ->prefix('classes')
+    ->group(function () {
+        Route::get('/', [ClassController::class, 'viewClasses'])->name('classes');
+        Route::get('/{section}', [ClassController::class, 'viewSection'])->name('viewSection');
+    });
 
-});
+
+// Section
+Route::middleware('auth')
+    ->prefix('sections')
+    ->group(function () {
+        Route::get('/', [SectionController::class, 'viewSection'])->name('sections');
+    });
 
 
 // General Profile

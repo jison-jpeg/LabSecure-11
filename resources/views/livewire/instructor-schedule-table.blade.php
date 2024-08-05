@@ -15,7 +15,7 @@
                     </select>
                 </div>
 
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search schedules...">
                 </div>

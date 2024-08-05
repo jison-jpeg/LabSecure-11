@@ -13,6 +13,7 @@ class Section extends Model
         'name',
         'college_id',
         'department_id',
+        'school_year',
         'year_level',
         'semester',
     ];
@@ -37,6 +38,7 @@ class Section extends Model
         return $query->where('name', 'like', '%' . $value . '%')
             ->orWhere('year_level', 'like', '%' . $value . '%')
             ->orWhere('semester', 'like', '%' . $value . '%')
+            ->orWhere('school_year', 'like', '%' . $value . '%')
             ->orWhereHas('college', function ($q) use ($value) {
                 $q->where('name', 'like', '%' . $value . '%');
             })
