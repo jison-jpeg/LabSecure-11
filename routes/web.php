@@ -63,6 +63,7 @@ Route::middleware(['auth', 'verified'])
     ->prefix('attendances')
     ->group(function () {
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
+        Route::post('/', [AttendanceController::class, 'store'])->name('attendance.store');
     });
 
 // Courses Management

@@ -1,12 +1,10 @@
 @php
-use Carbon\Carbon;
+    use Carbon\Carbon;
 @endphp
 
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
-
-            {{-- perpage --}}
             <div class="row g-1">
                 <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -33,6 +31,11 @@ use Carbon\Carbon;
                         <option value="Excused">Excused</option>
                         <option value="Incomplete">Incomplete</option>
                     </select>
+                </div>
+
+                <!-- Month Filter -->
+                <div class="col-12 col-md-2">
+                    <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
                 </div>
 
                 <div class="col-12 col-md-2">
@@ -79,6 +82,7 @@ use Carbon\Carbon;
                         'name' => 'status',
                         'displayName' => 'Status',
                     ])
+                    <th scope="col">Remarks</th>
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -89,20 +93,27 @@ use Carbon\Carbon;
                         <td>{{ $attendance->user->full_name }}</td>
                         <td>{{ $attendance->schedule->subject->name }}</td>
                         <td>{{ $attendance->schedule->section->name }}</td>
-                        <td>{{ $attendance->date }}</td>
-                        <td>{{ Carbon::parse($attendance->time_in)->format('h:i A') }}</td>
-                        <td>{{ Carbon::parse($attendance->time_out)->format('h:i A') }}</td>
+                        <td>{{ Carbon::parse($attendance->date)->format('F j, Y') }}</td>
+                        <td>{{ $attendance->time_in ? Carbon::parse($attendance->time_in)->format('h:i A') : '-' }}</td>
+                        <td>{{ $attendance->time_out ? Carbon::parse($attendance->time_out)->format('h:i A') : '-' }}
+                        </td>
 
                         <td class="text-center">
-                            <span class="badge rounded-pill 
-                                {{ $attendance->status == 'present' ? 'bg-success' : 
-                                   ($attendance->status == 'late' ? 'bg-warning text-dark' : 
-                                   ($attendance->status == 'absent' ? 'bg-danger' : 
-                                   ($attendance->status == 'excused' ? 'bg-primary' : 'bg-secondary'))) }}">
+                            <span
+                                class="badge rounded-pill 
+                                {{ $attendance->status == 'present'
+                                    ? 'bg-success'
+                                    : ($attendance->status == 'late'
+                                        ? 'bg-warning text-dark'
+                                        : ($attendance->status == 'absent'
+                                            ? 'bg-danger'
+                                            : ($attendance->status == 'excused'
+                                                ? 'bg-primary'
+                                                : 'bg-secondary'))) }}">
                                 {{ $attendance->status }}
                             </span>
                         </td>
-
+                        <td>{{ $attendance->remarks }}
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -110,12 +121,12 @@ use Carbon\Carbon;
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $attendance->id }}})" type="button"
-                                            class="dropdown-item" data-bs-toggle="modal"
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $attendance->id }}})"
+                                            type="button" class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
                                     <li><button wire:click="delete({{ $attendance->id }})"
-                                            wire:confirm="Are you sure you want to delete this record?"
-                                            type="button" class="dropdown-item text-danger" href="#">Delete</button>
+                                            wire:confirm="Are you sure you want to delete this record?" type="button"
+                                            class="dropdown-item text-danger" href="#">Delete</button>
                                 </ul>
                             </div>
                         </td>

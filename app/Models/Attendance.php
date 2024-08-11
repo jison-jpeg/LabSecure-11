@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,6 +17,7 @@ class Attendance extends Model
         'time_in',
         'time_out',
         'status',
+        'remarks',
     ];
 
     public function user()
@@ -28,21 +30,56 @@ class Attendance extends Model
         return $this->belongsTo(Schedule::class);
     }
 
-    public function determineStatus()
+    // Method to calculate and save the status and remarks
+    public function calculateAndSaveStatusAndRemarks()
     {
-        if ($this->time_in && $this->time_out) {
-            $schedule = $this->schedule;
-            if ($this->time_in <= $schedule->start_time && $this->time_out >= $schedule->end_time) {
-                $this->status = 'present';
-            } else {
-                $this->status = 'incomplete';
-            }
-        } else {
+        $timeIn = $this->time_in ? Carbon::parse($this->time_in) : null;
+        $timeOut = $this->time_out ? Carbon::parse($this->time_out) : null;
+        $scheduleStartTime = $this->schedule ? Carbon::parse($this->schedule->start_time) : null;
+        $scheduleEndTime = $this->schedule ? Carbon::parse($this->schedule->end_time) : null;
+
+        // Determine status
+        if (!$timeIn || !$timeOut) {
             $this->status = 'absent';
+        } elseif ($timeIn->lte($scheduleStartTime) && $timeOut->gte($scheduleEndTime)) {
+            $this->status = 'present';
+        } elseif ($timeIn->gt($scheduleStartTime)) {
+            $this->status = 'late';
+        } elseif ($timeIn->lte($scheduleStartTime) && $timeOut->lt($scheduleEndTime)) {
+            $this->status = 'incomplete';
+        } else {
+            $this->status = 'unknown';
         }
+
+        // Determine remarks based on status
+        if ($this->status == 'present') {
+            $duration = $timeIn->diff($timeOut);
+            $this->remarks = "Attended " . $duration->format('%hhr %imin');
+        } elseif ($this->status == 'late') {
+            $lateDuration = $timeIn->diff($scheduleStartTime);
+            $this->remarks = "Late by " . $lateDuration->format('%i minutes');
+        } elseif ($this->status == 'incomplete') {
+            $duration = $timeIn->diff($timeOut);
+            $this->remarks = "Incomplete attendance: " . $duration->format('%hhr %imin');
+        } else {
+            $this->remarks = ucfirst($this->status);
+        }
+
+        // Save the status and remarks to the database
         $this->save();
     }
 
+    // Accessor for formatted time_in
+    public function getFormattedTimeInAttribute()
+    {
+        return $this->time_in ? Carbon::parse($this->time_in)->format('h:i A') : '-';
+    }
+
+    // Accessor for formatted time_out
+    public function getFormattedTimeOutAttribute()
+    {
+        return $this->time_out ? Carbon::parse($this->time_out)->format('h:i A') : '-';
+    }
     public function scopeSearch($query, $value)
     {
         return $query->whereHas('user', function ($query) use ($value) {

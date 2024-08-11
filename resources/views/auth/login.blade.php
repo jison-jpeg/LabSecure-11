@@ -11,7 +11,6 @@
 
             <form class="row g-3 needs-validation" method="POST" action="{{ route('login') }}" novalidate>
                 @csrf
-
                 <div class="col-12">
                     <label for="username" class="form-label">Username</label>
                     <div class="input-group has-validation">
