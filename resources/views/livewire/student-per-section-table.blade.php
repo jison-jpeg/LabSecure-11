@@ -32,10 +32,10 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
+                    @include('livewire.includes.table-sortable-th', ['name' => 'username', 'displayName' => 'Username'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'first_name', 'displayName' => 'First Name'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'last_name', 'displayName' => 'Last Name'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'email', 'displayName' => 'Email'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'username', 'displayName' => 'Username'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'created_at', 'displayName' => 'Created At'])
                 </tr>
             </thead>
@@ -43,10 +43,10 @@
                 @foreach ($students as $key => $student)
                     <tr wire:key="{{ $student->id }}">
                         <th scope="row">{{ $key + 1 }}</th>
+                        <td>{{ $student->username }}</td>
                         <td>{{ $student->first_name }}</td>
                         <td>{{ $student->last_name }}</td>
                         <td>{{ $student->email }}</td>
-                        <td>{{ $student->username }}</td>
                         <td>{{ $student->created_at->format('Y-m-d') }}</td>
                     </tr>
                 @endforeach

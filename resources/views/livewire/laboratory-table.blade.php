@@ -79,13 +79,15 @@
                                 </div>
                                 <div class="row mt-4 sub-header">
                                     <div class="col-6 text-start text-truncate">
-                                        <h6>RECENT USER</h6>
-                                        <span>Computer</span>
+                                        <h6 class="text-truncate">FIRST NAME LAST NAME</h6>
+                                        <span class="text-muted">
+                                            {{ $laboratory->status == 'Occupied' ? 'Current User' : ($laboratory->status == 'Locked' ? 'Locked By' : 'Recent User') }}
+                                        </span>
                                     </div>
                                     <div class="col-6 text-truncate text-end align-self-end">
                                         <span class="text-muted">7 hours ago</span>
                                     </div>
-                                </div>
+                                </div>                                
                             </div>
                         </div>
                     </a>

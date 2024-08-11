@@ -42,12 +42,27 @@ class CreateSection extends Component
             'department_id' => 'required',
             'year_level' => 'required',
             'semester' => 'required',
-            'school_year' => ['required', 'regex:/^\d{4}-\d{4}$/', function ($attribute, $value, $fail) {
-                $years = explode('-', $value);
-                if (count($years) !== 2 || (int)$years[0] <= 0 || (int)$years[1] <= 0 || (int)$years[0] >= (int)$years[1] || (int)$years[0] < 1900 || (int)$years[1] > 2100) {
-                    $fail('The school year is not valid.');
-                }
-            }],
+            'school_year' => [
+    'required',
+    'regex:/^\d{4}-\d{4}$/',
+    function ($attribute, $value, $fail) {
+        $years = explode('-', $value);
+        $currentYear = (int)date('Y');
+        $minYear = $currentYear - 3;
+        $maxYear = $currentYear + 3;
+
+        if (count($years) !== 2) {
+            $fail('The school year must be in the format YYYY-YYYY.');
+        } elseif ((int)$years[0] <= 0 || (int)$years[1] <= 0) {
+            $fail('The school year must contain positive integers.');
+        } elseif ((int)$years[0] >= (int)$years[1]) {
+            $fail('The first year must be less than the second year.');
+        } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
+            $fail("The school year must be between $minYear and $maxYear.");
+        }
+    }
+],
+
         ];
     }
 

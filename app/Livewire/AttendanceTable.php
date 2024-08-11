@@ -7,6 +7,7 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceTable extends Component
 {
@@ -63,20 +64,35 @@ class AttendanceTable extends Component
     }
 
     public function render()
-    {
-        return view('livewire.attendance-table', [
-            'attendances' => Attendance::with(['user', 'schedule'])
-                ->whereHas('user', function($query) {
-                    $query->where('first_name', 'like', '%'.$this->search.'%')
-                          ->orWhere('last_name', 'like', '%'.$this->search.'%');
-                })
-                ->when($this->status !== '', function ($query) {
-                    $query->where('status', $this->status);
-                })
-                ->orderBy($this->sortBy, $this->sortDir)
-                ->paginate($this->perPage),
-        ]);
+{
+    $query = Attendance::with(['user', 'schedule']);
+
+    // Check if the authenticated user is not an admin
+    if (!Auth::user()->isAdmin()) {
+        // Filter attendance records for the authenticated user only
+        $query->where('user_id', Auth::id());
     }
+
+    // Apply search filters
+    $query->whereHas('user', function($query) {
+        $query->where('first_name', 'like', '%'.$this->search.'%')
+              ->orWhere('last_name', 'like', '%'.$this->search.'%');
+    });
+
+    // Apply status filter
+    $query->when($this->status !== '', function ($query) {
+        $query->where('status', $this->status);
+    });
+
+    // Apply sorting
+    $attendances = $query->orderBy($this->sortBy, $this->sortDir)
+                         ->paginate($this->perPage);
+
+    return view('livewire.attendance-table', [
+        'attendances' => $attendances,
+    ]);
+}
+
 
     #[On('refresh-attendance-table')]
     public function refreshAttendanceTable()

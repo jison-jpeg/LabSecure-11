@@ -56,8 +56,12 @@ use Carbon\Carbon;
                         'displayName' => 'User',
                     ])
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'schedule.name',
-                        'displayName' => 'Schedule',
+                        'name' => 'subject.name',
+                        'displayName' => 'Subject',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'schedule.section.name',
+                        'displayName' => 'Section',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'date',
@@ -82,13 +86,23 @@ use Carbon\Carbon;
                 @foreach ($attendances as $key => $attendance)
                     <tr wire:key="{{ $attendance->id }}">
                         <th scope="row">{{ $key + 1 }}</th>
-                        <td>{{ $attendance->user->first_name }}</td>
-                        <td>{{ $attendance->schedule }}</td>
+                        <td>{{ $attendance->user->full_name }}</td>
+                        <td>{{ $attendance->schedule->subject->name }}</td>
+                        <td>{{ $attendance->schedule->section->name }}</td>
                         <td>{{ $attendance->date }}</td>
                         <td>{{ Carbon::parse($attendance->time_in)->format('h:i A') }}</td>
                         <td>{{ Carbon::parse($attendance->time_out)->format('h:i A') }}</td>
 
-                        <td>{{ $attendance->status }}</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill 
+                                {{ $attendance->status == 'present' ? 'bg-success' : 
+                                   ($attendance->status == 'late' ? 'bg-warning text-dark' : 
+                                   ($attendance->status == 'absent' ? 'bg-danger' : 
+                                   ($attendance->status == 'excused' ? 'bg-primary' : 'bg-secondary'))) }}">
+                                {{ $attendance->status }}
+                            </span>
+                        </td>
+
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
