@@ -17,8 +17,9 @@ return new class extends Migration
             $table->foreignId('schedule_id')->constrained('schedules')->onDelete('cascade');
             $table->time('time_in')->nullable();
             $table->time('time_out')->nullable();
-            $table->date('date');
+            $table->date('date')->nullable();
             $table->enum('status', ['present', 'absent', 'incomplete', 'late', 'excused'])->default('absent');
+            $table->text('remarks')->nullable();
             $table->timestamps();
         });
     }
