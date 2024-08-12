@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\AttendanceRecorded;
 use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\User;
@@ -58,56 +59,60 @@ class AttendanceController extends Controller
 
     // API endpoint to process attendance via RFID
     public function recordAttendance(Request $request)
-    {
-        // Validate the incoming request
-        $request->validate([
-            'rfid_number' => 'required|string',
-        ]);
+{
+    // Validate the incoming request
+    $request->validate([
+        'rfid_number' => 'required|string',
+    ]);
 
-        // Find the user by RFID
-        $user = User::where('rfid_number', $request->rfid_number)->first();
+    // Find the user by RFID
+    $user = User::where('rfid_number', $request->rfid_number)->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
 
-        // Find the current schedule for the user based on the current time
-        $currentTime = Carbon::now();
-        $schedule = Schedule::where('start_time', '<=', $currentTime)
-                            ->where('end_time', '>=', $currentTime)
+    // Find the current schedule for the user based on the current time
+    $currentTime = Carbon::now();
+    $schedule = Schedule::where('start_time', '<=', $currentTime)
+                        ->where('end_time', '>=', $currentTime)
+                        ->first();
+
+    if (!$schedule) {
+        return response()->json(['message' => 'No active schedule found for this time'], 404);
+    }
+
+    // Check if an attendance record already exists for this user and schedule
+    $attendance = Attendance::where('user_id', $user->id)
+                            ->where('schedule_id', $schedule->id)
+                            ->where('date', $currentTime->toDateString())
                             ->first();
 
-        if (!$schedule) {
-            return response()->json(['message' => 'No active schedule found for this time'], 404);
-        }
-
-        // Check if an attendance record already exists for this user and schedule
-        $attendance = Attendance::where('user_id', $user->id)
-                                ->where('schedule_id', $schedule->id)
-                                ->where('date', $currentTime->toDateString())
-                                ->first();
-
-        if (!$attendance) {
-            // Create a new attendance record with the time_in
-            $attendance = Attendance::create([
-                'user_id' => $user->id,
-                'schedule_id' => $schedule->id,
-                'date' => $currentTime->toDateString(),
-                'time_in' => $currentTime,
-            ]);
-        } else {
-            // Update the time_out if time_in already exists
-            if (!$attendance->time_out) {
-                $attendance->time_out = $currentTime;
-            }
-        }
-
-        // Calculate and save status and remarks based on the new data
-        $attendance->calculateAndSaveStatusAndRemarks();
-
-        return response()->json([
-            'message' => 'Attendance recorded successfully',
-            'data' => $attendance,
+    if (!$attendance) {
+        // Create a new attendance record with the time_in
+        $attendance = Attendance::create([
+            'user_id' => $user->id,
+            'schedule_id' => $schedule->id,
+            'date' => $currentTime->toDateString(),
+            'time_in' => $currentTime,
         ]);
+    } else {
+        // Update the time_out if time_in already exists
+        if (!$attendance->time_out) {
+            $attendance->time_out = $currentTime;
+        }
     }
+
+    // Calculate and save status and remarks based on the new data
+    $attendance->calculateAndSaveStatusAndRemarks();
+
+    // Broadcast the attendance event
+    AttendanceRecorded::dispatch($attendance);
+
+    return response()->json([
+        'message' => 'Attendance recorded successfully',
+        'data' => $attendance->load('user', 'schedule'),
+    ]);
+}
+    
 }
