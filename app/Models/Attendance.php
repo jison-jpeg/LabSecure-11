@@ -34,38 +34,36 @@ class Attendance extends Model
     public function calculateAndSaveStatusAndRemarks()
 {
     $scheduleStartTime = Carbon::parse($this->schedule->start_time);
+    $scheduleEndTime = Carbon::parse($this->schedule->end_time);
 
-    // Only calculate status if time_in is available
-    if ($this->time_in && !$this->status) {  // Ensure status is only set once
+    if ($this->time_in) {
         $timeIn = Carbon::parse($this->time_in);
-        $lateMinutes = $timeIn->diffInMinutes($scheduleStartTime, false);
+        $lateMinutes = max($scheduleStartTime->diffInMinutes($timeIn, false), 0);
 
-        if ($lateMinutes > 15) {
-            $this->status = 'absent';
-        } elseif ($lateMinutes > 0) {
-            $this->status = 'late';
-        } else {
+        if ($lateMinutes <= 15) {  // Arrives within 15 minutes of the start time
             $this->status = 'present';
+        } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {  // Arrives late but within 30 minutes
+            $this->status = 'late';
+        } else {  // Arrives more than 30 minutes late
+            $this->status = 'absent';
         }
 
         $this->save();
     }
 
-    // Calculate and update remarks when time_out is set
     if ($this->time_out && $this->status) {
         $timeOut = Carbon::parse($this->time_out);
-        $attendedDuration = Carbon::parse($this->time_in)->diffInMinutes($timeOut);
+        $attendedDuration = $timeIn->diffInMinutes($timeOut);
 
         switch ($this->status) {
             case 'present':
                 $this->remarks = "Present: Attended full duration of {$attendedDuration} minutes.";
                 break;
             case 'late':
-                $this->remarks = "Late: Arrived late and attended {$attendedDuration} minutes.";
+                $this->remarks = "Late: Arrived more than 15 minutes late but within 30 minutes, attended {$attendedDuration} minutes.";
                 break;
             case 'absent':
-                // Ensure absent status has a specific remark
-                $this->remarks = "Absent: Arrived more than 15 minutes late. Attended {$attendedDuration} minutes from the arrival.";
+                $this->remarks = "Absent: Arrived more than 30 minutes late. Attended {$attendedDuration} minutes from the arrival.";
                 break;
         }
 
