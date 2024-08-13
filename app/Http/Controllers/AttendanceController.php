@@ -71,7 +71,7 @@ class AttendanceController extends Controller
     // Validate the incoming request
     $request->validate([
         'rfid_number' => 'required|string',
-        'type' => 'required|in:entrance,exit', // Ensure type is either 'entrance' or 'exit'
+        'type' => 'required|in:entrance,exit',
     ]);
 
     // Find the user by RFID
@@ -99,7 +99,7 @@ class AttendanceController extends Controller
                 'schedule_id' => $schedule->id,
                 'date' => $currentTime->toDateString(),
                 'time_in' => $currentTime,
-                'time_out' => null, // Initialize with null
+                'time_out' => null,
             ]);
             break;
 
@@ -113,17 +113,15 @@ class AttendanceController extends Controller
 
             if ($attendance && !$attendance->time_out) {
                 $attendance->update(['time_out' => $currentTime]);
+                $attendance->refresh(); // Make sure to refresh after update to capture the new time_out
             }
             break;
     }
 
-    // Check if both time_in and time_out are set before calculating status and remarks
-    if ($attendance && $attendance->time_in && $attendance->time_out) {
+    if ($attendance) {
         $attendance->calculateAndSaveStatusAndRemarks();
+        $attendance->refresh(); // Refresh to get the latest data after calculations
     }
-
-    // Reload the model to reflect any updates
-    $attendance->refresh();
 
     // Broadcast the attendance event
     AttendanceRecorded::dispatch($attendance);

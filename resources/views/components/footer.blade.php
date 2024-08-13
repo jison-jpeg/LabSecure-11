@@ -5,6 +5,7 @@
         </div>
         <div class="credits">
             Designed by <a href="https://buksu.edu.ph/">Best Team Ever</a>
+            - Current Time: {{ now()->format('Y-m-d H:i:s') }} ({{ config('app.timezone') }})
         </div>
     </footer>
 </div>

@@ -34,17 +34,16 @@ class Attendance extends Model
     public function calculateAndSaveStatusAndRemarks()
 {
     $scheduleStartTime = Carbon::parse($this->schedule->start_time);
-    $scheduleEndTime = Carbon::parse($this->schedule->end_time);
 
     if ($this->time_in) {
         $timeIn = Carbon::parse($this->time_in);
-        $lateMinutes = max($scheduleStartTime->diffInMinutes($timeIn, false), 0);
+        $lateMinutes = max(0, round($scheduleStartTime->floatDiffInMinutes($timeIn, false)));
 
-        if ($lateMinutes <= 15) {  // Arrives within 15 minutes of the start time
+        if ($lateMinutes <= 15) {
             $this->status = 'present';
-        } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {  // Arrives late but within 30 minutes
+        } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {
             $this->status = 'late';
-        } else {  // Arrives more than 30 minutes late
+        } else {
             $this->status = 'absent';
         }
 
@@ -53,17 +52,21 @@ class Attendance extends Model
 
     if ($this->time_out && $this->status) {
         $timeOut = Carbon::parse($this->time_out);
-        $attendedDuration = $timeIn->diffInMinutes($timeOut);
+        $attendedDurationMinutes = round($timeIn->floatDiffInMinutes($timeOut));
+        $hours = intdiv($attendedDurationMinutes, 60);
+        $minutes = $attendedDurationMinutes % 60;
+
+        $durationFormat = "{$hours}hr {$minutes}min";
 
         switch ($this->status) {
             case 'present':
-                $this->remarks = "Present: Attended full duration of {$attendedDuration} minutes.";
+                $this->remarks = "Present: Attended full duration of {$durationFormat}.";
                 break;
             case 'late':
-                $this->remarks = "Late: Arrived more than 15 minutes late but within 30 minutes, attended {$attendedDuration} minutes.";
+                $this->remarks = "Late: Arrived more than 15 minutes late but within 30 minutes, attended {$durationFormat}.";
                 break;
             case 'absent':
-                $this->remarks = "Absent: Arrived more than 30 minutes late. Attended {$attendedDuration} minutes from the arrival.";
+                $this->remarks = "Absent: Arrived more than 30 minutes late. Attended {$durationFormat} from the arrival.";
                 break;
         }
 
