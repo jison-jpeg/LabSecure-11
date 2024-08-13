@@ -33,76 +33,45 @@ class Attendance extends Model
     // Method to calculate and save the status and remarks
     public function calculateAndSaveStatusAndRemarks()
 {
-    $timeIn = $this->time_in ? Carbon::parse($this->time_in) : null;
-    $timeOut = $this->time_out ? Carbon::parse($this->time_out) : Carbon::now();
-    $scheduleStartTime = $this->schedule ? Carbon::parse($this->schedule->start_time) : null;
-    $scheduleEndTime = $this->schedule ? Carbon::parse($this->schedule->end_time) : null;
+    $scheduleStartTime = Carbon::parse($this->schedule->start_time);
 
-    // Fetch the instructor's attendance for the same schedule
-    $instructorAttendance = Attendance::where('schedule_id', $this->schedule_id)
-                                        ->whereHas('user', function($query) {
-                                            $query->whereHas('role', function($roleQuery) {
-                                                $roleQuery->where('name', 'instructor');
-                                            });
-                                        })->first();
+    // Only calculate status if time_in is available
+    if ($this->time_in && !$this->status) {  // Ensure status is only set once
+        $timeIn = Carbon::parse($this->time_in);
+        $lateMinutes = $timeIn->diffInMinutes($scheduleStartTime, false);
 
-    // Handle case where the user has not checked out yet
-    if (!$timeIn) {
-        $this->status = 'absent';
-        $this->remarks = 'Absent due to no time in';
-    } elseif ($this->user->isInstructor()) { // Instructor Logic
-        $lateDuration = $scheduleStartTime->diffInMinutes($timeIn, false);
-
-        if ($lateDuration >= 15) {
-            $this->status = 'late';
-            $this->remarks = "Instructor Late by {$lateDuration} minutes";
-        } else {
-            $this->status = 'present';
-            $duration = $timeIn->diff($timeOut);
-            $this->remarks = "Instructor Attended " . $duration->format('%hhr %imin');
-        }
-    } elseif ($this->user->isStudent() && $instructorAttendance) { // Student Logic depending on Instructor
-        $instructorTimeIn = Carbon::parse($instructorAttendance->time_in);
-        $studentLateDuration = $instructorTimeIn->diffInMinutes($timeIn, false);
-
-        // Calculate total attended time if multiple check-ins/check-outs occur
-        $totalAttendedMinutes = 0;
-        $attendances = Attendance::where('user_id', $this->user_id)
-                                  ->where('schedule_id', $this->schedule_id)
-                                  ->where('date', Carbon::now()->toDateString())
-                                  ->get();
-
-        foreach ($attendances as $attendance) {
-            if ($attendance->time_in && $attendance->time_out) {
-                $totalAttendedMinutes += Carbon::parse($attendance->time_in)->diffInMinutes(Carbon::parse($attendance->time_out));
-            }
-        }
-
-        if ($studentLateDuration > 15) {
+        if ($lateMinutes > 15) {
             $this->status = 'absent';
-            $this->remarks = "Absent: due to being {$studentLateDuration} minutes late after the instructor";
-        } elseif ($studentLateDuration <= 15 && $studentLateDuration >= 0) {
-            $this->status = 'present';
-            $totalAttendedHoursMinutes = gmdate('H:i', $totalAttendedMinutes * 60);
-            $this->remarks = "Attended {$totalAttendedHoursMinutes} (based on instructor's arrival)";
-        } elseif ($studentLateDuration < 0 && abs($studentLateDuration) > 0 && abs($studentLateDuration) <= 15) {
+        } elseif ($lateMinutes > 0) {
             $this->status = 'late';
-            $totalAttendedHoursMinutes = gmdate('H:i', $totalAttendedMinutes * 60);
-            $this->remarks = "Late by " . abs($studentLateDuration) . " minutes after the instructor, attended {$totalAttendedHoursMinutes}";
         } else {
-            $this->status = 'unknown';
-            $this->remarks = 'Status unknown';
+            $this->status = 'present';
         }
-    } else {
-        $this->status = 'unknown';
-        $this->remarks = 'Status unknown';
+
+        $this->save();
     }
 
-    // Save the status and remarks to the database
-    $this->save();
-}
+    // Calculate and update remarks when time_out is set
+    if ($this->time_out && $this->status) {
+        $timeOut = Carbon::parse($this->time_out);
+        $attendedDuration = Carbon::parse($this->time_in)->diffInMinutes($timeOut);
 
-    
+        switch ($this->status) {
+            case 'present':
+                $this->remarks = "Present: Attended full duration of {$attendedDuration} minutes.";
+                break;
+            case 'late':
+                $this->remarks = "Late: Arrived late and attended {$attendedDuration} minutes.";
+                break;
+            case 'absent':
+                // Ensure absent status has a specific remark
+                $this->remarks = "Absent: Arrived more than 15 minutes late. Attended {$attendedDuration} minutes from the arrival.";
+                break;
+        }
+
+        $this->save();
+    }
+}
 
     // Accessor for formatted time_in
     public function getFormattedTimeInAttribute()
