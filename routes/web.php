@@ -64,9 +64,10 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
         Route::post('/', [AttendanceController::class, 'store'])->name('attendance.store');
-        Route::post('/rfid', [AttendanceController::class, 'recordAttendance'])->name('attendance.record.rfid');
-
     });
+
+// Attendance Management using RFID
+Route::post('record-attendance', [AttendanceController::class, 'recordAttendance'])->name('attendance.record.rfid');
 
 // Courses Management
 Route::middleware(['auth', 'verified', 'role:admin'])

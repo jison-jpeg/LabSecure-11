@@ -19,6 +19,7 @@ const notyf = new Notyf({
     dismissible: true
 });
 
+// Listen for attendance recorded public channel
 window.Echo.channel('attendance-channel')
     .listen('.attendance.recorded', (data) => {
         console.log('Attendance Recorded:', data);
