@@ -34,17 +34,19 @@ class Attendance extends Model
     public function calculateAndSaveStatusAndRemarks()
 {
     $scheduleStartTime = Carbon::parse($this->schedule->start_time);
+    $scheduleEndTime = Carbon::parse($this->schedule->end_time);
 
     if ($this->time_in) {
         $timeIn = Carbon::parse($this->time_in);
         $lateMinutes = max(0, round($scheduleStartTime->floatDiffInMinutes($timeIn, false)));
 
+        // Set status based on the late minutes
         if ($lateMinutes <= 15) {
-            $this->status = 'present';
+            $this->status = 'present'; // On time or slightly late (up to 15 minutes)
         } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {
-            $this->status = 'late';
+            $this->status = 'late'; // Late but not excessively
         } else {
-            $this->status = 'absent';
+            $this->status = 'absent'; // Excessively late (more than 30 minutes)
         }
 
         $this->save();
@@ -53,18 +55,16 @@ class Attendance extends Model
     if ($this->time_out) {
         $timeOut = Carbon::parse($this->time_out);
         $attendedDurationMinutes = round($timeIn->floatDiffInMinutes($timeOut));
+        $hours = intdiv($attendedDurationMinutes, 60);
+        $minutes = $attendedDurationMinutes % 60;
+        $durationFormat = "{$hours}hr {$minutes}min";
 
-        // Implement a minimum duration threshold for valid attendance
-        $minimumDurationMinutes = 5;  // Adjust this threshold as needed
-
-        if ($attendedDurationMinutes < $minimumDurationMinutes) {
+        // Check if the user checked out before the scheduled end time
+        if ($timeOut->lt($scheduleEndTime)) {
             $this->status = 'absent';
-            $this->remarks = "Absent: Insufficient attendance time (less than {$minimumDurationMinutes} minutes).";
+            $this->remarks = "Absent: Checked out before the scheduled end time, attended {$durationFormat}.";
         } else {
-            $hours = intdiv($attendedDurationMinutes, 60);
-            $minutes = $attendedDurationMinutes % 60;
-            $durationFormat = "{$hours}hr {$minutes}min";
-
+            // Update remarks based on the status, considering checking out on time or later
             switch ($this->status) {
                 case 'present':
                     $this->remarks = "Present: Attended full duration of {$durationFormat}.";
@@ -73,11 +73,12 @@ class Attendance extends Model
                     $this->remarks = "Late: Arrived more than 15 minutes late, attended {$durationFormat}.";
                     break;
                 case 'absent':
-                    // Retain "absent" status if initially set due to being very late, regardless of attendance duration
-                    $this->remarks = "Absent: Arrived more than 30 minutes late, attended {$durationFormat}.";
+                    // Already set above, potentially redundant but ensures clarity
+                    $this->remarks = "Absent: Checked out before the scheduled end time at {$timeOut->format('g:i A')}, or was more than 15 minutes late. Total attended: {$attendedDurationMinutes} minutes.";
                     break;
             }
         }
+
         $this->save();
     } else {
         // Handle case where time_out is not recorded
