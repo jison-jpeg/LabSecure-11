@@ -39,7 +39,6 @@ class Attendance extends Model
         $timeIn = Carbon::parse($this->time_in);
         $lateMinutes = max(0, round($scheduleStartTime->floatDiffInMinutes($timeIn, false)));
 
-        // Determine status based on late minutes
         if ($lateMinutes <= 15) {
             $this->status = 'present';
         } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {
@@ -48,43 +47,46 @@ class Attendance extends Model
             $this->status = 'absent';
         }
 
-        // Save the status early to ensure it's in the database before further logic
         $this->save();
     }
 
-    // Check if time_out is recorded
-    if (!$this->time_out) {
-        // Mark as incomplete if time_in is set but time_out is not
+    if ($this->time_out) {
+        $timeOut = Carbon::parse($this->time_out);
+        $attendedDurationMinutes = round($timeIn->floatDiffInMinutes($timeOut));
+
+        // Implement a minimum duration threshold for valid attendance
+        $minimumDurationMinutes = 5;  // Adjust this threshold as needed
+
+        if ($attendedDurationMinutes < $minimumDurationMinutes) {
+            $this->status = 'absent';
+            $this->remarks = "Absent: Insufficient attendance time (less than {$minimumDurationMinutes} minutes).";
+        } else {
+            $hours = intdiv($attendedDurationMinutes, 60);
+            $minutes = $attendedDurationMinutes % 60;
+            $durationFormat = "{$hours}hr {$minutes}min";
+
+            switch ($this->status) {
+                case 'present':
+                    $this->remarks = "Present: Attended full duration of {$durationFormat}.";
+                    break;
+                case 'late':
+                    $this->remarks = "Late: Arrived more than 15 minutes late, attended {$durationFormat}.";
+                    break;
+                case 'absent':
+                    // Retain "absent" status if initially set due to being very late, regardless of attendance duration
+                    $this->remarks = "Absent: Arrived more than 30 minutes late, attended {$durationFormat}.";
+                    break;
+            }
+        }
+        $this->save();
+    } else {
+        // Handle case where time_out is not recorded
         if ($this->time_in) {
             $this->status = 'incomplete';
             $this->remarks = 'Incomplete: No time out recorded.';
-        }
-    } else {
-        $timeOut = Carbon::parse($this->time_out);
-        $attendedDurationMinutes = round($timeIn->floatDiffInMinutes($timeOut));
-        $hours = intdiv($attendedDurationMinutes, 60);
-        $minutes = $attendedDurationMinutes % 60;
-        $durationFormat = "{$hours}hr {$minutes}min";
-
-        // Update remarks based on the previously set status
-        switch ($this->status) {
-            case 'present':
-                $this->remarks = "Present: Attended full duration of {$durationFormat}.";
-                break;
-            case 'late':
-                $this->remarks = "Late: Arrived more than 15 minutes late but within 30 minutes, attended {$durationFormat}.";
-                break;
-            case 'absent':
-                $this->remarks = "Absent: Arrived more than 30 minutes late. Attended {$durationFormat} from the arrival.";
-                break;
-            case 'incomplete': // Should only reach here if time_out is somehow cleared after being set
-                $this->remarks = "Incomplete: Attendance started but did not record full session.";
-                break;
+            $this->save();
         }
     }
-
-    // Save any changes made to status or remarks
-    $this->save();
 }
 
     // Accessor for formatted time_in

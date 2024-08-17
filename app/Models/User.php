@@ -65,7 +65,7 @@ class User extends Authenticatable
 
     public function schedules()
     {
-        return $this->hasMany(Schedule::class, 'instructor_id', 'schedule_student');
+        return $this->hasMany(Schedule::class, 'instructor_id', 'student_id');
     }
 
     public function getFullNameAttribute()
