@@ -164,7 +164,7 @@ class CreateSchedule extends Component
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
             'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'end_time' => 'required',
         ]);
 
         // Check for schedule conflict

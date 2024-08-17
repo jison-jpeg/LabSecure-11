@@ -24,4 +24,11 @@ window.Echo.channel('attendance-channel')
     .listen('.attendance.recorded', (data) => {
         console.log('Attendance Recorded:', data);
         notyf.success(`Attendance recorded successfully for ${data.user.first_name} ${data.user.last_name} RFID: ${data.user.rfid_number}`);
+
+        // Emit a browser event
+        window.dispatchEvent(new CustomEvent('refresh-attendance-table', {
+            detail: {
+                attendance: data
+            }
+        }));
     });

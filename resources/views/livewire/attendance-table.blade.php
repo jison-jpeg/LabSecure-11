@@ -5,8 +5,10 @@
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
+
+            {{-- perpage --}}
             <div class="row g-1">
-                <div class="col-md-1">
+                <div class="col-md-1 col-sm-2">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
@@ -17,12 +19,30 @@
                     </select>
                 </div>
 
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-3 col-sm-10">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search by user name...">
+                        placeholder="Search users...">
                 </div>
 
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-2 col-sm-6">
+                    <select wire:model.live="selectedSubject" name="selectedSubject" class="form-select">
+                        <option value="">All Subjects</option>
+                        @foreach ($subjects as $subject)
+                            <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2 col-sm-6">
+                    <select wire:model.live="selectedSection" name="selectedSection" class="form-select">
+                        <option value="">All Sections</option>
+                        @foreach ($sections as $section)
+                            <option value="{{ $section->id }}">{{ $section->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2 col-sm-6">
                     <select wire:model.live="status" name="status" class="form-select">
                         <option value="">All Statuses</option>
                         <option value="Present">Present</option>
@@ -33,19 +53,18 @@
                     </select>
                 </div>
 
-                <!-- Month Filter -->
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-2 col-sm-6">
                     <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
-                        Filters</button>
+                    
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-2">
-            {{-- Optional button for adding attendance records --}}
+            <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
+                Filters</button>
         </div>
     </div>
 
