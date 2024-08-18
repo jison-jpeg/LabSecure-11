@@ -107,63 +107,43 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($attendances as $key => $attendance)
-                    <tr wire:key="{{ $attendance->id }}">
-                        <th scope="row">{{ $key + 1 }}</th>
+                @foreach ($attendances as $attendance)
+                    <tr>
+                        <th scope="row">{{ $loop->iteration }}</th>
                         <td>{{ $attendance->user->full_name }}</td>
                         <td>{{ $attendance->schedule->subject->name }}</td>
                         <td>{{ $attendance->schedule->section->name }}</td>
                         <td>{{ Carbon::parse($attendance->date)->format('F j, Y') }}</td>
-                        <td>{{ $attendance->time_in ? Carbon::parse($attendance->time_in)->format('h:i A') : '-' }}</td>
-                        <td>{{ $attendance->time_out ? Carbon::parse($attendance->time_out)->format('h:i A') : '-' }}
-                        </td>
+                        <!-- Show first session time_in and last session time_out -->
+                        <td>{{ optional($attendance->sessions->first())->time_in ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A') : '-' }}</td>
+                        <td>{{ optional($attendance->sessions->last())->time_out ? Carbon::parse($attendance->sessions->last()->time_out)->format('h:i A') : '-' }}</td>
+                        <td>{{ number_format($attendance->percentage, 0) }}%</td>
                         <td class="text-center">
-                            <div class="progress mt-1">
-                                <div class="progress-bar {{ $attendance->percentage < 50 ? 'bg-danger' : ($attendance->percentage < 70 ? 'bg-warning' : 'bg-success') }}"
-                                     role="progressbar" 
-                                     style="width: {{ $attendance->percentage }}%;" 
-                                     aria-valuenow="{{ $attendance->percentage }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="100">
-                                    {{ number_format($attendance->percentage, 0) }}%
-                                </div>
-                            </div>
-                        </td>
-                                                <td class="text-center">
-                            <span
-                                class="badge rounded-pill 
-                                {{ $attendance->status == 'present'
-                                    ? 'bg-success'
-                                    : ($attendance->status == 'late'
-                                        ? 'bg-warning text-dark'
-                                        : ($attendance->status == 'absent'
-                                            ? 'bg-danger'
-                                            : ($attendance->status == 'excused'
-                                                ? 'bg-primary'
-                                                : 'bg-secondary'))) }}">
-                                {{ $attendance->status }}
+                            <span class="badge rounded-pill {{ $attendance->status == 'present' ? 'bg-success' : ($attendance->status == 'late' ? 'bg-warning' : 'bg-danger') }}">
+                                {{ ucfirst($attendance->status) }}
                             </span>
                         </td>
-                        <td>{{ $attendance->remarks }}
+                        <td>{{ $attendance->remarks }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
+                                    <li><button type="button" class="dropdown-item">View</button></li>
                                     <li><button @click="$dispatch('edit-mode',{id:{{ $attendance->id }}})"
                                             type="button" class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
                                     <li><button wire:click="delete({{ $attendance->id }})"
                                             wire:confirm="Are you sure you want to delete this record?" type="button"
-                                            class="dropdown-item text-danger" href="#">Delete</button>
+                                            class="dropdown-item text-danger">Delete</button></li>
                                 </ul>
                             </div>
                         </td>
                     </tr>
                 @endforeach
-            </tbody>
+                </tbody>
+                
         </table>
         <div class="d-flex flex-column align-items-start">
             {!! $attendances->links() !!}

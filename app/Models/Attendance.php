@@ -14,8 +14,6 @@ class Attendance extends Model
         'user_id',
         'schedule_id',
         'date',
-        'time_in',
-        'time_out',
         'percentage',
         'status',
         'remarks',
@@ -31,69 +29,86 @@ class Attendance extends Model
         return $this->belongsTo(Schedule::class);
     }
 
+    public function sessions()
+    {
+        return $this->hasMany(AttendanceSession::class);
+    }
+
     // Method to calculate and save the status and remarks
     public function calculateAndSaveStatusAndRemarks()
-{
-    $scheduleStartTime = Carbon::parse($this->schedule->start_time);
-    $scheduleEndTime = Carbon::parse($this->schedule->end_time);
-    $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
+    {
+        $scheduleStartTime = Carbon::parse($this->schedule->start_time);
+        $scheduleEndTime = Carbon::parse($this->schedule->end_time);
+        $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
 
-    if ($this->time_in) {
-        $timeIn = Carbon::parse($this->time_in);
-        $lateMinutes = max(0, round($scheduleStartTime->floatDiffInMinutes($timeIn, false)));
+        // Get the first session's time_in
+        $firstSession = $this->sessions->first();
+        if ($firstSession && $firstSession->time_in) {
+            $timeIn = Carbon::parse($firstSession->time_in);
+            $lateMinutes = max(0, $scheduleStartTime->diffInMinutes($timeIn, false));
 
-        if ($lateMinutes <= 15) {
-            $this->status = 'present';
-        } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {
-            $this->status = 'late';
-        } else {
-            $this->status = 'absent';
+            // Determine the status based on the late minutes
+            if ($lateMinutes <= 15 && $lateMinutes >= 0) {
+                $this->status = 'present';  // On time or up to 15 minutes late
+            } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {
+                $this->status = 'late';  // Late between 16 and 30 minutes
+            } else {
+                $this->status = 'absent';  // More than 30 minutes late
+            }
         }
-    }
 
-    if ($this->time_out) {
-        $timeOut = Carbon::parse($this->time_out);
-        $attendedDurationMinutes = round($timeIn->floatDiffInMinutes($timeOut));
-        $this->percentage = ($attendedDurationMinutes / $totalScheduledMinutes) * 100;
+        // Get the last session's time_out
+        $lastSession = $this->sessions->last();
+        if ($lastSession && $lastSession->time_out) {
+            $timeOut = Carbon::parse($lastSession->time_out);
+            $attendedDurationMinutes = max(0, $timeIn->diffInMinutes($timeOut));
 
-        if ($timeOut->lt($scheduleEndTime)) {
-            $this->status = 'absent';
-            $this->remarks = "Absent: Checked out before the scheduled end time.";
+            // Calculate and round the percentage to two decimal places
+            $this->percentage = round(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 2);
+
+            // Check if the user checked out before the scheduled end time
+            if ($timeOut->lt($scheduleEndTime)) {
+                $this->status = 'absent';
+                $this->remarks = "Absent: Checked out early, attended only {$this->percentage}% of the session.";
+            } else {
+                $this->remarks = "Attended {$this->percentage}% of the session.";
+            }
         } else {
-            $this->remarks = "Completed {$this->percentage}% of the session.";  // Now accesses the accessor
+            // No time_out recorded, mark as incomplete
+            $this->status = 'incomplete';
+            $this->remarks = 'Incomplete: No time out recorded.';
         }
-    } else {
-        $this->status = 'incomplete';
-        $this->remarks = 'Incomplete: No time out recorded.';
+
+        $this->save();
     }
-
-    $this->save();
-}
-
 
     // Accessor for formatted time_in
     public function getFormattedTimeInAttribute()
     {
-        return $this->time_in ? Carbon::parse($this->time_in)->format('h:i A') : '-';
+        $firstSession = $this->sessions->first();
+        return $firstSession && $firstSession->time_in
+            ? Carbon::parse($firstSession->time_in)->format('h:i A')
+            : '-';
     }
 
     // Accessor for formatted time_out
     public function getFormattedTimeOutAttribute()
     {
-        return $this->time_out ? Carbon::parse($this->time_out)->format('h:i A') : '-';
+        $lastSession = $this->sessions->last();
+        return $lastSession && $lastSession->time_out
+            ? Carbon::parse($lastSession->time_out)->format('h:i A')
+            : '-';
     }
 
     // Accessor for formatted percentage
     public function getPercentageAttribute($value)
-{
-    // Check if the percentage is an integer
-    if (floor($value) == $value) {
-        return (int) $value;  // Return as integer if no decimals
+    {
+        // Return integer if no decimal, otherwise format to two decimals
+        if (floor($value) == $value) {
+            return (int)$value;
+        }
+        return number_format($value, 2, '.', '');
     }
-    return number_format($value, 2, '.', '');  // Format to two decimals if needed
-}
-
-
 
     public function scopeSearch($query, $value)
     {
@@ -110,8 +125,6 @@ class Attendance extends Model
                 ->orWhere('type', 'like', '%' . $value . '%')
                 ->orWhere('status', 'like', '%' . $value . '%');
         })->orWhere('date', 'like', '%' . $value . '%')
-            ->orWhere('time_in', 'like', '%' . $value . '%')
-            ->orWhere('time_out', 'like', '%' . $value . '%')
             ->orWhere('status', 'like', '%' . $value . '%');
     }
 }

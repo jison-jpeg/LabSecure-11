@@ -29,109 +29,117 @@ class AttendanceController extends Controller
     }
 
     public function store(Request $request)
-    {
-        // Validate the incoming request
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'schedule_id' => 'required|exists:schedules,id',
-            'date' => 'required|date',
-            'time_in' => 'nullable|date_format:H:i',
-            'time_out' => 'nullable|date_format:H:i',
-        ]);
-    
-        // Create a new attendance record
-        $attendance = Attendance::create([
-            'user_id' => $request->user_id,
-            'schedule_id' => $request->schedule_id,
-            'date' => $request->date,
-            'time_in' => $request->time_in,
-            'time_out' => $request->time_out,
-        ]);
-    
-        // Calculate and save the status and remarks
-        if ($attendance->time_in) {
-            $attendance->calculateAndSaveStatusAndRemarks();
-        }
-    
-        // Additional check to ensure remarks are set when both time_in and time_out are provided
-        if ($attendance->time_in && $attendance->time_out) {
-            $attendance->calculateAndSaveStatusAndRemarks();
-        }
-    
-        return response()->json([
-            'message' => 'Attendance record created successfully',
-            'data' => $attendance,
-        ], 201);
-    }
-    
-
-    // API endpoint to process attendance via RFID
-    public function recordAttendance(Request $request)
 {
     // Validate the incoming request
     $request->validate([
-        'rfid_number' => 'required|string',
-        'type' => 'required|in:entrance,exit',
+        'user_id' => 'required|exists:users,id',
+        'schedule_id' => 'required|exists:schedules,id',
+        'time_in' => 'nullable|date_format:H:i',
+        'time_out' => 'nullable|date_format:H:i',
+        'type' => 'required|in:entrance,exit', // Added type to handle entrance and exit
     ]);
 
-    // Find the user by RFID
-    $user = User::where('rfid_number', $request->rfid_number)->first();
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
-    }
+    // Default the date to today if not provided
+    $date = $request->input('date', Carbon::now()->toDateString());
 
-    // Find the current schedule for the user based on the current time
-    $currentTime = Carbon::now();
-    $schedule = Schedule::where('start_time', '<=', $currentTime)
-                        ->where('end_time', '>=', $currentTime)
-                        ->first();
+    // Find or create the attendance record for today
+    $attendance = Attendance::firstOrCreate([
+        'user_id' => $request->user_id,
+        'schedule_id' => $request->schedule_id,
+        'date' => $date,
+    ]);
 
-    if (!$schedule) {
-        return response()->json(['message' => 'No active schedule found for this time'], 404);
-    }
-
-    $attendance = null;
     switch ($request->type) {
         case 'entrance':
-            // Create a new attendance record with the time_in
-            $attendance = Attendance::create([
-                'user_id' => $user->id,
-                'schedule_id' => $schedule->id,
-                'date' => $currentTime->toDateString(),
-                'time_in' => $currentTime,
-                'time_out' => null,
+            // Create a new session for the time in
+            $attendance->sessions()->create([
+                'time_in' => $request->time_in ? Carbon::parse($request->time_in) : Carbon::now(),
             ]);
             break;
 
         case 'exit':
-            // Find the latest attendance record for today and update the time_out
-            $attendance = Attendance::where('user_id', $user->id)
-                                    ->where('schedule_id', $schedule->id)
-                                    ->where('date', $currentTime->toDateString())
-                                    ->latest('time_in')
-                                    ->first();
-
-            if ($attendance && !$attendance->time_out) {
-                $attendance->update(['time_out' => $currentTime]);
-                $attendance->refresh(); // Make sure to refresh after update to capture the new time_out
+            // Find the most recent session and set the time out
+            $lastSession = $attendance->sessions()->whereNull('time_out')->latest('time_in')->first();
+            if ($lastSession) {
+                $lastSession->update([
+                    'time_out' => $request->time_out ? Carbon::parse($request->time_out) : Carbon::now(),
+                ]);
             }
             break;
     }
 
-    if ($attendance) {
-        $attendance->calculateAndSaveStatusAndRemarks();
-        $attendance->refresh(); // Refresh to get the latest data after calculations
-    }
+    // After the last session of the day, call this method to finalize the status
+    $attendance->calculateAndSaveStatusAndRemarks();
 
-    // Broadcast the attendance event
+    // Dispatch the event for real-time updates
     AttendanceRecorded::dispatch($attendance);
 
     return response()->json([
         'message' => 'Attendance recorded successfully',
-        'data' => $attendance->load('user', 'schedule'),
-    ]);
+        'data' => $attendance->load('sessions'),
+    ], 201);
 }
 
-    
-    
+
+    // API endpoint to process attendance via RFID
+    public function recordAttendance(Request $request)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'rfid_number' => 'required|string',
+            'type' => 'required|in:entrance,exit', // Either 'entrance' or 'exit'
+        ]);
+
+        // Find the user by RFID
+        $user = User::where('rfid_number', $request->rfid_number)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Find the current schedule for the user based on the current time
+        $currentTime = Carbon::now();
+        $schedule = Schedule::where('start_time', '<=', $currentTime)
+                            ->where('end_time', '>=', $currentTime)
+                            ->first();
+
+        if (!$schedule) {
+            return response()->json(['message' => 'No active schedule found for this time'], 404);
+        }
+
+        // Find or create the attendance record for today
+        $currentDate = Carbon::now()->toDateString();
+        $attendance = Attendance::firstOrCreate([
+            'user_id' => $user->id,
+            'date' => $currentDate,
+            'schedule_id' => $schedule->id, // Ensure the schedule is associated with the attendance
+        ]);
+
+        switch ($request->type) {
+            case 'entrance':
+                // Create a new session for the time in
+                $attendance->sessions()->create([
+                    'time_in' => Carbon::now(),
+                ]);
+                break;
+
+            case 'exit':
+                // Find the most recent session and set the time out
+                $lastSession = $attendance->sessions()->whereNull('time_out')->latest('time_in')->first();
+                if ($lastSession) {
+                    $lastSession->update(['time_out' => Carbon::now()]);
+                }
+                break;
+        }
+
+        // After the last session of the day, call this method to finalize the status
+        $attendance->calculateAndSaveStatusAndRemarks();
+
+        // Dispatch the event for real-time updates
+        AttendanceRecorded::dispatch($attendance);
+
+        return response()->json([
+            'message' => 'Attendance recorded successfully',
+            'data' => $attendance->load('sessions'),
+        ]);
+    }
 }
