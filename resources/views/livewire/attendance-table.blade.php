@@ -97,6 +97,7 @@
                         'name' => 'time_out',
                         'displayName' => 'Time Out',
                     ])
+                    <th scope="col" class="text-center">Percentage</th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'status',
                         'displayName' => 'Status',
@@ -116,8 +117,19 @@
                         <td>{{ $attendance->time_in ? Carbon::parse($attendance->time_in)->format('h:i A') : '-' }}</td>
                         <td>{{ $attendance->time_out ? Carbon::parse($attendance->time_out)->format('h:i A') : '-' }}
                         </td>
-
                         <td class="text-center">
+                            <div class="progress mt-1">
+                                <div class="progress-bar {{ $attendance->percentage < 50 ? 'bg-danger' : ($attendance->percentage < 70 ? 'bg-warning' : 'bg-success') }}"
+                                     role="progressbar" 
+                                     style="width: {{ $attendance->percentage }}%;" 
+                                     aria-valuenow="{{ $attendance->percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ number_format($attendance->percentage, 0) }}%
+                                </div>
+                            </div>
+                        </td>
+                                                <td class="text-center">
                             <span
                                 class="badge rounded-pill 
                                 {{ $attendance->status == 'present'

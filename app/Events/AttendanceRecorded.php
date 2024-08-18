@@ -43,6 +43,7 @@ class AttendanceRecorded implements ShouldBroadcastNow
             'time_out' => $this->attendance->time_out,
             'date' => $this->attendance->date,
             'status' => $this->attendance->status,
+            'percentage' => $this->attendance->percentage,
             'remarks' => $this->attendance->remarks,
             'user' => $this->attendance->user,
             'schedule' => $this->attendance->schedule,

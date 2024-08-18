@@ -16,6 +16,7 @@ class Attendance extends Model
         'date',
         'time_in',
         'time_out',
+        'percentage',
         'status',
         'remarks',
     ];
@@ -35,60 +36,40 @@ class Attendance extends Model
 {
     $scheduleStartTime = Carbon::parse($this->schedule->start_time);
     $scheduleEndTime = Carbon::parse($this->schedule->end_time);
+    $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
 
     if ($this->time_in) {
         $timeIn = Carbon::parse($this->time_in);
         $lateMinutes = max(0, round($scheduleStartTime->floatDiffInMinutes($timeIn, false)));
 
-        // Set status based on the late minutes
         if ($lateMinutes <= 15) {
-            $this->status = 'present'; // On time or slightly late (up to 15 minutes)
+            $this->status = 'present';
         } elseif ($lateMinutes > 15 && $lateMinutes <= 30) {
-            $this->status = 'late'; // Late but not excessively
+            $this->status = 'late';
         } else {
-            $this->status = 'absent'; // Excessively late (more than 30 minutes)
+            $this->status = 'absent';
         }
-
-        $this->save();
     }
 
     if ($this->time_out) {
         $timeOut = Carbon::parse($this->time_out);
         $attendedDurationMinutes = round($timeIn->floatDiffInMinutes($timeOut));
-        $hours = intdiv($attendedDurationMinutes, 60);
-        $minutes = $attendedDurationMinutes % 60;
-        $durationFormat = "{$hours}hr {$minutes}min";
+        $this->percentage = ($attendedDurationMinutes / $totalScheduledMinutes) * 100;
 
-        // Check if the user checked out before the scheduled end time
         if ($timeOut->lt($scheduleEndTime)) {
             $this->status = 'absent';
-            $this->remarks = "Absent: Checked out before the scheduled end time, attended {$durationFormat}.";
+            $this->remarks = "Absent: Checked out before the scheduled end time.";
         } else {
-            // Update remarks based on the status, considering checking out on time or later
-            switch ($this->status) {
-                case 'present':
-                    $this->remarks = "Present: Attended full duration of {$durationFormat}.";
-                    break;
-                case 'late':
-                    $this->remarks = "Late: Arrived more than 15 minutes late, attended {$durationFormat}.";
-                    break;
-                case 'absent':
-                    // Already set above, potentially redundant but ensures clarity
-                    $this->remarks = "Absent: Checked out before the scheduled end time at {$timeOut->format('g:i A')}, or was more than 15 minutes late. Total attended: {$attendedDurationMinutes} minutes.";
-                    break;
-            }
+            $this->remarks = "Completed {$this->percentage}% of the session.";  // Now accesses the accessor
         }
-
-        $this->save();
     } else {
-        // Handle case where time_out is not recorded
-        if ($this->time_in) {
-            $this->status = 'incomplete';
-            $this->remarks = 'Incomplete: No time out recorded.';
-            $this->save();
-        }
+        $this->status = 'incomplete';
+        $this->remarks = 'Incomplete: No time out recorded.';
     }
+
+    $this->save();
 }
+
 
     // Accessor for formatted time_in
     public function getFormattedTimeInAttribute()
@@ -101,6 +82,18 @@ class Attendance extends Model
     {
         return $this->time_out ? Carbon::parse($this->time_out)->format('h:i A') : '-';
     }
+
+    // Accessor for formatted percentage
+    public function getPercentageAttribute($value)
+{
+    // Check if the percentage is an integer
+    if (floor($value) == $value) {
+        return (int) $value;  // Return as integer if no decimals
+    }
+    return number_format($value, 2, '.', '');  // Format to two decimals if needed
+}
+
+
 
     public function scopeSearch($query, $value)
     {
