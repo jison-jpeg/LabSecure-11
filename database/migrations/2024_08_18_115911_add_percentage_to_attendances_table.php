@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            $table->double('percentage', 8, 2)->default(0); // Adds a percentage column with default 0
+            $table->double('percentage', 8, 2)->default(0)->after('remarks'); // Adds the percentage column before created_at
         });
     }
 

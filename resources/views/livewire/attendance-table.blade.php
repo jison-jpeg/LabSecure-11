@@ -117,12 +117,29 @@
                         <!-- Show first session time_in and last session time_out -->
                         <td>{{ optional($attendance->sessions->first())->time_in ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A') : '-' }}</td>
                         <td>{{ optional($attendance->sessions->last())->time_out ? Carbon::parse($attendance->sessions->last()->time_out)->format('h:i A') : '-' }}</td>
-                        <td>{{ number_format($attendance->percentage, 0) }}%</td>
                         <td class="text-center">
-                            <span class="badge rounded-pill {{ $attendance->status == 'present' ? 'bg-success' : ($attendance->status == 'late' ? 'bg-warning' : 'bg-danger') }}">
+                            <div class="progress mt-progress">
+                                <div class="progress-bar 
+                                    {{ $attendance->percentage < 50 ? 'bg-danger' : ($attendance->percentage < 70 ? 'bg-warning' : 'bg-success') }}"
+                                    role="progressbar" 
+                                    style="width: {{ $attendance->percentage }}%;" 
+                                    aria-valuenow="{{ $attendance->percentage }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                    {{ $attendance->percentage }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill 
+                                {{ $attendance->status == 'present' ? 'bg-success' : 
+                                ($attendance->status == 'late' ? 'bg-warning' : 
+                                ($attendance->status == 'absent' ? 'bg-danger' : 
+                                ($attendance->status == 'incomplete' ? 'bg-secondary' : 'bg-secondary'))) }}">
                                 {{ ucfirst($attendance->status) }}
                             </span>
                         </td>
+                        
                         <td>{{ $attendance->remarks }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
