@@ -12,6 +12,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TransactionLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -106,5 +107,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Transaction Logs
+Route::middleware(['auth', 'verified'])
+    ->get('/logs', [TransactionLogController::class, 'viewTransactionLog'])->name('transaction-logs');
 
 require __DIR__ . '/auth.php';

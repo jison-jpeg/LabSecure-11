@@ -8,6 +8,7 @@ use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\User;
 use App\Models\Laboratory;
+use App\Models\TransactionLog; // Include TransactionLog model
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,6 +65,15 @@ class AttendanceController extends Controller
                 // Set laboratory status to "Occupied"
                 $laboratory->update(['status' => 'Occupied']);
                 LaboratoryStatusUpdated::dispatch($laboratory);  // Dispatch event
+
+                // Log the entrance action
+                TransactionLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'check_in',
+                    'model' => 'Attendance',
+                    'model_id' => $attendance->id,
+                    'details' => json_encode(['user_id' => $request->user_id, 'schedule_id' => $request->schedule_id, 'laboratory_status' => 'Occupied']),
+                ]);
                 break;
 
             case 'exit':
@@ -77,6 +87,15 @@ class AttendanceController extends Controller
                 // Set laboratory status to "Available"
                 $laboratory->update(['status' => 'Available']);
                 LaboratoryStatusUpdated::dispatch($laboratory);  // Dispatch event
+
+                // Log the exit action
+                TransactionLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'check_out',
+                    'model' => 'Attendance',
+                    'model_id' => $attendance->id,
+                    'details' => json_encode(['user_id' => $request->user_id, 'schedule_id' => $request->schedule_id, 'laboratory_status' => 'Available']),
+                ]);
                 break;
         }
 
@@ -137,6 +156,15 @@ class AttendanceController extends Controller
                 // Set laboratory status to "Occupied"
                 $laboratory->update(['status' => 'Occupied']);
                 LaboratoryStatusUpdated::dispatch($laboratory);  // Dispatch event
+
+                // Log the entrance action
+                TransactionLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'check_in',
+                    'model' => 'Attendance',
+                    'model_id' => $attendance->id,
+                    'details' => json_encode(['rfid_number' => $request->rfid_number, 'laboratory_status' => 'Occupied']),
+                ]);
                 break;
 
             case 'exit':
@@ -148,6 +176,15 @@ class AttendanceController extends Controller
                 // Set laboratory status to "Available"
                 $laboratory->update(['status' => 'Available']);
                 LaboratoryStatusUpdated::dispatch($laboratory);  // Dispatch event
+
+                // Log the exit action
+                TransactionLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'check_out',
+                    'model' => 'Attendance',
+                    'model_id' => $attendance->id,
+                    'details' => json_encode(['rfid_number' => $request->rfid_number, 'laboratory_status' => 'Available']),
+                ]);
                 break;
         }
 
