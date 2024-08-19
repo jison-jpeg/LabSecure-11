@@ -71,6 +71,7 @@ class LaboratoryController extends Controller
                     'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
                 ]);
+                LaboratoryStatusUpdated::dispatch($laboratory);  // Dispatch event
                 break;
 
             case 'exit':
@@ -82,6 +83,7 @@ class LaboratoryController extends Controller
                     'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),
                 ]);
+                LaboratoryStatusUpdated::dispatch($laboratory);  // Dispatch event
                 break;
         }
 

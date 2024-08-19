@@ -26,26 +26,22 @@ class Laboratory extends Model
         return $this->hasMany(Schedule::class);
     }
 
-    public function getCurrentOrRecentUserAttribute()
-    {
-        // Retrieve the most recent log related to the laboratory via the attendance model
-        $log = TransactionLog::where('model', 'Attendance') // Log for Attendance
-            ->whereJsonContains('details->laboratory_status', $this->status) // Filter based on laboratory status
-            ->orderBy('created_at', 'desc')
-            ->first();
+    public function recentUserLog()
+{
+    // Retrieve all attendance IDs related to this laboratory's schedules
+    $attendanceIds = Attendance::whereIn('schedule_id', $this->schedules->pluck('id'))
+        ->pluck('id');
 
-        if ($log) {
-            // Get user from the log
-            $user = User::find($log->user_id);
-            return [
-                'name' => $user->full_name ?? 'Unknown User',
-                'time' => Carbon::parse($log->created_at)->diffForHumans(),
-                'status' => $log->action == 'check_in' ? 'Current User' : 'Recent User',
-            ];
-        }
+    // Retrieve the most recent 'check_in' or 'check_out' log for this laboratory based on related attendances
+    return TransactionLog::where('model', 'Attendance')  // Match to Attendance, not Laboratory
+        ->whereIn('model_id', $attendanceIds)  // Fetch related attendance IDs
+        ->whereIn('action', ['check_in', 'check_out'])
+        ->latest()
+        ->with('user') // Ensure TransactionLog is associated with User
+        ->first();
+}
 
-        return null;
-    }
+
 
     public function scopeSearch($query, $value)
     {

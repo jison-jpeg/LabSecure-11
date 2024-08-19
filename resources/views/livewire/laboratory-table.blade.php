@@ -79,19 +79,15 @@
                                 </div>
                                 <div class="row mt-4 sub-header">
                                     <div class="col-6 text-start text-truncate">
-                                        <h6 class="text-truncate">{{ $laboratory->currentOrRecentUser['name'] ?? 'No User' }}</h6>
                                         <span class="text-muted">
-                                            {{ $laboratory->status == 'Occupied' 
-                                                ? 'Current User' 
-                                                : ($laboratory->status == 'Locked' 
-                                                    ? 'Locked By' 
-                                                    : ($laboratory->currentOrRecentUser['status'] ?? 'Recent User')) }}
+                                            {{ $laboratory->recent_user_action }}
                                         </span>
+                                        <h6 class="text-truncate">{{ $laboratory->recent_user_name }}</h6>
                                     </div>
                                     <div class="col-6 text-truncate text-end align-self-end">
-                                        <span class="text-muted">{{ $laboratory->currentOrRecentUser['time'] ?? 'No Recent Activity' }}</span>
+                                        <span class="text-muted">{{ $laboratory->time_ago }}</span>
                                     </div>
-                                </div>                                
+                                </div>                            
                             </div>
                         </div>
                     </a>

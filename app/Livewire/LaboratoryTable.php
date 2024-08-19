@@ -74,16 +74,35 @@ class LaboratoryTable extends Component
     }
 
     public function render()
-    {
-        return view('livewire.laboratory-table', [
-            'laboratories' => Laboratory::search($this->search)
-                ->when($this->type !== '', function ($query) {
-                    $query->where('type', $this->type);
-                })
-                ->orderBy($this->sortBy, $this->sortDir)
-                ->paginate($this->perPage)
-        ]);
+{
+    // Fetch all laboratories with pagination
+    $laboratories = Laboratory::search($this->search)
+        ->when($this->type !== '', function ($query){
+            $query->where('type', $this->type);
+        })
+        ->orderBy($this->sortBy, $this->sortDir)
+        ->paginate($this->perPage); // Keep the pagination here
+
+    // For each laboratory, we can iterate to get the recent log without converting to collection
+    foreach ($laboratories as $laboratory) {
+        $recentLog = $laboratory->recentUserLog();
+
+        if ($recentLog && $recentLog->user) {
+            $laboratory->recent_user_name = $recentLog->user->full_name; // Assuming `full_name` is a user attribute
+            $laboratory->recent_user_action = $recentLog->action == 'check_in' ? 'CURRENT USER' : 'RECENT USER';
+            $laboratory->time_ago = $recentLog->created_at->diffForHumans();
+        } else {
+            $laboratory->recent_user_name = 'N/A';
+            $laboratory->recent_user_action = 'N/A';
+            $laboratory->time_ago = 'No Recent Activity';
+        }
     }
+
+    return view('livewire.laboratory-table', [
+        'laboratories' => $laboratories, // Return the paginated results
+    ]);
+}
+
 
     #[On('refresh-laboratory-table')]
     public function refreshUserTable()
