@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])
     ->prefix('laboratories')
     ->group(function () {
         Route::get('/', [LaboratoryController::class, 'viewLaboratories'])->name('laboratories');
+        // Route::post('/access', [LaboratoryController::class, 'handleLaboratoryAccess'])->name('laboratory.access');
     });
 
 // User Management
@@ -66,9 +67,6 @@ Route::middleware(['auth', 'verified'])
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
         Route::post('/', [AttendanceController::class, 'store'])->name('attendance.store');
     });
-
-// Attendance Management using RFID
-Route::post('record-attendance', [AttendanceController::class, 'recordAttendance'])->name('attendance.record.rfid');
 
 // Courses Management
 Route::middleware(['auth', 'verified', 'role:admin'])

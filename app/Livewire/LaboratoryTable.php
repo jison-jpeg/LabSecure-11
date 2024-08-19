@@ -77,12 +77,11 @@ class LaboratoryTable extends Component
     {
         return view('livewire.laboratory-table', [
             'laboratories' => Laboratory::search($this->search)
-            ->when($this->type !== '', function ($query){
-                $query->where('type', $this->type);
-            })
-            ->orderBy($this->sortBy, $this->sortDir)
-            ->paginate($this->perPage)
-                
+                ->when($this->type !== '', function ($query) {
+                    $query->where('type', $this->type);
+                })
+                ->orderBy($this->sortBy, $this->sortDir)
+                ->paginate($this->perPage)
         ]);
     }
 
