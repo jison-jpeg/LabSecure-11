@@ -52,8 +52,8 @@
                 @endforeach
             </tbody>
         </table>
-        <div class="d-flex flex-column align-items-start">
-            {!! $students->links() !!}
-        </div>
+    </div>
+    <div class="d-flex flex-column align-items-start">
+        {!! $students->links() !!}
     </div>
 </div>

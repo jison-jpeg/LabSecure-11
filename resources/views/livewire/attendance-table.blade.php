@@ -159,12 +159,11 @@
                         </td>
                     </tr>
                 @endforeach
-                </tbody>
-                
+                </tbody>      
         </table>
-        <div class="d-flex flex-column align-items-start">
-            {!! $attendances->links() !!}
-        </div>
+    </div>
+    <div class="d-flex flex-column align-items-start">
+        {!! $attendances->links() !!}
     </div>
 
     <script>

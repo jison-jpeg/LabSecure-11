@@ -112,9 +112,9 @@ use Carbon\Carbon;
                 @endforeach
             </tbody>
         </table>
-        <div class="d-flex flex-column align-items-start">
-            {!! $schedules->links() !!}
-        </div>
+    </div>
+    <div class="d-flex flex-column align-items-start">
+        {!! $schedules->links() !!}
     </div>
 
     <script>

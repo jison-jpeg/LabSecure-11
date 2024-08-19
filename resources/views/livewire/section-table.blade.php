@@ -94,9 +94,9 @@
                 @endforeach
             </tbody>
         </table>
-        <div class="d-flex flex-column align-items-start">
-            {!! $sections->links() !!}
-        </div>
+    </div>
+    <div class="d-flex flex-column align-items-start">
+        {!! $sections->links() !!}
     </div>
 
     <script>

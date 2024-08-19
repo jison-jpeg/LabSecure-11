@@ -122,11 +122,10 @@
                 @endforeach
             </tbody>
         </table>
-        <div class="d-flex flex-column align-items-start">
-            {!! $users->links() !!}
-        </div>
     </div>
-
+    <div class="d-flex flex-column align-items-start">
+        {!! $users->links() !!}
+    </div>
     <script>
         document.addEventListener('livewire:initialized', () => {
             @this.on('refresh-user-table', (event) => {
