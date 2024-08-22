@@ -46,10 +46,9 @@
                                         <h5 class="card-title">Logs</h5>
                                     </div>
 
-                                    {{-- User Table Livewire --}}
-                                    {{-- @livewire('user-table') --}}
-                                    <!-- End User Table Livewire -->
-
+                                    {{-- Transaction Log Table Livewire --}}
+                                    @livewire('transaction-log-table')
+                                    <!-- End Transaction Log Table Livewire -->
                             </div>
                         </div>
                     </div>

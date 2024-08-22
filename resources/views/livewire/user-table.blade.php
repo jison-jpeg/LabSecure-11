@@ -89,7 +89,8 @@
             <tbody>
                 @foreach ($users as $key => $user)
                     <tr wire:key="{{ $user->id }}">
-                        <th scope="row">{{ $key + 1 }}</th>
+                        <th scope="row"> {{ $users->firstItem() + $key }}
+                        </th>
                         <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->first_name }}</td>
