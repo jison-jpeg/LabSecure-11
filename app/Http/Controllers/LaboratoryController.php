@@ -166,7 +166,6 @@ class LaboratoryController extends Controller
 
         return response()->json([
             'message' => 'Attendance recorded successfully',
-            'data' => $attendance->load('sessions'),
         ]);
     }
 }
