@@ -2,11 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Models\TransactionLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Flasher\Notyf\Prime\NotyfInterface;
+use Illuminate\Support\Facades\Auth;
 
 class CreateUser extends Component
 {
@@ -49,7 +51,7 @@ class CreateUser extends Component
             'password' => 'required|min:6',
         ]);
 
-        User::create([
+        $user = User::create([
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
             'last_name' => $this->last_name,
@@ -59,6 +61,17 @@ class CreateUser extends Component
             'password' => Hash::make($this->password),
         ]);
 
+        // Log creation of user
+        TransactionLog::create([
+            'user_id' => Auth::id(), 
+            'action' => 'created',
+            'model' => 'User',
+            'model_id' => $user->id,
+            'details' => json_encode([
+                'user' => $user->full_name,
+                'username' => $user->username,
+            ]),
+        ]);
         
         $this->dispatch('refresh-user-table');
         notyf()
@@ -69,7 +82,8 @@ class CreateUser extends Component
     }
 
     #[On('reset-modal')]
-    public function close(){
+    public function close()
+    {
         $this->resetErrorBag();
         $this->reset();
     }
@@ -107,6 +121,18 @@ class CreateUser extends Component
             'email' => $this->email,
         ]);
 
+        // Log update of user
+        TransactionLog::create([
+            'user_id' => Auth::id(), 
+            'action' => 'updated',
+            'model' => 'User',
+            'model_id' => $this->user->id,
+            'details' => json_encode([
+                'user' => $this->user->full_name,
+                'username' => $this->user->username,
+            ]),
+        ]);
+
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
@@ -114,8 +140,4 @@ class CreateUser extends Component
         $this->dispatch('refresh-user-table');
         $this->reset();
     }
-
-
-
-
 }

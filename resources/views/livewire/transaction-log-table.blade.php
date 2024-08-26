@@ -23,6 +23,7 @@
                 <div class="col-12 col-md-2">
                     <select wire:model.live="action" name="action" class="form-select">
                         <option value="">Action Type</option>
+                        <option value="check_in">Check In</option>
                         <option value="create">Create</option>
                         <option value="update">Update</option>
                         <option value="delete">Delete</option>
@@ -42,6 +43,11 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'time',
+                        'displayName' => 'Time',
+                    ])
+                    <th scope="col">Date</th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'user_id',
                         'displayName' => 'User',
@@ -67,10 +73,12 @@
                         <th scope="row">
                             {{ $logs->firstItem() + $key }}
                         </th>
+                        <td>{{ $log->created_at->format('m:i A') }}</td>
+                        <td>{{ $log->created_at->format('F j, Y') }}</td>
                         <td>{{ $log->user->full_name }}</td>
                         <td>{{ $log->action }}</td>
                         <td>{{ $log->model }}</td>
-                        <td>{{ $log->readableDetails  }}</td>
+                        <td>{{ $log->readableDetails }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -78,8 +86,8 @@
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button wire:click="delete({{ $log->id }})"
-                                            wire:confirm="Are you sure you want to delete this log?"
-                                            type="button" class="dropdown-item text-danger" href="#">Delete</button>
+                                            wire:confirm="Are you sure you want to delete this log?" type="button"
+                                            class="dropdown-item text-danger" href="#">Delete</button>
                                 </ul>
                             </div>
                         </td>

@@ -8,7 +8,9 @@ use App\Models\Department;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Flasher\Notyf\Prime\NotyfInterface;
+use App\Models\TransactionLog;
 
 class CreateFaculty extends Component
 {
@@ -57,7 +59,7 @@ class CreateFaculty extends Component
             'department_id' => 'required|exists:departments,id',
         ]);
 
-        User::create([
+        $faculty = User::create([
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
             'last_name' => $this->last_name,
@@ -67,6 +69,21 @@ class CreateFaculty extends Component
             'role_id' => 2, // Assuming role_id 2 is for faculty
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
+        ]);
+
+        // Log the creation of the faculty
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'model' => 'User',
+            'model_id' => $faculty->id,
+            'details' => json_encode([
+                'user' => $faculty->full_name, 
+                'username' => $faculty->username,
+                'college' => College::find($this->college_id)->name,
+                'department' => Department::find($this->department_id)->name,
+                'created_by' => Auth::user()->full_name, 
+            ]),
         ]);
 
         $this->dispatch('refresh-faculty-table');
@@ -91,8 +108,8 @@ class CreateFaculty extends Component
         $this->editForm = true;
         $this->user = User::findOrFail($id);
         $this->first_name = $this->user->first_name;
-        $this->middle_name = $this->user->middle_name;
-        $this->last_name = $this->user->last_name;
+        $this->middle_name = $this->middle_name;
+        $this->last_name = $this->last_name;
         $this->username = $this->user->username;
         $this->email = $this->user->email;
         $this->college_id = $this->user->college_id;
@@ -118,6 +135,21 @@ class CreateFaculty extends Component
             'email' => $this->email,
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
+        ]);
+
+        // Log the update of the faculty
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'model' => 'User',
+            'model_id' => $this->user->id,
+            'details' => json_encode([
+                'user' => $this->user->full_name, 
+                'username' => $this->user->username,
+                'college' => College::find($this->college_id)->name,
+                'department' => Department::find($this->department_id)->name,
+                'updated_by' => Auth::user()->full_name, 
+            ]),
         ]);
 
         notyf()

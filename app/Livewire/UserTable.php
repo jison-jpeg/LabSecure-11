@@ -4,7 +4,9 @@ namespace App\Livewire;
 
 use App\Models\College;
 use App\Models\Department;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\TransactionLog;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -57,6 +59,18 @@ class UserTable extends Component
 
     public function delete(User $user)
     {
+        TransactionLog::create([
+            'user_id' => Auth::id(), 
+            'action' => 'deleted', 
+            'model' => 'User',   
+            'model_id' => $user->id, 
+            'details' => json_encode([
+                'user' => $user->full_name,   
+                'username' => $user->username,    
+            ]),
+        ]);
+        
+
         $user->delete();
         notyf()
             ->position('x', 'right')

@@ -7,6 +7,8 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Validator;
 use Flasher\Notyf\Prime\NotyfInterface;
+use App\Models\TransactionLog;
+use Illuminate\Support\Facades\Auth;
 
 class CreateCollege extends Component
 {
@@ -33,8 +35,21 @@ class CreateCollege extends Component
             'name' => 'required|unique:colleges,name,' . ($this->college->id ?? 'NULL'),
         ]);
 
-        College::create([
+        $college = College::create([
             'name' => $this->name,
+        ]);
+
+        // Log the creation of the college
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'model' => 'College',
+            'model_id' => $college->id,
+            'details' => json_encode([
+                'college_name' => $college->name,
+                'user' => Auth::user()->full_name,
+                'username' => Auth::user()->username,
+            ]),
         ]);
 
         $this->dispatch('refresh-college-table');
@@ -68,6 +83,19 @@ class CreateCollege extends Component
 
         $this->college->update([
             'name' => $this->name,
+        ]);
+
+        // Log the update of the college
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'model' => 'College',
+            'model_id' => $this->college->id,
+            'details' => json_encode([
+                'college_name' => $this->college->name,
+                'user' => Auth::user()->full_name,
+                'username' => Auth::user()->username,
+            ]),
         ]);
 
         notyf()

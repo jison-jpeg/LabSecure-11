@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Attendance;
 use App\Models\Schedule;
+use App\Models\TransactionLog;  // Added TransactionLog model
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -76,7 +77,21 @@ class AttendanceTable extends Component
 
     public function delete(Attendance $attendance)
     {
+        // Log the deletion
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+            'model' => 'Attendance',
+            'model_id' => $attendance->id,
+            'details' => json_encode([
+                'user' => $attendance->user->full_name,
+                'username' => $attendance->user->username,
+                'schedule_id' => $attendance->schedule_id
+            ]),
+        ]);
+
         $attendance->delete();
+
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
@@ -84,72 +99,72 @@ class AttendanceTable extends Component
     }
 
     public function render()
-{
-    $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager load sessions
-                        ->orderBy($this->sortBy, $this->sortDir);
+    {
+        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager load sessions
+                            ->orderBy($this->sortBy, $this->sortDir);
 
-    // Check if the authenticated user is not an admin
-    if (!Auth::user()->isAdmin()) {
-        // Filter attendance records for the authenticated user only
-        $query->where('user_id', Auth::id());
-    }
+        // Check if the authenticated user is not an admin
+        if (!Auth::user()->isAdmin()) {
+            // Filter attendance records for the authenticated user only
+            $query->where('user_id', Auth::id());
+        }
 
-    // Apply search filters
-    $query->whereHas('user', function($query) {
-        $query->where('first_name', 'like', '%'.$this->search.'%')
-              ->orWhere('last_name', 'like', '%'.$this->search.'%');
-    });
-
-    // Apply status filter
-    if (!empty($this->status)) {
-        $query->where('status', $this->status);
-    }
-
-    // Apply subject filter
-    if (!empty($this->selectedSubject)) {
-        $query->whereHas('schedule.subject', function ($query) {
-            $query->where('id', $this->selectedSubject);
+        // Apply search filters
+        $query->whereHas('user', function($query) {
+            $query->where('first_name', 'like', '%'.$this->search.'%')
+                  ->orWhere('last_name', 'like', '%'.$this->search.'%');
         });
+
+        // Apply status filter
+        if (!empty($this->status)) {
+            $query->where('status', $this->status);
+        }
+
+        // Apply subject filter
+        if (!empty($this->selectedSubject)) {
+            $query->whereHas('schedule.subject', function ($query) {
+                $query->where('id', $this->selectedSubject);
+            });
+        }
+
+        // Apply section filter
+        if (!empty($this->selectedSection)) {
+            $query->whereHas('schedule.section', function ($query) {
+                $query->where('id', $this->selectedSection);
+            });
+        }
+
+        // Apply month filter
+        if ($this->selectedMonth) {
+            $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
+                  ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
+        }
+
+        // Paginate the results
+        $attendances = $query->paginate($this->perPage);
+
+        // Get subjects from schedules linked to the authenticated user
+        $subjects = Schedule::where(function ($query) {
+            $query->where('instructor_id', Auth::id())  // Instructor's subjects
+                  ->orWhereHas('attendances', function ($q) {
+                      $q->where('user_id', Auth::id());  // Student's subjects
+                  });
+        })->with('subject')->get()->pluck('subject')->unique('id');
+
+        // Get sections from schedules linked to the authenticated user
+        $sections = Schedule::where(function ($query) {
+            $query->where('instructor_id', Auth::id())  // Instructor's sections
+                  ->orWhereHas('attendances', function ($q) {
+                      $q->where('user_id', Auth::id());  // Student's sections
+                  });
+        })->with('section')->get()->pluck('section')->unique('id');
+
+        return view('livewire.attendance-table', [
+            'attendances' => $attendances,
+            'subjects' => $subjects, 
+            'sections' => $sections,
+        ]);
     }
-
-    // Apply section filter
-    if (!empty($this->selectedSection)) {
-        $query->whereHas('schedule.section', function ($query) {
-            $query->where('id', $this->selectedSection);
-        });
-    }
-
-    // Apply month filter
-    if ($this->selectedMonth) {
-        $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
-              ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
-    }
-
-    // Paginate the results
-    $attendances = $query->paginate($this->perPage);
-
-    // Get subjects from schedules linked to the authenticated user
-    $subjects = Schedule::where(function ($query) {
-        $query->where('instructor_id', Auth::id())  // Instructor's subjects
-              ->orWhereHas('attendances', function ($q) {
-                  $q->where('user_id', Auth::id());  // Student's subjects
-              });
-    })->with('subject')->get()->pluck('subject')->unique('id');
-
-    // Get sections from schedules linked to the authenticated user
-    $sections = Schedule::where(function ($query) {
-        $query->where('instructor_id', Auth::id())  // Instructor's sections
-              ->orWhereHas('attendances', function ($q) {
-                  $q->where('user_id', Auth::id());  // Student's sections
-              });
-    })->with('section')->get()->pluck('section')->unique('id');
-
-    return view('livewire.attendance-table', [
-        'attendances' => $attendances,
-        'subjects' => $subjects, 
-        'sections' => $sections,
-    ]);
-}
 
     #[On('refresh-attendance-table')]
     public function refreshAttendanceTable()

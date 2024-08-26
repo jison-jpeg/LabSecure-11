@@ -8,6 +8,8 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Validator;
 use Flasher\Notyf\Prime\NotyfInterface;
+use Illuminate\Support\Facades\Auth;
+use App\Models\TransactionLog;
 
 class CreateDepartment extends Component
 {
@@ -39,9 +41,23 @@ class CreateDepartment extends Component
             'college_id' => 'required|exists:colleges,id',
         ]);
 
-        Department::create([
+        $department = Department::create([
             'name' => $this->name,
             'college_id' => $this->college_id,
+        ]);
+
+        // Log the creation of the department
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'model' => 'Department',
+            'model_id' => $department->id,
+            'details' => json_encode([
+                'department_name' => $department->name,
+                'college_name' => College::find($this->college_id)->name,
+                'user' => Auth::user()->full_name,
+                'username' => Auth::user()->username,
+            ]),
         ]);
 
         $this->dispatch('refresh-department-table');
@@ -79,6 +95,20 @@ class CreateDepartment extends Component
         $this->department->update([
             'name' => $this->name,
             'college_id' => $this->college_id,
+        ]);
+
+        // Log the update of the department
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'model' => 'Department',
+            'model_id' => $this->department->id,
+            'details' => json_encode([
+                'department_name' => $this->department->name,
+                'college_name' => College::find($this->college_id)->name,
+                'user' => Auth::user()->full_name,
+                'username' => Auth::user()->username,
+            ]),
         ]);
 
         notyf()

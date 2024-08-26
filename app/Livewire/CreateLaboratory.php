@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Laboratory;
+use App\Models\TransactionLog;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Auth;
 
 class CreateLaboratory extends Component
 {
@@ -41,11 +43,23 @@ class CreateLaboratory extends Component
         // Set status to 'Available' if it's null or not set
         $this->status = $this->status ?? 'Available';
 
-        Laboratory::create([
+        $laboratory = Laboratory::create([
             'name' => $this->name,
             'location' => $this->location,
             'type' => $this->type,
             'status' => $this->status,  // Status is now defaulted to 'Available' if not set
+        ]);
+
+        // Log the transaction
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'model' => 'Laboratory',
+            'model_id' => $laboratory->id,
+            'details' => json_encode([
+                'user' => Auth::user()->full_name,
+                'name' => $this->name, 
+                'location' => $this->location]),
         ]);
 
         $this->dispatch('refresh-laboratory-table');
@@ -62,10 +76,10 @@ class CreateLaboratory extends Component
         $this->editForm = true;
         $this->formTitle = 'Edit Laboratory';
         $this->laboratory = Laboratory::findOrFail($id);
-        $this->name =  $this->laboratory->name;
-        $this->location =  $this->laboratory->location;
-        $this->type =  $this->laboratory->type;
-        $this->status =  $this->laboratory->status ?? 'Available';  // Default status for existing records
+        $this->name = $this->laboratory->name;
+        $this->location = $this->laboratory->location;
+        $this->type = $this->laboratory->type;
+        $this->status = $this->laboratory->status ?? 'Available';  // Default status for existing records
     }
 
     public function update()
@@ -82,6 +96,15 @@ class CreateLaboratory extends Component
             'location' => $this->location,
             'type' => $this->type,
             'status' => $this->status ?? 'Available',  // Ensure the status is set to 'Available' if empty
+        ]);
+
+        // Log the transaction
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'model' => 'Laboratory',
+            'model_id' => $this->laboratory->id,
+            'details' => json_encode(['name' => $this->name, 'location' => $this->location]),
         ]);
 
         notyf()

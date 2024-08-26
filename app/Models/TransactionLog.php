@@ -28,7 +28,7 @@ class TransactionLog extends Model
 
         switch ($this->action) {
             case 'check_in':
-                return "{$userFullName} checked in for attendance in the laboratory with schedule ID {$this->model_id}.";
+                return "{$userFullName} checked in for attendance in the laboratory  with schedule ID {$this->model_id}.";
             
             case 'check_out':
                 return "{$userFullName} checked out from the laboratory for attendance schedule ID {$this->model_id}.";
