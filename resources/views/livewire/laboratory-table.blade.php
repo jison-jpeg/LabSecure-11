@@ -52,7 +52,7 @@
                                     <li><a  @click="$dispatch('edit-mode',{id:{{ $laboratory->id }}})" class="dropdown-item" data-bs-toggle="modal"
                                         data-bs-target="#verticalycentered">Edit</a></li>
                                     <li><a wire:click="delete({{ $laboratory->id }})"  wire:confirm="Are you sure you want to delete laboratory {{ $laboratory->name}} ?" class="dropdown-item text-danger" href="#">Delete LAB
-                                            {{ $laboratory->id }}</a></li>
+                                            {{ $laboratory->name }}</a></li>
                                 </ul>
                             </div>
                             <div class="card-body mt-3">

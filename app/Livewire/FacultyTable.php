@@ -44,6 +44,8 @@ class FacultyTable extends Component
     public function clear()
     {
         $this->search = '';
+        $this->college = '';
+        $this->department = '';
     }
 
     public function setSortBy($sortByField)
