@@ -11,7 +11,7 @@
         </ul>
     </div>
 
-    <div class="card-body">
+    <div class="card-body" style="min-height: 582px;">
         <h5 class="card-title">Recent Activity <span>| {{ ucfirst($filter) }}</span></h5>
 
         <div class="activity">

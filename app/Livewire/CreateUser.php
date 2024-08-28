@@ -64,7 +64,7 @@ class CreateUser extends Component
         // Log creation of user
         TransactionLog::create([
             'user_id' => Auth::id(), 
-            'action' => 'created',
+            'action' => 'create',
             'model' => 'User',
             'model_id' => $user->id,
             'details' => json_encode([
@@ -124,7 +124,7 @@ class CreateUser extends Component
         // Log update of user
         TransactionLog::create([
             'user_id' => Auth::id(), 
-            'action' => 'updated',
+            'action' => 'update',
             'model' => 'User',
             'model_id' => $this->user->id,
             'details' => json_encode([

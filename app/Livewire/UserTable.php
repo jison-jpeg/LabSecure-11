@@ -61,7 +61,7 @@ class UserTable extends Component
     {
         TransactionLog::create([
             'user_id' => Auth::id(), 
-            'action' => 'deleted', 
+            'action' => 'delete', 
             'model' => 'User',   
             'model_id' => $user->id, 
             'details' => json_encode([

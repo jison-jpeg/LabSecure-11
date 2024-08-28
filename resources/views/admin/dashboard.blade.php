@@ -24,8 +24,12 @@
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    
+
+                    {{-- User Stats --}}
                     @livewire('user-stats')
+
+                    {{-- Lab Stats --}}
+                    @livewire('lab-stats')
                     
                 </div>
                 <!-- End Left side columns -->
@@ -35,7 +39,6 @@
 
                     <!-- Recent Activity -->
                     @livewire('logs-widget')
-
                     <!-- End Recent Activity -->
 
                 </div>

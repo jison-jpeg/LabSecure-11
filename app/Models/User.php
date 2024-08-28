@@ -100,6 +100,11 @@ class User extends Authenticatable
         return $this->role->name === 'admin';
     }
 
+    public function transactionLogs()
+    {
+        return $this->hasMany(TransactionLog::class);
+    }
+
     public function scopeSearch($query, $value)
     {
         return $query->where('first_name', 'like', '%' . $value . '%')
