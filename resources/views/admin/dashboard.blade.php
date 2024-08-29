@@ -17,7 +17,7 @@
             <div class="row">
 
                 <!-- Left side columns -->
-                <div class="col-lg-8">
+                <div class="col-lg-8 d-flex flex-column">
                     {{-- Alert Logged-in as what auth role --}}
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <strong>Logged-in as {{ Auth::user()->role->name }}!</strong>
@@ -29,20 +29,23 @@
                     @livewire('user-stats')
 
                     {{-- Lab Stats --}}
-                    @livewire('lab-stats')
-                    
+                    <div class="card h-100">
+                        @livewire('lab-stats')
+                    </div>
+
                 </div>
                 <!-- End Left side columns -->
 
                 <!-- Right side columns -->
-                <div class="col-lg-4">
-
+                <div class="col-lg-4 d-flex flex-column">
                     <!-- Recent Activity -->
-                    @livewire('logs-widget')
+                    <div class="card h-100">
+                        @livewire('logs-widget')
+                    </div>
                     <!-- End Recent Activity -->
-
                 </div>
                 <!-- End Right side columns -->
+
 
             </div>
         </section>
