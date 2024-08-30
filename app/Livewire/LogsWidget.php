@@ -29,7 +29,7 @@ class LogsWidget extends Component
                 break;
         }
 
-        return $query->take(10)->get();  // Limit to 10 logs for the widget
+        return $query->take(11)->get();  // Limit to 10 logs for the widget
     }
 
     public function render()
