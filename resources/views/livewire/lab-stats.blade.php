@@ -1,6 +1,6 @@
 <div>
     <div class="row g-0">
-        <!-- Left Side: Pie Chart -->
+        <!-- Left Side: Radial Bar Chart -->
         <div class="col-md-6">
             <div class="card-body">
                 <h5 class="card-title">Laboratory</h5>
@@ -10,8 +10,12 @@
 
                 <script>
                     document.addEventListener("DOMContentLoaded", () => {
+                        const types = @json($types); // Get the lab types data
+                        const labels = types.map(type => type.type); // Extract labels from types
+                        const series = types.map(type => type.total); // Extract series from types
+
                         new ApexCharts(document.querySelector("#radialBarChart"), {
-                            series: [44, 55, 67, 83],
+                            series: series,
                             chart: {
                                 height: 325,
                                 type: 'radialBar',
@@ -32,19 +36,17 @@
                                             show: true,
                                             label: 'Total',
                                             formatter: function(w) {
-                                                // By default this function returns the average of all series. The below is just an example to show the use of custom formatter function
-                                                return 249
+                                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
                                             }
                                         }
                                     }
                                 }
                             },
-                            labels: ['Apples', 'Oranges', 'Bananas', 'Berries'],
+                            labels: labels, // Set the labels dynamically
                         }).render();
                     });
                 </script>
                 <!-- End Radial Bar Chart -->
-
             </div>
         </div>
 
@@ -59,11 +61,11 @@
                 <div class="row mb-3 mt-5">
                     <div class="col-6 mt-md-5 mt-sm-2">
                         <h6>Total Laboratories</h6>
-                        <p class="h4">10</p>
+                        <p class="h4">{{ $totalLabs }}</p>
                     </div>
                     <div class="col-6 mt-md-5 mt-sm-2">
                         <h6>Active Users</h6>
-                        <p class="h4">1001</p>
+                        <p class="h4">N/A</p> <!-- Placeholder for active users -->
                     </div>
                 </div>
 
@@ -71,11 +73,11 @@
                 <div class="row mb-3">
                     <div class="col-6">
                         <h6>Available</h6>
-                        <p class="h4">5</p>
+                        <p class="h4">{{ $availableLabs }}</p>
                     </div>
                     <div class="col-6">
-                        <h6>Unavailable</h6>
-                        <p class="h4">5</p>
+                        <h6>Occupied</h6>
+                        <p class="h4">{{ $occupiedLabs }}</p>
                     </div>
                 </div>
             </div>

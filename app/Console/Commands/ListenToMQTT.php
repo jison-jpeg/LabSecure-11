@@ -124,72 +124,90 @@ class ListenToMQTT extends Command
 
     // Handle access for users with active schedules
     private function handleScheduledUserAccess($user, $type)
-    {
-        // Find the current schedule based on time
-        $currentTime = Carbon::now();
-        $schedule = Schedule::where('start_time', '<=', $currentTime)
-                            ->where('end_time', '>=', $currentTime)
-                            ->first();
+{
+    // Find the current time and day
+    $currentTime = Carbon::now();
+    $currentDay = $currentTime->format('l'); // Full day name (e.g., Monday)
 
-        if (!$schedule) {
-            $this->error('No active schedule found for this time');
-            $this->publishToMqtt($user->rfid_number, $type, 'denied');
-            return;
-        }
+    // Find the current schedule based on time, day, and user's role
+    $scheduleQuery = Schedule::where('start_time', '<=', $currentTime)
+        ->where('end_time', '>=', $currentTime)
+        ->whereJsonContains('days_of_week', $currentDay);
 
-        $laboratory = $schedule->laboratory;
-
-        // Handle attendance
-        $currentDate = Carbon::now()->toDateString();
-        $attendance = Attendance::firstOrCreate([
-            'user_id' => $user->id,
-            'date' => $currentDate,
-            'schedule_id' => $schedule->id,
-        ]);
-
-        switch ($type) {
-            case 'entrance':
-                // Log the entrance action
-                $attendance->sessions()->create(['time_in' => Carbon::now()]);
-                $laboratory->update(['status' => 'Occupied']);
-                LaboratoryStatusUpdated::dispatch($laboratory);
-
-                TransactionLog::create([
-                    'user_id' => $user->id,
-                    'action' => 'check_in',
-                    'model' => 'Attendance',
-                    'model_id' => $attendance->id,
-                    'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
-                ]);
-                $this->publishToMqtt($user->rfid_number, $type, 'granted');
-                break;
-
-            case 'exit':
-                // Log the exit action
-                $lastSession = $attendance->sessions()->whereNull('time_out')->latest('time_in')->first();
-                if ($lastSession) {
-                    $lastSession->update(['time_out' => Carbon::now()]);
-                }
-                $laboratory->update(['status' => 'Available']);
-                LaboratoryStatusUpdated::dispatch($laboratory);
-
-                TransactionLog::create([
-                    'user_id' => $user->id,
-                    'action' => 'check_out',
-                    'model' => 'Attendance',
-                    'model_id' => $attendance->id,
-                    'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),
-                ]);
-                $this->publishToMqtt($user->rfid_number, $type, 'granted');
-                break;
-        }
-
-        // Finalize attendance for the day
-        $attendance->calculateAndSaveStatusAndRemarks();
-        AttendanceRecorded::dispatch($attendance);
-
-        $this->info('Attendance recorded successfully.');
+    if ($user->isInstructor()) {
+        // Check if the user is the assigned instructor for this schedule
+        $schedule = $scheduleQuery->where('instructor_id', $user->id)->first();
+    } elseif ($user->isStudent()) {
+        // Check if the student's section matches the section in the schedule
+        $schedule = $scheduleQuery->where('section_id', $user->section_id)->first();
+    } else {
+        // Deny access if the user is neither an instructor nor a student
+        $this->error('No active schedule found for this time or user role is not valid');
+        $this->publishToMqtt($user->rfid_number, $type, 'denied');
+        return;
     }
+
+    if (!$schedule) {
+        $this->error('No active schedule found for this time or day');
+        $this->publishToMqtt($user->rfid_number, $type, 'denied');
+        return;
+    }
+
+    $laboratory = $schedule->laboratory;
+
+    // Handle attendance
+    $currentDate = $currentTime->toDateString();
+    $attendance = Attendance::firstOrCreate([
+        'user_id' => $user->id,
+        'date' => $currentDate,
+        'schedule_id' => $schedule->id,
+    ]);
+
+    switch ($type) {
+        case 'entrance':
+            // Log the entrance action
+            $attendance->sessions()->create(['time_in' => $currentTime]);
+            $laboratory->update(['status' => 'Occupied']);
+            LaboratoryStatusUpdated::dispatch($laboratory);
+
+            TransactionLog::create([
+                'user_id' => $user->id,
+                'action' => 'check_in',
+                'model' => 'Attendance',
+                'model_id' => $attendance->id,
+                'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
+            ]);
+            $this->publishToMqtt($user->rfid_number, $type, 'granted');
+            break;
+
+        case 'exit':
+            // Log the exit action
+            $lastSession = $attendance->sessions()->whereNull('time_out')->latest('time_in')->first();
+            if ($lastSession) {
+                $lastSession->update(['time_out' => $currentTime]);
+            }
+            $laboratory->update(['status' => 'Available']);
+            LaboratoryStatusUpdated::dispatch($laboratory);
+
+            TransactionLog::create([
+                'user_id' => $user->id,
+                'action' => 'check_out',
+                'model' => 'Attendance',
+                'model_id' => $attendance->id,
+                'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),
+            ]);
+            $this->publishToMqtt($user->rfid_number, $type, 'granted');
+            break;
+    }
+
+    // Finalize attendance for the day
+    $attendance->calculateAndSaveStatusAndRemarks();
+    AttendanceRecorded::dispatch($attendance);
+
+    $this->info('Attendance recorded successfully.');
+}
+
+
 
     // Helper method to publish the access result to MQTT
     private function publishToMqtt($rfid_number, $type, $status)
