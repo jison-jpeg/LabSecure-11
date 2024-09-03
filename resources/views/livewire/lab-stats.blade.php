@@ -31,6 +31,9 @@
                                         },
                                         value: {
                                             fontSize: '16px',
+                                            formatter: function (val) {
+                                                return parseInt(val); // Display the value without a percentage symbol
+                                            },
                                         },
                                         total: {
                                             show: true,
