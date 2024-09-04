@@ -64,7 +64,6 @@
                         'name' => 'details',
                         'displayName' => 'Details',
                     ])
-                    <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -79,18 +78,6 @@
                         <td>{{ $log->action }}</td>
                         <td>{{ $log->model }}</td>
                         <td>{{ $log->readableDetails }}</td>
-                        <td class="text-center">
-                            <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots"></i>
-                                </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><button wire:click="delete({{ $log->id }})"
-                                            wire:confirm="Are you sure you want to delete this log?" type="button"
-                                            class="dropdown-item text-danger" href="#">Delete</button>
-                                </ul>
-                            </div>
-                        </td>
                     </tr>
                 @endforeach
             </tbody>
