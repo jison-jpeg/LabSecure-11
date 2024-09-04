@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exports\UsersExport;
 use App\Models\College;
 use App\Models\Department;
 use Illuminate\Support\Facades\Auth;
@@ -11,12 +12,14 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserTable extends Component
 {
     use WithPagination;
 
     public $user;
+    public $exporting = false;
     public $title = 'Create User';
     public $event = 'create-user';
 
@@ -44,6 +47,13 @@ class UserTable extends Component
     {
         $this->search = '';
         $this->role = '';
+    }
+    public function export()
+    {
+        $this->exporting = true;
+        return response()->streamDownload(function () {
+            echo Excel::raw(new UsersExport(), \Maatwebsite\Excel\Excel::XLSX);
+        }, 'users.xlsx');
     }
 
     public function setSortBy($sortByField)

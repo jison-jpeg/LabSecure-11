@@ -32,6 +32,10 @@ class Section extends Model
     {
         return $this->belongsTo(Department::class);
     }
+    public function users()
+{
+    return $this->hasMany(User::class, 'section_id');
+}
 
     public function scopeSearch($query, $value)
     {
