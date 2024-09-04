@@ -61,7 +61,7 @@
             </tbody>
         </table>
     </div>
-    <div class="d-flex flex-column align-items-start">
-        {!! $schedules->links() !!}
+    <div class="mt-4">
+        {{ $schedules->links('pagination::bootstrap-5') }}
     </div>
 </div>

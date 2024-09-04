@@ -94,9 +94,8 @@
                 </div>
             @endforeach
         </div>
-
-        <div class="d-flex justify-content-start">
-            {!! $laboratories->links() !!}
+        <div class="mt-4">
+            {{ $laboratories->links('pagination::bootstrap-5') }}
         </div>
     </div>
     <script>

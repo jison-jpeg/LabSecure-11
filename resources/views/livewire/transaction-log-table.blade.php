@@ -96,7 +96,7 @@
             </tbody>
         </table>
     </div>
-    <div class="d-flex flex-column align-items-start">
-        {!! $logs->links() !!}
+    <div class="mt-4">
+        {{ $logs->links('pagination::bootstrap-5') }}
     </div>
 </div>

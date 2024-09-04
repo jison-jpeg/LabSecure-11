@@ -1,3 +1,6 @@
+@php
+use Carbon\Carbon;
+@endphp
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
@@ -54,14 +57,14 @@
                         <td>{{ $schedule->section->name }}</td>
                         <td>{{ $schedule->laboratory->name }}</td>
                         <td>{{ implode(', ', json_decode($schedule->days_of_week, true)) }}</td>
-                        <td>{{ $schedule->start_time }}</td>
-                        <td>{{ $schedule->end_time }}</td>
+                        <td>{{ Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
+                        <td>{{ Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-    <div class="d-flex flex-column align-items-start">
-        {!! $schedules->links() !!}
+    <div class="mt-4">
+        {{ $schedules->links('pagination::bootstrap-5') }}
     </div>
 </div>

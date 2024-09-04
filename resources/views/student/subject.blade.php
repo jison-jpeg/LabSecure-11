@@ -17,7 +17,6 @@
             <div class="row">
 
                 <!-- Left side columns -->
-                
                 <div class="col-lg-12">
                     {{-- Alert Logged-in as what auth role --}}
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -25,9 +24,7 @@
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    @livewire('attendance-stats')
-                    
-                    <div class="row"> 
+                    <div class="row">
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-body">
@@ -46,11 +43,11 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title">My Attendance</h5>
+                                        <h5 class="card-title">My Subject</h5>
                                     </div>
 
                                     {{-- User Table Livewire --}}
-                                    @livewire('attendance-table')
+                                    @livewire('subject-table')
                                     <!-- End User Table Livewire -->
 
                             </div>

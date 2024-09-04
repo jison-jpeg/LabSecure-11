@@ -162,8 +162,8 @@
                 </tbody>      
         </table>
     </div>
-    <div class="d-flex flex-column align-items-start">
-        {!! $attendances->links() !!}
+    <div class="mt-4">
+        {{ $attendances->links('pagination::bootstrap-5') }}
     </div>
 
     <script>

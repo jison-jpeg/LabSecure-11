@@ -67,8 +67,8 @@
             </tbody>
         </table>
     </div>
-    <div class="d-flex flex-column align-items-start">
-        {!! $colleges->links() !!}
+    <div class="mt-4">
+        {{ $colleges->links('pagination::bootstrap-5') }}
     </div>
 
     <script>
