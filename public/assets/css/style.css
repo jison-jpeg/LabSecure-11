@@ -1082,9 +1082,24 @@ th.sortable.desc:after {
     background: #f6f6fe;
 }
 
-.dashboard .revenue-card .card-icon {
+.dashboard .present-card .card-icon {
     color: #2eca6a;
     background: #e0f8e9;
+}
+
+.dashboard .late-card .card-icon {
+    color: #ccb911;
+    background: #ffe6003d;
+}
+
+.dashboard .absent-card .card-icon {
+    color: #cc1111;
+    background: #cc111152;
+}
+
+.dashboard .incomplete-card .card-icon {
+    color: #353535;
+    background: #3535352d;
 }
 
 .dashboard .student-card .card-icon {
