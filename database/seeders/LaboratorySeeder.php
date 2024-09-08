@@ -31,7 +31,7 @@ class LaboratorySeeder extends Seeder
             'name' => '3',
             'location' => 'Building 1',
             'type' => 'EMC Laboratory',
-            'status' => 'Occupied',
+            'status' => 'Available',
         ]);
 
         Laboratory::create([

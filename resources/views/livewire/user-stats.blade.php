@@ -20,7 +20,7 @@
 
 
     <div class="col-xxl-4 col-md-4">
-        <div class="card info-card revenue-card">
+        <div class="card info-card present-card">
 
             <div class="card-body">
                 <h5 class="card-title">Instructors</h5>
