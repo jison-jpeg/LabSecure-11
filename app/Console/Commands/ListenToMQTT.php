@@ -31,7 +31,7 @@ class ListenToMQTT extends Command
         $this->mqtt = new MqttClient($brokerAddress, $brokerPort, 'laravel_mqtt_listener');
         $connectionSettings = (new ConnectionSettings())
             ->setKeepAliveInterval(60);  // Keep the connection alive for 60 seconds
-        
+
         // Connect to the broker
         try {
             $this->mqtt->connect($connectionSettings, true);
@@ -73,10 +73,13 @@ class ListenToMQTT extends Command
         // Find the user by RFID
         $user = User::where('rfid_number', $rfid_number)->first();
         if (!$user) {
-            $this->error('User not found');
-            $this->publishToMqtt($rfid_number, $type, 'denied');
+            $error = 'User not found';
+            $this->error($error);
+            $this->publishToMqtt($rfid_number, $type, 'denied', $error);  // Publish error
             return;
         }
+
+
 
         // Check if the user is Admin, IT Support, or can access without a schedule
         if (in_array($user->role->name, ['admin', 'it_support'])) {
@@ -142,10 +145,11 @@ class ListenToMQTT extends Command
         }
 
         if (!$schedule) {
-            $this->error('No active schedule found for this time or day');
-            $this->publishToMqtt($user->rfid_number, $type, 'denied');
+            $error = 'No schedule found.';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $error);  // Publish error
             return;
-        }
+        }        
 
         $laboratory = $schedule->laboratory;
 
@@ -201,13 +205,14 @@ class ListenToMQTT extends Command
         $this->info('Attendance recorded successfully.');
     }
 
-    // Helper method to publish the access result to MQTT
-    private function publishToMqtt($rfid_number, $type, $status)
+    // Helper method to publish the access result to MQTT with error handling
+    private function publishToMqtt($rfid_number, $type, $status, $error = null)
     {
         $message = json_encode([
             'rfid_number' => $rfid_number,
             'type' => $type,
             'status' => $status,
+            'error' => $error,  // Include error in the message if present
         ]);
 
         try {
