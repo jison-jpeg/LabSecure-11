@@ -8,12 +8,20 @@
                         <h6>Option</h6>
                     </li>
                     <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li><a wire:click.prevent="export" href="#" class="dropdown-item">Export</a></li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a>
+                    <li class="dropdown-submenu position-relative">
+                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
+                        <ul class="dropdown-menu position-absolute">
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">Excel</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a>
+                            </li>
+                        </ul>
                     </li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
-
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title">User Management</h5>
             </div>
@@ -168,7 +176,24 @@
                         @this.dispatch('reset-modal');
                     })
                 })
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    var dropdowns = document.querySelectorAll('.dropdown-submenu');
+
+                    dropdowns.forEach(function(dropdown) {
+                        dropdown.addEventListener('mouseover', function() {
+                            let submenu = this.querySelector('.dropdown-menu');
+                            submenu.classList.add('show');
+                        });
+
+                        dropdown.addEventListener('mouseout', function() {
+                            let submenu = this.querySelector('.dropdown-menu');
+                            submenu.classList.remove('show');
+                        });
+                    });
+                });
             </script>
+
             <!-- End User Table Livewire -->
         </div>
     </div>
