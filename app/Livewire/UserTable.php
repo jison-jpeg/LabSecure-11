@@ -48,13 +48,6 @@ class UserTable extends Component
         $this->search = '';
         $this->role = '';
     }
-    public function export()
-    {
-        $this->exporting = true;
-        return response()->streamDownload(function () {
-            echo Excel::raw(new UsersExport(), \Maatwebsite\Excel\Excel::XLSX);
-        }, 'users.xlsx');
-    }
 
     public function setSortBy($sortByField)
     {
@@ -87,6 +80,19 @@ class UserTable extends Component
             ->position('y', 'top')
             ->success('User deleted successfully');
         
+    }
+
+    public function exportAs($format)
+    {
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new UsersExport($this->search, $this->role), 'users.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download(new UsersExport($this->search, $this->role), 'users.xlsx');
+            case 'pdf':
+                // Implement PDF export if needed
+                break;
+        }
     }
 
     public function render()

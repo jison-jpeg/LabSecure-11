@@ -11,12 +11,9 @@
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a>
-                            </li>
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">Excel</a>
-                            </li>
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a>
-                            </li>
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
                         </ul>
                     </li>
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>

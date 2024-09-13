@@ -23,6 +23,7 @@ class User extends Authenticatable
         'role_id',
         'college_id',
         'department_id',
+        'section_id',
     ];
 
     protected $hidden = [
@@ -53,9 +54,9 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class);
     }
 
-    public function sections()
+    public function section()
     {
-        return $this->hasMany(Section::class);
+        return $this->belongsTo(Section::class);
     }
 
     public function attendances()
