@@ -5,12 +5,17 @@ namespace App\Livewire;
 use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\TransactionLog;  // Added TransactionLog model
+use App\Models\Subject;  // Added Subject model
+use App\Models\Section;  // Added Section model
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Exports\AttendanceExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class AttendanceTable extends Component
 {
@@ -98,10 +103,35 @@ class AttendanceTable extends Component
             ->success('Attendance record deleted successfully');
     }
 
+    public function exportAs($format)
+    {
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new AttendanceExport(
+                    $this->search,
+                    $this->status,
+                    $this->selectedMonth,
+                    $this->selectedSubject,
+                    $this->selectedSection
+                ), 'attendance.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download(new AttendanceExport(
+                    $this->search,
+                    $this->status,
+                    $this->selectedMonth,
+                    $this->selectedSubject,
+                    $this->selectedSection
+                ), 'attendance.xlsx');
+            case 'pdf':
+                // Implement PDF export if needed
+                break;
+        }
+    }
+
     public function render()
     {
         $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager load sessions
-                            ->orderBy($this->sortBy, $this->sortDir);
+            ->orderBy($this->sortBy, $this->sortDir);
 
         // Check if the authenticated user is not an admin
         if (!Auth::user()->isAdmin()) {
@@ -110,9 +140,9 @@ class AttendanceTable extends Component
         }
 
         // Apply search filters
-        $query->whereHas('user', function($query) {
-            $query->where('first_name', 'like', '%'.$this->search.'%')
-                  ->orWhere('last_name', 'like', '%'.$this->search.'%');
+        $query->whereHas('user', function ($query) {
+            $query->where('first_name', 'like', '%' . $this->search . '%')
+                ->orWhere('last_name', 'like', '%' . $this->search . '%');
         });
 
         // Apply status filter
@@ -137,31 +167,19 @@ class AttendanceTable extends Component
         // Apply month filter
         if ($this->selectedMonth) {
             $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
-                  ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
+                ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
         }
 
         // Paginate the results
         $attendances = $query->paginate($this->perPage);
 
-        // Get subjects from schedules linked to the authenticated user
-        $subjects = Schedule::where(function ($query) {
-            $query->where('instructor_id', Auth::id())  // Instructor's subjects
-                  ->orWhereHas('attendances', function ($q) {
-                      $q->where('user_id', Auth::id());  // Student's subjects
-                  });
-        })->with('subject')->get()->pluck('subject')->unique('id');
-
-        // Get sections from schedules linked to the authenticated user
-        $sections = Schedule::where(function ($query) {
-            $query->where('instructor_id', Auth::id())  // Instructor's sections
-                  ->orWhereHas('attendances', function ($q) {
-                      $q->where('user_id', Auth::id());  // Student's sections
-                  });
-        })->with('section')->get()->pluck('section')->unique('id');
+        // Fetch all subjects and sections for the filter
+        $subjects = Subject::all();  // Fetch all subjects
+        $sections = Section::all();  // Fetch all sections
 
         return view('livewire.attendance-table', [
             'attendances' => $attendances,
-            'subjects' => $subjects, 
+            'subjects' => $subjects,
             'sections' => $sections,
         ]);
     }
