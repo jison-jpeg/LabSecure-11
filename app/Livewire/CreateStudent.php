@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\User;
 use App\Models\College;
 use App\Models\Department;
+use App\Models\Section;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Hash;
@@ -23,12 +24,14 @@ class CreateStudent extends Component
     public $password;
     public $college_id;
     public $department_id;
+    public $section_id;
 
     public function render()
     {
         return view('livewire.create-student', [
             'colleges' => College::all(),
             'departments' => Department::all(),
+            'sections' => Section::all(),
         ]);
     }
 
@@ -42,6 +45,7 @@ class CreateStudent extends Component
             'password' => 'required|min:6',
             'college_id' => 'required|exists:colleges,id',
             'department_id' => 'required|exists:departments,id',
+            'section_id' => 'required|exists:sections,id',
         ]);
     }
 
@@ -55,6 +59,7 @@ class CreateStudent extends Component
             'password' => 'required|min:6',
             'college_id' => 'required|exists:colleges,id',
             'department_id' => 'required|exists:departments,id',
+            'section_id' => 'required|exists:sections,id',
         ]);
 
         User::create([
@@ -67,6 +72,7 @@ class CreateStudent extends Component
             'role_id' => 3, // Assuming role_id 3 is for students
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
+            'section_id' => $this->section_id,
         ]);
 
         $this->dispatch('refresh-student-table');
@@ -97,6 +103,7 @@ class CreateStudent extends Component
         $this->email = $this->user->email;
         $this->college_id = $this->user->college_id;
         $this->department_id = $this->user->department_id;
+        $this->section_id = $this->user->section_id;
     }
 
     public function update()
@@ -108,6 +115,7 @@ class CreateStudent extends Component
             'email' => 'required|email|unique:users,email,' . $this->user->id,
             'college_id' => 'required|exists:colleges,id',
             'department_id' => 'required|exists:departments,id',
+            'section_id' => 'required|exists:sections,id',
         ]);
 
         $this->user->update([
@@ -118,6 +126,7 @@ class CreateStudent extends Component
             'email' => $this->email,
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
+            'section_id' => $this->section_id,
         ]);
 
         notyf()

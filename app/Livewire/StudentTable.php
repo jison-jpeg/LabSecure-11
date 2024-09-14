@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\User;
 use App\Models\College;
 use App\Models\Department;
+use App\Models\Section;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -84,6 +85,7 @@ class StudentTable extends Component
                 ->paginate($this->perPage),
             'colleges' => College::all(),
             'departments' => Department::all(),
+            'sections' => Section::all(),
         ]);
     }
 

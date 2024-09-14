@@ -31,7 +31,7 @@
                                 </span>
                             @enderror
                         </div>
-                        <div class="col-md_4">
+                        <div class="col-md-4">
                             <label for="last_name" class="form-label">Last Name</label>
                             <input wire:model.lazy="last_name" type="text"
                                 class="form-control @error('last_name') is-invalid @enderror" name="last_name">
@@ -66,6 +66,22 @@
                             <input wire:model.lazy="password" type="password"
                                 class="form-control @error('password') is-invalid @enderror" name="password">
                             @error('password')
+                                <span class="invalid-feedback">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="section_id" class="form-label
+                                @if ($section_id) d-none @endif">Section</label>
+                            <select wire:model.lazy="section_id" class="form-select @error('section_id') is-invalid @enderror"
+                                name="section_id">
+                                <option value="">Select Section</option>
+                                @foreach($sections as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('section_id')
                                 <span class="invalid-feedback">
                                     {{ $message }}
                                 </span>

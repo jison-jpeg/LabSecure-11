@@ -53,10 +53,10 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping
             'Middle Name', 
             'Suffix', 
             'Email', 
-            'Role ID', 
-            'College ID', 
-            'Department ID', 
-            'Section ID',
+            'Role', 
+            'College', 
+            'Department', 
+            'Section Code',
         ]; // Updated headings to match your requirements
     }
 

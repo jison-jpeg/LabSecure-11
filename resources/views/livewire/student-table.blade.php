@@ -65,6 +65,10 @@
                         'displayName' => 'Email',
                     ])
                     @include('livewire.includes.table-sortable-th', [
+                        'name' => 'section.name',
+                        'displayName' => 'Section',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
                         'name' => 'first_name',
                         'displayName' => 'First Name',
                     ])
@@ -99,6 +103,7 @@
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>
+                        <td>{{ $user->section->name ?? 'N/A' }}</td>
                         <td>{{ $user->first_name }}</td>
                         <td>{{ $user->middle_name }}</td>
                         <td>{{ $user->last_name }}</td>
