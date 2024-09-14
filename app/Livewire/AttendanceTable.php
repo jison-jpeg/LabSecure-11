@@ -142,7 +142,11 @@ class AttendanceTable extends Component
         // Apply search filters
         $query->whereHas('user', function ($query) {
             $query->where('first_name', 'like', '%' . $this->search . '%')
-                ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                ->orWhere('middle_name', 'like', '%' . $this->search . '%')
+                ->orWhere('last_name', 'like', '%' . $this->search . '%')
+                ->orWhere('suffix', 'like', '%' . $this->search . '%')
+                ->orWhere('username', 'like', '%' . $this->search . '%')
+                ->orWhere('email', 'like', '%' . $this->search . '%');
         });
 
         // Apply status filter

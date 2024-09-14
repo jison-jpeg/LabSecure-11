@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Attendance;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth; // Import Auth
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class AttendanceExport implements WithMultipleSheets
@@ -28,6 +29,11 @@ class AttendanceExport implements WithMultipleSheets
     public function sheets(): array
     {
         $sheets = [];
+
+        // Get the authenticated user
+        $authUser = Auth::user();
+
+        // Build the base query
         $query = Attendance::with([
                 'user.role', 
                 'schedule.section', 
@@ -55,46 +61,26 @@ class AttendanceExport implements WithMultipleSheets
                 });
             });
 
-        // Check if filters are applied
-        if ($this->search || $this->status || $this->selectedSubject || $this->selectedSection) {
-            // Export all filtered data in one file
-            $attendances = $query->get()->groupBy('schedule.subject.name');
+        // If the user is not an admin, restrict the query to their own attendance data
+        if (!$authUser->isAdmin()) {
+            $query->where('user_id', $authUser->id);
+        }
 
-            foreach ($attendances as $subjectName => $subjectAttendances) {
-                foreach ($subjectAttendances->groupBy('user.full_name') as $fullName => $userAttendances) {
-                    $sheets[] = new AttendancePerUserSheet(
-                        $fullName,
-                        $userAttendances->first()->user->role->name, // Role Name
-                        $subjectName, 
-                        $userAttendances->first()->schedule->section->name, // Section Name
-                        $this->formatDaysOfWeek($userAttendances->first()->schedule->days_of_week), // Formatted Days of Week
-                        Carbon::parse($userAttendances->first()->schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($userAttendances->first()->schedule->end_time)->format('h:i A'), // Schedule Time
-                        $this->selectedMonth,
-                        $userAttendances
-                    );
-                }
-            }
-        } else {
-            // No filters, use pagination to handle large data exports
-            $total = $query->count();
-            $pages = ceil($total / $this->perPage);
+        // Now handle the filtered data for both admins and non-admins
+        $attendances = $query->get()->groupBy('schedule.subject.name');
 
-            for ($page = 1; $page <= $pages; $page++) {
-                $paginatedAttendances = $query->paginate($this->perPage, ['*'], 'page', $page);
-                foreach ($paginatedAttendances->groupBy('schedule.subject.name') as $subjectName => $subjectAttendances) {
-                    foreach ($subjectAttendances->groupBy('user.full_name') as $fullName => $userAttendances) {
-                        $sheets[] = new AttendancePerUserSheet(
-                            $fullName,
-                            $userAttendances->first()->user->role->name, // Role Name
-                            $subjectName,
-                            $userAttendances->first()->schedule->section->name, // Section Name
-                            $this->formatDaysOfWeek($userAttendances->first()->schedule->days_of_week), // Formatted Days of Week
-                            Carbon::parse($userAttendances->first()->schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($userAttendances->first()->schedule->end_time)->format('h:i A'), // Schedule Time
-                            $this->selectedMonth,
-                            $userAttendances
-                        );
-                    }
-                }
+        foreach ($attendances as $subjectName => $subjectAttendances) {
+            foreach ($subjectAttendances->groupBy('user.full_name') as $fullName => $userAttendances) {
+                $sheets[] = new AttendancePerUserSheet(
+                    $fullName,
+                    $userAttendances->first()->user->role->name, // Role Name
+                    $subjectName, 
+                    $userAttendances->first()->schedule->section->name, // Section Name
+                    $this->formatDaysOfWeek($userAttendances->first()->schedule->days_of_week), // Formatted Days of Week
+                    Carbon::parse($userAttendances->first()->schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($userAttendances->first()->schedule->end_time)->format('h:i A'), // Schedule Time
+                    $this->selectedMonth,
+                    $userAttendances
+                );
             }
         }
 
@@ -104,7 +90,7 @@ class AttendanceExport implements WithMultipleSheets
     /**
      * Format the days of the week to short forms (Mon, Tue, etc.).
      *
-     * @param array $daysOfWeek
+     * @param array|string $daysOfWeek
      * @return string
      */
     protected function formatDaysOfWeek($daysOfWeek)
@@ -113,12 +99,12 @@ class AttendanceExport implements WithMultipleSheets
         if (is_string($daysOfWeek)) {
             $daysOfWeek = json_decode($daysOfWeek, true); // Decode JSON string to array
         }
-    
+
         // If decoding fails, return an empty string to avoid errors
         if (!is_array($daysOfWeek)) {
             return ''; 
         }
-    
+
         // Map the full day names to their short forms
         $daysMap = [
             'Monday' => 'Mon',
@@ -129,11 +115,10 @@ class AttendanceExport implements WithMultipleSheets
             'Saturday' => 'Sat',
             'Sunday' => 'Sun',
         ];
-    
+
         // Convert the array of days into short forms and join them with commas
         return implode(', ', array_map(function($day) use ($daysMap) {
             return $daysMap[$day] ?? $day; // Use the short form if available
         }, $daysOfWeek));
     }
-    
 }
