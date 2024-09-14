@@ -28,71 +28,73 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section']);
-
-        // Apply search filters
-        $query->whereHas('user', function ($query) {
-            $query->where('first_name', 'like', '%' . $this->search . '%')
-                ->orWhere('last_name', 'like', '%' . $this->search . '%');
-        });
-
-        // Apply status filter
-        if (!empty($this->status)) {
-            $query->where('status', $this->status);
-        }
-
-        // Apply subject filter
-        if (!empty($this->selectedSubject)) {
-            $query->whereHas('schedule.subject', function ($query) {
-                $query->where('id', $this->selectedSubject);
+        return Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager-load sessions
+            ->when($this->search, function ($query) {
+                $query->whereHas('user', function ($query) {
+                    $query->where('first_name', 'like', '%' . $this->search . '%')
+                        ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                });
+            })
+            ->when($this->status, function ($query) {
+                $query->where('status', $this->status);
+            })
+            ->when($this->selectedSubject, function ($query) {
+                $query->whereHas('schedule.subject', function ($query) {
+                    $query->where('id', $this->selectedSubject);
+                });
+            })
+            ->when($this->selectedSection, function ($query) {
+                $query->whereHas('schedule.section', function ($query) {
+                    $query->where('id', $this->selectedSection);
+                });
+            })
+            ->when($this->selectedMonth, function ($query) {
+                $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
+                    ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
             });
-        }
-
-        // Apply section filter
-        if (!empty($this->selectedSection)) {
-            $query->whereHas('schedule.section', function ($query) {
-                $query->where('id', $this->selectedSection);
-            });
-        }
-
-        // Apply month filter
-        if ($this->selectedMonth) {
-            $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
-                ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
-        }
-
-        return $query;
     }
+
 
     public function headings(): array
     {
         return [
             '#',
+            'Date',
             'Username',
             'Last Name',
             'First Name',
             'Middle Name',
             'Subject',
             'Section',
+            'Time In',
+            'Time Out',
             'Status',
-            'Date',
         ];
     }
 
     public function map($attendance): array
     {
         $this->rowNumber++;
+        $timeIn = optional($attendance->sessions->first())->time_in
+            ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A')
+            : null; 
+
+        $timeOut = optional($attendance->sessions->first())->time_out
+            ? Carbon::parse($attendance->sessions->first()->time_out)->format('h:i A')
+            : null;
 
         return [
             $this->rowNumber,
+            $attendance->date,
             $attendance->user->username,
             $attendance->user->last_name,
             $attendance->user->first_name,
             $attendance->user->middle_name,
             $attendance->schedule->subject->name,
             $attendance->schedule->section->name,
+            $timeIn,
+            $timeOut,
             $attendance->status,
-            $attendance->date,
         ];
     }
 }
