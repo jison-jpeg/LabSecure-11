@@ -3,98 +3,137 @@
 namespace App\Exports;
 
 use App\Models\Attendance;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class AttendanceExport implements FromQuery, WithHeadings, WithMapping
+class AttendanceExport implements WithMultipleSheets
 {
     protected $search;
     protected $status;
     protected $selectedMonth;
     protected $selectedSubject;
     protected $selectedSection;
-    protected $rowNumber = 0; // Initialize a row counter
+    protected $perPage;
 
-    public function __construct($search, $status, $selectedMonth, $selectedSubject, $selectedSection)
+    public function __construct($search, $status, $selectedMonth, $selectedSubject, $selectedSection, $perPage = 1000)
     {
         $this->search = $search;
         $this->status = $status;
         $this->selectedMonth = $selectedMonth;
         $this->selectedSubject = $selectedSubject;
         $this->selectedSection = $selectedSection;
+        $this->perPage = $perPage; // Handle pagination if no filter
     }
 
-    public function query()
+    public function sheets(): array
     {
-        return Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager-load sessions
+        $sheets = [];
+        $query = Attendance::with([
+                'user.role', 
+                'schedule.section', 
+                'schedule.subject', 
+                'schedule', 
+                'sessions'
+            ])
             ->when($this->search, function ($query) {
-                $query->whereHas('user', function ($query) {
-                    $query->where('first_name', 'like', '%' . $this->search . '%')
-                        ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                $query->whereHas('user', function ($q) {
+                    $q->where('first_name', 'like', '%' . $this->search . '%')
+                      ->orWhere('last_name', 'like', '%' . $this->search . '%');
                 });
             })
             ->when($this->status, function ($query) {
                 $query->where('status', $this->status);
             })
             ->when($this->selectedSubject, function ($query) {
-                $query->whereHas('schedule.subject', function ($query) {
-                    $query->where('id', $this->selectedSubject);
+                $query->whereHas('schedule.subject', function ($q) {
+                    $q->where('id', $this->selectedSubject);
                 });
             })
             ->when($this->selectedSection, function ($query) {
-                $query->whereHas('schedule.section', function ($query) {
-                    $query->where('id', $this->selectedSection);
+                $query->whereHas('schedule.section', function ($q) {
+                    $q->where('id', $this->selectedSection);
                 });
-            })
-            ->when($this->selectedMonth, function ($query) {
-                $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
-                    ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
             });
+
+        // Check if filters are applied
+        if ($this->search || $this->status || $this->selectedSubject || $this->selectedSection) {
+            // Export all filtered data in one file
+            $attendances = $query->get()->groupBy('schedule.subject.name');
+
+            foreach ($attendances as $subjectName => $subjectAttendances) {
+                foreach ($subjectAttendances->groupBy('user.full_name') as $fullName => $userAttendances) {
+                    $sheets[] = new AttendancePerUserSheet(
+                        $fullName,
+                        $userAttendances->first()->user->role->name, // Role Name
+                        $subjectName, 
+                        $userAttendances->first()->schedule->section->name, // Section Name
+                        $this->formatDaysOfWeek($userAttendances->first()->schedule->days_of_week), // Formatted Days of Week
+                        Carbon::parse($userAttendances->first()->schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($userAttendances->first()->schedule->end_time)->format('h:i A'), // Schedule Time
+                        $this->selectedMonth,
+                        $userAttendances
+                    );
+                }
+            }
+        } else {
+            // No filters, use pagination to handle large data exports
+            $total = $query->count();
+            $pages = ceil($total / $this->perPage);
+
+            for ($page = 1; $page <= $pages; $page++) {
+                $paginatedAttendances = $query->paginate($this->perPage, ['*'], 'page', $page);
+                foreach ($paginatedAttendances->groupBy('schedule.subject.name') as $subjectName => $subjectAttendances) {
+                    foreach ($subjectAttendances->groupBy('user.full_name') as $fullName => $userAttendances) {
+                        $sheets[] = new AttendancePerUserSheet(
+                            $fullName,
+                            $userAttendances->first()->user->role->name, // Role Name
+                            $subjectName,
+                            $userAttendances->first()->schedule->section->name, // Section Name
+                            $this->formatDaysOfWeek($userAttendances->first()->schedule->days_of_week), // Formatted Days of Week
+                            Carbon::parse($userAttendances->first()->schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($userAttendances->first()->schedule->end_time)->format('h:i A'), // Schedule Time
+                            $this->selectedMonth,
+                            $userAttendances
+                        );
+                    }
+                }
+            }
+        }
+
+        return $sheets;
     }
 
-
-    public function headings(): array
+    /**
+     * Format the days of the week to short forms (Mon, Tue, etc.).
+     *
+     * @param array $daysOfWeek
+     * @return string
+     */
+    protected function formatDaysOfWeek($daysOfWeek)
     {
-        return [
-            '#',
-            'Date',
-            'Username',
-            'Last Name',
-            'First Name',
-            'Middle Name',
-            'Subject',
-            'Section',
-            'Time In',
-            'Time Out',
-            'Status',
+        // Check if the days_of_week is a JSON string and decode it
+        if (is_string($daysOfWeek)) {
+            $daysOfWeek = json_decode($daysOfWeek, true); // Decode JSON string to array
+        }
+    
+        // If decoding fails, return an empty string to avoid errors
+        if (!is_array($daysOfWeek)) {
+            return ''; 
+        }
+    
+        // Map the full day names to their short forms
+        $daysMap = [
+            'Monday' => 'Mon',
+            'Tuesday' => 'Tue',
+            'Wednesday' => 'Wed',
+            'Thursday' => 'Thu',
+            'Friday' => 'Fri',
+            'Saturday' => 'Sat',
+            'Sunday' => 'Sun',
         ];
+    
+        // Convert the array of days into short forms and join them with commas
+        return implode(', ', array_map(function($day) use ($daysMap) {
+            return $daysMap[$day] ?? $day; // Use the short form if available
+        }, $daysOfWeek));
     }
-
-    public function map($attendance): array
-    {
-        $this->rowNumber++;
-        $timeIn = optional($attendance->sessions->first())->time_in
-            ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A')
-            : null; 
-
-        $timeOut = optional($attendance->sessions->first())->time_out
-            ? Carbon::parse($attendance->sessions->first()->time_out)->format('h:i A')
-            : null;
-
-        return [
-            $this->rowNumber,
-            $attendance->date,
-            $attendance->user->username,
-            $attendance->user->last_name,
-            $attendance->user->first_name,
-            $attendance->user->middle_name,
-            $attendance->schedule->subject->name,
-            $attendance->schedule->section->name,
-            $timeIn,
-            $timeOut,
-            $attendance->status,
-        ];
-    }
+    
 }
