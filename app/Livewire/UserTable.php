@@ -17,11 +17,14 @@ use Maatwebsite\Excel\Facades\Excel;
 class UserTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $user;
     public $exporting = false;
     public $title = 'Create User';
     public $event = 'create-user';
+    public $selectedUsers = []; // Array to store selected user IDs
+    public $selectAll = false; // Flag for "Select All"
 
     #[Url(history: true)]
     public $search = '';
@@ -40,7 +43,7 @@ class UserTable extends Component
 
     public function updatedSearch()
     {
-        $this->resetPage();
+        $this->resetPaage();
     }
 
     public function clear()
@@ -63,23 +66,70 @@ class UserTable extends Component
     public function delete(User $user)
     {
         TransactionLog::create([
-            'user_id' => Auth::id(), 
-            'action' => 'delete', 
-            'model' => 'User',   
-            'model_id' => $user->id, 
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+            'model' => 'User',
+            'model_id' => $user->id,
             'details' => json_encode([
-                'user' => $user->full_name,   
-                'username' => $user->username,    
+                'user' => $user->full_name,
+                'username' => $user->username,
             ]),
         ]);
-        
 
         $user->delete();
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('User deleted successfully');
-        
+    }
+
+    // Bulk delete selected users
+    public function deleteSelected()
+    {
+        $users = User::whereIn('id', $this->selectedUsers)->get();
+
+        foreach ($users as $user) {
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'delete',
+                'model' => 'User',
+                'model_id' => $user->id,
+                'details' => json_encode([
+                    'user' => $user->full_name,
+                    'username' => $user->username,
+                ]),
+            ]);
+
+            $user->delete();
+        }
+
+        // Reset the selected users array and toggle off the "select all"
+        $this->selectedUsers = [];
+        $this->selectAll = false;
+
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Selected users deleted successfully');
+
+        $this->refreshUserTable();
+    }
+
+    // Method to toggle selecting all users across all pages
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            // Select all matching users across all pages (not just current page)
+            $this->selectedUsers = User::search($this->search)
+                ->when($this->role !== '', function ($query) {
+                    $query->where('role_id', $this->role);
+                })
+                ->pluck('id') // Get all matching user IDs
+                ->toArray();
+        } else {
+            // Clear the selection
+            $this->selectedUsers = [];
+        }
     }
 
     public function exportAs($format)
@@ -115,3 +165,4 @@ class UserTable extends Component
         $this->user = User::all();
     }
 }
+
