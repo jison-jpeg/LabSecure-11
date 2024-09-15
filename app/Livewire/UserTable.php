@@ -35,6 +35,8 @@ class UserTable extends Component
 
     #[Url(history: true)]
     public $sortDir = 'DESC';
+    
+    public $selected_user_id = []; // Array to store selected user IDs
 
     #[Url()]
     public $perPage = 10;
@@ -64,23 +66,57 @@ class UserTable extends Component
     public function delete(User $user)
     {
         TransactionLog::create([
-            'user_id' => Auth::id(), 
-            'action' => 'delete', 
-            'model' => 'User',   
-            'model_id' => $user->id, 
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+            'model' => 'User',
+            'model_id' => $user->id,
             'details' => json_encode([
-                'user' => $user->full_name,   
-                'username' => $user->username,    
+                'user' => $user->full_name,
+                'username' => $user->username,
             ]),
         ]);
-        
 
         $user->delete();
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('User deleted successfully');
-        
+    }
+
+    // Bulk delete function
+    public function deleteSelected()
+    {
+        // Fetch the selected users
+        $usersToDelete = User::whereIn('id', $this->selected_user_id)->get();
+
+        foreach ($usersToDelete as $user) {
+            // Log each deletion in the TransactionLog
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'delete',
+                'model' => 'User',
+                'model_id' => $user->id,
+                'details' => json_encode([
+                    'user' => $user->full_name,
+                    'username' => $user->username,
+                ]),
+            ]);
+
+            // Delete the user
+            $user->delete();
+        }
+
+        // Reset selected users array
+        $this->selected_user_id = [];
+
+        // Notify the user
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success(count($usersToDelete) . ' users deleted successfully.');
+
+        // Refresh the user table after deletion
+        $this->refreshUserTable();
     }
 
     public function exportAs($format)

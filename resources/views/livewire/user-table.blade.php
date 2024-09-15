@@ -20,7 +20,14 @@
                             </li>
                         </ul>
                     </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li>
+                        @if ($selected_user_id)
+                            <a wire:click.prevent="deleteSelected"
+                                wire:confirm="Are you sure you want to delete selected users?"
+                                class="dropdown-item text-danger" href="#">Delete {{ count($selected_user_id) }}
+                                Selected</a>
+                        @endif
+                    </li>
                 </ul>
             </div>
 
@@ -57,6 +64,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-12 col-md-2">
             <livewire:create-user />
             {{-- <x-modal :modalTitle="$title" :eventName="$event">
@@ -69,6 +77,9 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
+                    <th>
+                        <input class="form-check-input" type="checkbox" wire:model="selectAll">
+                    </th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'username',
                         'displayName' => 'Username',
@@ -111,8 +122,11 @@
             <tbody>
                 @foreach ($users as $key => $user)
                     <tr wire:key="{{ $user->id }}">
-                        <th scope="row"> {{ $users->firstItem() + $key }}
-                        </th>
+                        <th scope="row"> {{ $users->firstItem() + $key }}</th>
+                        <td> 
+                            <input class="form-check-input" type="checkbox" wire:key="{{ $user->id }}"
+                                value="{{ $user->id }}" wire:model.live="selected_user_id">
+                        </td>
                         <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->first_name }}</td>
@@ -150,38 +164,38 @@
         {{ $users->links() }}
     </div>
 </div>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            @this.on('refresh-user-table', (event) => {
-                //alert('product created/updated')
-                var myModalEl = document.querySelector('#verticalycentered')
-                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        @this.on('refresh-user-table', (event) => {
+            //alert('product created/updated')
+            var myModalEl = document.querySelector('#verticalycentered')
+            var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
 
-                setTimeout(() => {
-                    modal.hide();
-                    @this.dispatch('reset-modal');
-                });
-            })
-
-            var mymodal = document.getElementById('verticalycentered')
-            mymodal.addEventListener('hidden.bs.modal', (event) => {
+            setTimeout(() => {
+                modal.hide();
                 @this.dispatch('reset-modal');
-            })
+            });
         })
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var dropdowns = document.querySelectorAll('.dropdown-submenu');
+        var mymodal = document.getElementById('verticalycentered')
+        mymodal.addEventListener('hidden.bs.modal', (event) => {
+            @this.dispatch('reset-modal');
+        })
+    })
 
-            dropdowns.forEach(function(dropdown) {
-                dropdown.addEventListener('mouseover', function() {
-                    let submenu = this.querySelector('.dropdown-menu');
-                    submenu.classList.add('show');
-                });
+    document.addEventListener('DOMContentLoaded', function() {
+        var dropdowns = document.querySelectorAll('.dropdown-submenu');
 
-                dropdown.addEventListener('mouseout', function() {
-                    let submenu = this.querySelector('.dropdown-menu');
-                    submenu.classList.remove('show');
-                });
+        dropdowns.forEach(function(dropdown) {
+            dropdown.addEventListener('mouseover', function() {
+                let submenu = this.querySelector('.dropdown-menu');
+                submenu.classList.add('show');
+            });
+
+            dropdown.addEventListener('mouseout', function() {
+                let submenu = this.querySelector('.dropdown-menu');
+                submenu.classList.remove('show');
             });
         });
-    </script>
+    });
+</script>
