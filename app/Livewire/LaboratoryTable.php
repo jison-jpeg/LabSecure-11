@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 class LaboratoryTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $laboratory;
     public $title = 'Create Laboratory';

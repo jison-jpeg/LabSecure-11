@@ -95,7 +95,7 @@
             @endforeach
         </div>
         <div class="mt-4">
-            {{ $laboratories->links('pagination::bootstrap-5') }}
+            {{ $laboratories->links() }}
         </div>
     </div>
     <script>
