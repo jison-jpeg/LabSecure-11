@@ -37,12 +37,14 @@
                                     @livewire('attendance-table')
                                     <!-- End User Table Livewire -->
 
+                                </div>
                             </div>
+
                         </div>
+                        <!-- End Left side columns -->
 
+                    </div>
                 </div>
-                <!-- End Left side columns -->
-
             </div>
         </section>
 
