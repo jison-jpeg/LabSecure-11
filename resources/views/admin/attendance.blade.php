@@ -26,9 +26,19 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
-                            @livewire('attendance-table')
+                            <div class="card">
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">User Attendance</h5>
+                                    </div>
+
+                                    {{-- User Table Livewire --}}
+                                    @livewire('attendance-table')
+                                    <!-- End User Table Livewire -->
+
+                            </div>
                         </div>
-                    </div>
 
                 </div>
                 <!-- End Left side columns -->

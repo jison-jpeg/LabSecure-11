@@ -1,7 +1,27 @@
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
-
+            <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                        <h6>Option</h6>
+                    </li>
+                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <li class="dropdown-submenu position-relative">
+                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
+                        <ul class="dropdown-menu position-absolute">
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                </ul>
+            </div>
             {{-- Per Page --}}
             <div class="row g-1">
                 <div class="col-md-1">

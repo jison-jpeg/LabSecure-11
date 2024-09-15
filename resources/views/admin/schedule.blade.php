@@ -28,19 +28,6 @@
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="filter">
-                                        <a class="icon" href="#" data-bs-toggle="dropdown"><i
-                                                class="bi bi-three-dots"></i></a>
-                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                            <li class="dropdown-header text-start">
-                                                <h6>Option</h6>
-                                            </li>
-
-                                            <li><a class="dropdown-item" href="#">Export</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#">Delete Selected</a>
-                                            </li>
-                                        </ul>
-                                    </div>
 
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="card-title">User Schedule</h5>

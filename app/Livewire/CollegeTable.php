@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exports\CollegeExport;
 use App\Models\College;
 use App\Models\TransactionLog;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,7 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CollegeTable extends Component
 {
@@ -69,6 +71,19 @@ class CollegeTable extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('College deleted successfully');
+    }
+
+    public function exportAs($format)
+    {
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new CollegeExport(), 'College and Departments.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download(new CollegeExport(), 'College and Departments.xlsx');
+            case 'pdf':
+                // You can implement a PDF export logic if needed.
+                break;
+        }
     }
 
     public function render()

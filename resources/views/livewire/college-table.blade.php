@@ -1,6 +1,27 @@
 <div>
     <div class="row mb-4 mt-4">
         <div class="col-md-10">
+            <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                        <h6>Option</h6>
+                    </li>
+                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <li class="dropdown-submenu position-relative">
+                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
+                        <ul class="dropdown-menu position-absolute">
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                </ul>
+            </div>
 
             {{-- Per Page --}}
             <div class="row g-1">
@@ -21,7 +42,8 @@
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
+                        Filters</button>
                 </div>
             </div>
         </div>
@@ -35,8 +57,14 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    @include('livewire.includes.table-sortable-th', ['name' => 'name', 'displayName' => 'Name'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'created_at', 'displayName' => 'Created At'])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'name',
+                        'displayName' => 'Name',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'created_at',
+                        'displayName' => 'Created At',
+                    ])
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -58,7 +86,8 @@
                                             data-bs-target="#verticalycentered">Edit</button></li>
                                     <li><button wire:click="delete({{ $college->id }})"
                                             wire:confirm="Are you sure you want to delete '{{ $college->name }}'"
-                                            type="button" class="dropdown-item text-danger" href="#">Delete</button>
+                                            type="button" class="dropdown-item text-danger"
+                                            href="#">Delete</button>
                                 </ul>
                             </div>
                         </td>
@@ -88,5 +117,21 @@
                 @this.dispatch('reset-modal');
             })
         })
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-submenu');
+
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('mouseover', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.add('show');
+                });
+
+                dropdown.addEventListener('mouseout', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.remove('show');
+                });
+            });
+        });
     </script>
 </div>
