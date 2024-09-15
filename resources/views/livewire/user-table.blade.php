@@ -20,20 +20,14 @@
                             </li>
                         </ul>
                     </li>
-                    <li>
-                        <a href="#" class="dropdown-item text-danger"
-                            onclick="if(confirm('Are you sure you want to delete {{ count($selectedUsers) }} user(s)?')) { Livewire.emit('deleteSelected'); }">
-                            Delete Selected
-                            {{ count($selectedUsers) > 0 ? '(' . count($selectedUsers) . ' users)' : '' }}
-                        </a>
-                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
 
             {{-- perpage --}}
             <div class="row g-1">
                 <div class="col-md-1">
-                    <select wire:model="perPage" name="perPage" class="form-select">
+                    <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
                         <option value="20">20</option>
@@ -44,12 +38,12 @@
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <input wire:model="search" type="text" name="search" class="form-control"
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search users...">
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <select wire:model="role" name="role" class="form-select">
+                    <select wire:model.live="role" name="role" class="form-select">
                         <option value="">User Type</option>
                         <option value="1">Admin</option>
                         <option value="2">Instructor</option>
@@ -65,6 +59,8 @@
         </div>
         <div class="col-12 col-md-2">
             <livewire:create-user />
+            {{-- <x-modal :modalTitle="$title" :eventName="$event">
+                      </x-modal> --}}
         </div>
     </div>
 
@@ -72,9 +68,6 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th scope="col">
-                        <input type="checkbox" wire:model="selectAll" wire:click="toggleSelectAll">
-                    </th>
                     <th scope="col">#</th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'username',
@@ -104,16 +97,22 @@
                         'name' => 'role_id',
                         'displayName' => 'Role',
                     ])
+                    {{-- @include('livewire.includes.table-sortable-th', [
+                                'name' => 'created_at',
+                                'displayName' => 'Created At',
+                            ])
+                            @include('livewire.includes.table-sortable-th', [
+                                'name' => 'updated_at',
+                                'displayName' => 'Updated At',
+                            ]) --}}
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($users as $key => $user)
                     <tr wire:key="{{ $user->id }}">
-                        <td>
-                            <input type="checkbox" wire:model="selectedUsers" value="{{ $user->id }}">
-                        </td>
-                        <th scope="row">{{ $users->firstItem() + $key }}</th>
+                        <th scope="row"> {{ $users->firstItem() + $key }}
+                        </th>
                         <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->first_name }}</td>
@@ -123,6 +122,8 @@
                         <td><span
                                 class="badge rounded-pill {{ $user->role->name == 'admin' ? 'bg-danger' : ($user->role->name == 'instructor' ? 'bg-success' : 'bg-secondary') }}">{{ $user->role->name }}</span>
                         </td>
+                        {{-- <td>{{ $user->created_at->diffForHumans() }}</td> --}}
+                        {{-- <td>{{ $user->updated_at->diffForHumans() }}</td> --}}
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -149,39 +150,38 @@
         {{ $users->links() }}
     </div>
 </div>
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            @this.on('refresh-user-table', (event) => {
+                //alert('product created/updated')
+                var myModalEl = document.querySelector('#verticalycentered')
+                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
 
-<script>
-    document.addEventListener('livewire:initialized', () => {
-        @this.on('refresh-user-table', (event) => {
-            //alert('product created/updated')
-            var myModalEl = document.querySelector('#verticalycentered')
-            var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
+                setTimeout(() => {
+                    modal.hide();
+                    @this.dispatch('reset-modal');
+                });
+            })
 
-            setTimeout(() => {
-                modal.hide();
+            var mymodal = document.getElementById('verticalycentered')
+            mymodal.addEventListener('hidden.bs.modal', (event) => {
                 @this.dispatch('reset-modal');
-            });
+            })
         })
 
-        var mymodal = document.getElementById('verticalycentered')
-        mymodal.addEventListener('hidden.bs.modal', (event) => {
-            @this.dispatch('reset-modal');
-        })
-    })
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-submenu');
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var dropdowns = document.querySelectorAll('.dropdown-submenu');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('mouseover', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.add('show');
+                });
 
-        dropdowns.forEach(function(dropdown) {
-            dropdown.addEventListener('mouseover', function() {
-                let submenu = this.querySelector('.dropdown-menu');
-                submenu.classList.add('show');
-            });
-
-            dropdown.addEventListener('mouseout', function() {
-                let submenu = this.querySelector('.dropdown-menu');
-                submenu.classList.remove('show');
+                dropdown.addEventListener('mouseout', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.remove('show');
+                });
             });
         });
-    });
-</script>
+    </script>
