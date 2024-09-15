@@ -38,8 +38,8 @@ class AttendancePerUserSheet implements FromCollection, WithHeadings, WithTitle,
         return [
             ['Name: ' . $this->fullName, 'Position: ' . $this->roleName], // Full name and position (role name)
             ['Month: ' . Carbon::parse($this->selectedMonth)->format('F Y')],
-            ['Schedule: ' . $this->sectionName . ' - ' . $this->subjectName . ' : ' . $this->scheduleDays . ' : ' . $this->scheduleTime], // Subject and schedule details
-            ['Days', '', 'Status', 'Time In', 'Time Out'], // Column headers with merged cells for 'Days'
+            ['Subject: ' . $this->sectionName . ' - ' . $this->subjectName . ' : ' . $this->scheduleDays . ' : ' . $this->scheduleTime], // Subject and schedule details
+            ['Days', '', 'Time In', 'Time Out', 'Status', 'Remarks'], // Column headers
         ];
     }
 
@@ -60,9 +60,10 @@ class AttendancePerUserSheet implements FromCollection, WithHeadings, WithTitle,
             $rows[] = [
                 $day, // Day number
                 $weekday, // Weekday
+                $attendanceForDay ? $attendanceForDay->formatted_time_in : '-', // Time In (use accessor)
+                $attendanceForDay ? $attendanceForDay->formatted_time_out : '-', // Time Out (use accessor)
                 $attendanceForDay ? $attendanceForDay->status : '-', // Status
-                $attendanceForDay && $attendanceForDay->sessions->first() ? Carbon::parse($attendanceForDay->sessions->first()->time_in)->format('h:i A') : '-', // Time In
-                $attendanceForDay && $attendanceForDay->sessions->first() ? Carbon::parse($attendanceForDay->sessions->first()->time_out)->format('h:i A') : '-', // Time Out
+                $attendanceForDay ? $attendanceForDay->remarks : '-', // Remarks
             ];
         }
 
@@ -74,9 +75,10 @@ class AttendancePerUserSheet implements FromCollection, WithHeadings, WithTitle,
         return [
             $row[0], // Day number
             $row[1], // Weekday
-            $row[2], // Status
-            $row[3], // Time In
-            $row[4], // Time Out
+            $row[2], // Time In
+            $row[3], // Time Out
+            $row[4], // Status
+            $row[5], // Remarks
         ];
     }
 
@@ -93,7 +95,7 @@ class AttendancePerUserSheet implements FromCollection, WithHeadings, WithTitle,
                 $event->sheet->mergeCells('A4:B4'); // Merge 'Days' over two cells
 
                 // Optionally, set bold for the headers
-                $event->sheet->getStyle('A1:E4')->getFont()->setBold(true);
+                $event->sheet->getStyle('A1:F4')->getFont()->setBold(true);
             },
         ];
     }
