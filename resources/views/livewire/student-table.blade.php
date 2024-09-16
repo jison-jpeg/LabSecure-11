@@ -1,7 +1,28 @@
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
-
+            <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                        <h6>Option</h6>
+                    </li>
+                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <li class="dropdown-submenu position-relative">
+                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
+                        <ul class="dropdown-menu position-absolute">
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                </ul>
+            </div>
+            
             {{-- Per Page --}}
             <div class="row g-1">
                 <div class="col-md-1">
@@ -45,9 +66,9 @@
             </div>
         </div>
         @if (Auth::user()->role->name === 'admin')
-        <div class="col-12 col-md-2">
-            <livewire:create-student />
-        </div>
+            <div class="col-12 col-md-2">
+                <livewire:create-student />
+            </div>
         @endif
     </div>
 
@@ -93,7 +114,7 @@
                         'displayName' => 'Department',
                     ])
                     @if (Auth::user()->role->name === 'admin')
-                    <th scope="col" class="text-center">Action</th>
+                        <th scope="col" class="text-center">Action</th>
                     @endif
                 </tr>
             </thead>
@@ -111,23 +132,24 @@
                         <td>{{ $user->college->name ?? 'N/A' }}</td>
                         <td>{{ $user->department->name ?? 'N/A' }}</td>
                         @if (Auth::user()->role->name === 'admin')
-                        <td class="text-center">
-                            <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots"></i>
-                                </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})" type="button"
-                                            class="dropdown-item" data-bs-toggle="modal"
-                                            data-bs-target="#verticalycentered">Edit</button></li>
-                                    <li><button wire:click="delete({{ $user->id }})"
-                                            wire:confirm="Are you sure you want to delete '{{ $user->first_name }} {{ $user->last_name }}'"
-                                            type="button" class="dropdown-item text-danger" href="#">Delete
-                                            {{ $user->username }}</button>
-                                </ul>
-                            </div>
-                        </td>
+                            <td class="text-center">
+                                <div class="btn-group dropstart">
+                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                    </a>
+                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
+                                        <li><button type="button" class="dropdown-item" href="#">View</button>
+                                        </li>
+                                        <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})"
+                                                type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#verticalycentered">Edit</button></li>
+                                        <li><button wire:click="delete({{ $user->id }})"
+                                                wire:confirm="Are you sure you want to delete '{{ $user->first_name }} {{ $user->last_name }}'"
+                                                type="button" class="dropdown-item text-danger" href="#">Delete
+                                                {{ $user->username }}</button>
+                                    </ul>
+                                </div>
+                            </td>
                         @endif
                     </tr>
                 @endforeach
@@ -155,5 +177,21 @@
                 @this.dispatch('reset-modal');
             })
         })
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-submenu');
+
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('mouseover', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.add('show');
+                });
+
+                dropdown.addEventListener('mouseout', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.remove('show');
+                });
+            });
+        });
     </script>
 </div>

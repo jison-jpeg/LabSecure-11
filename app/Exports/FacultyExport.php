@@ -9,27 +9,35 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
+class FacultyExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     protected $search;
-    protected $role;
+    protected $college;
+    protected $department;
     protected $rowNumber = 0; // Initialize a row counter
 
-    public function __construct($search, $role)
+    public function __construct($search, $college, $department)
     {
         $this->search = $search;
-        $this->role = $role;
+        $this->college = $college;
+        $this->department = $department;
     }
 
     public function query()
     {
         return User::query()
+            ->whereHas('role', function ($query) {
+                $query->where('name', 'Instructor'); // Assuming "Instructor" is the role name for faculty
+            })
             ->when($this->search, function ($query) {
                 $query->where('username', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%');
             })
-            ->when($this->role, function ($query) {
-                $query->where('role_id', $this->role);
+            ->when($this->college, function ($query) {
+                $query->where('college_id', $this->college);
+            })
+            ->when($this->department, function ($query) {
+                $query->where('department_id', $this->department);
             })
             ->select([
                 'username',
@@ -38,10 +46,9 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                 'middle_name',
                 'suffix',
                 'email',
-                'role_id',
                 'college_id',
                 'department_id',
-            ]); // Select only the required columns
+            ]);
     }
 
     public function headings(): array
@@ -54,10 +61,9 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             'Middle Name',
             'Suffix',
             'Email',
-            'Role',
             'College',
             'Department',
-        ]; // Updated headings to match your requirements
+        ];
     }
 
     public function map($user): array
@@ -72,7 +78,6 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             $user->middle_name,
             $user->suffix,
             $user->email,
-            optional($user->role)->name,
             optional($user->college)->name,
             optional($user->department)->name,
         ];
@@ -105,12 +110,12 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                     ],
                 ];
 
-                // Apply the header style (A1:J1)
-                $event->sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+                // Apply the header style (A1:I1) since there are 9 columns now
+                $event->sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
 
                 // Apply borders and left alignment to the content
-                $highestRow = $event->sheet->getHighestRow(); // e.g. row 50
-                $highestColumn = $event->sheet->getHighestColumn(); // e.g. column J
+                $highestRow = $event->sheet->getHighestRow(); // e.g., row 50
+                $highestColumn = $event->sheet->getHighestColumn(); // e.g., column I
                 $contentStyle = [
                     'alignment' => [
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, // Left alignment
@@ -128,7 +133,7 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                 $event->sheet->getStyle('A2:' . $highestColumn . $highestRow)->applyFromArray($contentStyle);
 
                 // Auto-size the columns to fit the content
-                foreach (range('A', 'J') as $columnID) {
+                foreach (range('A', 'I') as $columnID) {
                     $event->sheet->getDelegate()->getColumnDimension($columnID)->setAutoSize(true);
                 }
             },

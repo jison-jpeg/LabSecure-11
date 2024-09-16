@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exports\StudentExport;
 use App\Models\User;
 use App\Models\College;
 use App\Models\Department;
@@ -10,6 +11,7 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentTable extends Component
 {
@@ -67,6 +69,19 @@ class StudentTable extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Student deleted successfully');
+    }
+
+    public function exportAs($format)
+    {
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new StudentExport($this->search, $this->college, $this->department), 'students.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download(new StudentExport($this->search, $this->college, $this->department), 'students.xlsx');
+            case 'pdf':
+                // Implement PDF export if needed
+                break;
+        }
     }
 
     public function render()

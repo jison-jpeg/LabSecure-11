@@ -15,7 +15,7 @@ class SectionSeeder extends Seeder
     {
         Section::create([
             'name' => 'T263',
-            'year_level' => '4TH Year',
+            'year_level' => '4th Year',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
             'college_id' => 1,
@@ -25,7 +25,7 @@ class SectionSeeder extends Seeder
 
         Section::create([
             'name' => 'T264',
-            'year_level' => '4TH Year',
+            'year_level' => '4th Year',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
             'college_id' => 1,
@@ -35,7 +35,7 @@ class SectionSeeder extends Seeder
 
         Section::create([
             'name' => 'T265',
-            'year_level' => '4TH Year',
+            'year_level' => '4th Year',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
             'college_id' => 1,
@@ -45,7 +45,7 @@ class SectionSeeder extends Seeder
 
         Section::create([
             'name' => 'T266',
-            'year_level' => '4TH Year',
+            'year_level' => '4th Year',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
             'college_id' => 1,
@@ -55,7 +55,7 @@ class SectionSeeder extends Seeder
 
         Section::create([
             'name' => 'T267',
-            'year_level' => '4TH Year',
+            'year_level' => '4th Year',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
             'college_id' => 1,
@@ -65,7 +65,7 @@ class SectionSeeder extends Seeder
 
         Section::create([
             'name' => 'T268',
-            'year_level' => '4TH Year',
+            'year_level' => '4th Year',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
             'college_id' => 1,

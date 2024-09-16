@@ -164,5 +164,21 @@
                 @this.dispatch('reset-modal');
             })
         })
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-submenu');
+
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('mouseover', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.add('show');
+                });
+
+                dropdown.addEventListener('mouseout', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.remove('show');
+                });
+            });
+        });
     </script>
 </div>

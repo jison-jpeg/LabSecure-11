@@ -11,17 +11,7 @@
                 </div>
                 <div class="modal-body">
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
-                        <div class="col-md-2">
-                            <label for="name" class="form-label">Block</label>
-                            <input wire:model.lazy="name" type="text"
-                                class="form-control @error('name') is-invalid @enderror" name="name">
-                            @error('name')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label for="name" class="form-label">Code</label>
                             <input wire:model.lazy="name" type="text"
                                 class="form-control @error('name') is-invalid @enderror" name="name">
