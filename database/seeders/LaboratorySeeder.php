@@ -15,36 +15,50 @@ class LaboratorySeeder extends Seeder
     {
         Laboratory::create([
             'name' => '1',
-            'location' => 'Building 1',
+            'location' => 'Finance Building',
             'type' => 'Computer Laboratory',
             'status' => 'Available',
         ]);
 
         Laboratory::create([
             'name' => '2',
-            'location' => 'Building 1',
+            'location' => 'Finance Building',
             'type' => 'Computer Laboratory',
             'status' => 'Available',
         ]);
 
         Laboratory::create([
             'name' => '3',
-            'location' => 'Building 1',
-            'type' => 'EMC Laboratory',
+            'location' => 'Finance Building',
+            'type' => 'Computer Laboratory',
             'status' => 'Available',
         ]);
 
         Laboratory::create([
             'name' => '4',
             'location' => 'Building 1',
-            'type' => 'EMC Laboratory',
+            'type' => 'Computer Laboratory',
             'status' => 'Locked',
         ]);
 
         Laboratory::create([
             'name' => '5',
             'location' => 'Building 1',
-            'type' => 'EMC Laboratory',
+            'type' => 'Computer Laboratory',
+            'status' => 'Available',
+        ]);
+
+        Laboratory::create([
+            'name' => '6',
+            'location' => 'Building 1',
+            'type' => 'Computer Laboratory',
+            'status' => 'Available',
+        ]);
+
+        Laboratory::create([
+            'name' => '6',
+            'location' => 'Building 1',
+            'type' => 'Multimedia Laboratory',
             'status' => 'Available',
         ]);
     }

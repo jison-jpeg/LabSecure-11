@@ -14,25 +14,49 @@ class SubjectSeeder extends Seeder
     public function run(): void
     {
         Subject::create([
-            'name' => 'Mathematics',
-            'code' => 'MATH 101',
-            'description' => 'This is a mathematics subject',
+            'name' => 'Systems Administration and Maintenance',
+            'code' => 'IT 141A',
+            'description' => 'This is a Systems Administration and Maintenance subject',
             'college_id' => 1,
             'department_id' => 1,
         ]);
 
         Subject::create([
-            'name' => 'Science',
-            'code' => 'SCI 101',
-            'description' => 'This is a science subject',
+            'name' => 'Business Analytics',
+            'code' => 'IT 142',
+            'description' => 'This is a Business Analytics subject',
             'college_id' => 1,
             'department_id' => 1,
         ]);
 
         Subject::create([
-            'name' => 'English',
-            'code' => 'ENG 101',
-            'description' => 'This is an english subject',
+            'name' => 'Quality Consciousness, Habits and Processes',
+            'code' => 'IT 143',
+            'description' => 'This is a Quality Consciousness, Habits and Processes subject',
+            'college_id' => 1,
+            'department_id' => 1,
+        ]);
+
+        Subject::create([
+            'name' => 'Capstone Project and Research 3',
+            'code' => 'IT 144',
+            'description' => 'This is a Capstone Project and Research 3 subject',
+            'college_id' => 1,
+            'department_id' => 1,
+        ]);
+
+        Subject::create([
+            'name' => 'Social and Professional Issues in IT',
+            'code' => 'IT 145',
+            'description' => 'This is a Social and Professional Issues in IT subject',
+            'college_id' => 1,
+            'department_id' => 1,
+        ]);
+
+        Subject::create([
+            'name' => 'Digital Marketing',
+            'code' => 'IT 146',
+            'description' => 'This is a Digital Marketing subject',
             'college_id' => 1,
             'department_id' => 1,
         ]);

@@ -18,8 +18,8 @@ class DepartmentSeeder extends Seeder
             'college_id' => 1,
         ]);
         Department::create([
-            'name' => 'Entertainment MC',
-            'college_id' => 2,
+            'name' => 'Entertainment and Multimedia Computing',
+            'college_id' => 1,
         ]);
         Department::create([
             'name' => 'Food Technology',
@@ -27,19 +27,11 @@ class DepartmentSeeder extends Seeder
         ]);
         Department::create([
             'name' => 'Automotive Technology',
-            'college_id' => 2,
+            'college_id' => 1,
         ]);
         Department::create([
             'name' => 'Electronics Technology',
-            'college_id' => 2,
-        ]);
-        Department::create([
-            'name' => 'Accountancy',
-            'college_id' => 3,
-        ]);
-        Department::create([
-            'name' => 'Business Administration',
-            'college_id' => 3,
+            'college_id' => 1,
         ]);
     }
 }
