@@ -105,23 +105,13 @@ class AttendanceTable extends Component
 
     public function exportAs($format)
     {
+        $export = new AttendanceExport($this->selectedMonth, $this->selectedSubject, $this->selectedSection);
+
         switch ($format) {
             case 'csv':
-                return Excel::download(new AttendanceExport(
-                    $this->search,
-                    $this->status,
-                    $this->selectedMonth,
-                    $this->selectedSubject,
-                    $this->selectedSection
-                ), 'attendance.csv', \Maatwebsite\Excel\Excel::CSV);
+                return Excel::download($export, 'attendance.csv', \Maatwebsite\Excel\Excel::CSV);
             case 'excel':
-                return Excel::download(new AttendanceExport(
-                    $this->search,
-                    $this->status,
-                    $this->selectedMonth,
-                    $this->selectedSubject,
-                    $this->selectedSection
-                ), 'attendance.xlsx');
+                return Excel::download($export, 'attendance.xlsx');
             case 'pdf':
                 // Implement PDF export if needed
                 break;
