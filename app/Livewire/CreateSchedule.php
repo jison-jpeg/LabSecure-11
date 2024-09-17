@@ -70,7 +70,22 @@ class CreateSchedule extends Component
             'end_time' => 'required|after:start_time',
         ]);
 
-        // Check for schedule conflict
+        // Check for subject uniqueness within the same department and section
+        $existingSchedule = Schedule::where('subject_id', $this->subject_id)
+            ->where('section_id', $this->section_id)
+            ->where('department_id', $this->department_id)
+            ->first();
+
+        if ($existingSchedule) {
+            notyf()
+                ->dismissible(true)
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('This subject already exists for the selected section and department.');
+            return;
+        }
+
+        // Check for schedule conflicts
         $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time);
 
         if ($conflicts->isNotEmpty()) {
@@ -79,7 +94,7 @@ class CreateSchedule extends Component
                 ->dismissible(true)
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->error('Oppps! There are conflicting schedules.');
+                ->error('Oops! There are conflicting schedules.');
             return;
         }
 
@@ -93,7 +108,7 @@ class CreateSchedule extends Component
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'section_id' => $this->section_id,
-            'schedule_code' => $schedule_code,  // Add generated schedule_code
+            'schedule_code' => $schedule_code,
             'days_of_week' => json_encode($this->days_of_week),
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
@@ -108,12 +123,76 @@ class CreateSchedule extends Component
         $this->reset();
     }
 
+    public function update()
+    {
+        $this->validate([
+            'subject_id' => 'required',
+            'instructor_id' => 'required',
+            'laboratory_id' => 'required',
+            'college_id' => 'required',
+            'department_id' => 'required',
+            'section_id' => 'required',
+            'days_of_week' => 'required|array|min:1',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+        ]);
+
+        // Check for subject uniqueness within the same department and section
+        $existingSchedule = Schedule::where('subject_id', $this->subject_id)
+            ->where('section_id', $this->section_id)
+            ->where('department_id', $this->department_id)
+            ->where('id', '!=', $this->schedule->id) // Ignore the current schedule during update
+            ->first();
+
+        if ($existingSchedule) {
+            notyf()
+                ->dismissible(true)
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('This subject already exists for the selected section and department.');
+            return;
+        }
+
+        // Check for schedule conflicts
+        $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time, $this->schedule->id);
+
+        if ($conflicts->isNotEmpty()) {
+            $this->conflicts = $conflicts;
+            notyf()
+                ->dismissible(true)
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('Oops! There are conflicting schedules.');
+            return;
+        }
+
+        $this->schedule->update([
+            'subject_id' => $this->subject_id,
+            'instructor_id' => $this->instructor_id,
+            'laboratory_id' => $this->laboratory_id,
+            'college_id' => $this->college_id,
+            'department_id' => $this->department_id,
+            'section_id' => $this->section_id,
+            'days_of_week' => json_encode($this->days_of_week),
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+        ]);
+
+        notyf()
+            ->dismissible(true)
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Schedule updated successfully');
+        $this->dispatch('refresh-schedule-table');
+        $this->reset();
+    }
+
     // Function to generate a unique schedule code
     protected function generateScheduleCode()
     {
         $lastSchedule = Schedule::orderBy('id', 'desc')->first();
         $newCodeNumber = $lastSchedule ? $lastSchedule->id + 1 : 1;
-        return 'T-' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
+        return 'T' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
     }
 
     public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)
@@ -163,53 +242,5 @@ class CreateSchedule extends Component
         $this->days_of_week = json_decode($this->schedule->days_of_week, true);
         $this->start_time = $this->schedule->start_time;
         $this->end_time = $this->schedule->end_time;
-    }
-
-    public function update()
-    {
-        $this->validate([
-            'subject_id' => 'required',
-            'instructor_id' => 'required',
-            'laboratory_id' => 'required',
-            'college_id' => 'required',
-            'department_id' => 'required',
-            'section_id' => 'required',
-            'days_of_week' => 'required|array|min:1',
-            'start_time' => 'required',
-            'end_time' => 'required',
-        ]);
-
-        // Check for schedule conflict
-        $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time, $this->schedule->id);
-
-        if ($conflicts->isNotEmpty()) {
-            $this->conflicts = $conflicts;
-            notyf()
-                ->dismissible(true)
-                ->position('x', 'right')
-                ->position('y', 'top')
-                ->error('Oppps! There are conflicting schedules.');
-            return;
-        }
-
-        $this->schedule->update([
-            'subject_id' => $this->subject_id,
-            'instructor_id' => $this->instructor_id,
-            'laboratory_id' => $this->laboratory_id,
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-            'section_id' => $this->section_id,
-            'days_of_week' => json_encode($this->days_of_week),
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
-        ]);
-
-        notyf()
-            ->dismissible(true)
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Schedule updated successfully');
-        $this->dispatch('refresh-schedule-table');
-        $this->reset();
     }
 }

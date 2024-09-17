@@ -1,5 +1,23 @@
 @php
     use Carbon\Carbon;
+
+    // Helper function to shorten days of the week
+    function getShortenedDays($days)
+    {
+        $shortDays = [
+            'Monday' => 'Mon',
+            'Tuesday' => 'Tue',
+            'Wednesday' => 'Wed',
+            'Thursday' => 'Thu',
+            'Friday' => 'Fri',
+            'Saturday' => 'Sat',
+            'Sunday' => 'Sun',
+        ];
+
+        return implode(', ', array_map(function ($day) use ($shortDays) {
+            return $shortDays[$day] ?? $day;
+        }, $days));
+    }
 @endphp
 
 <div>
@@ -60,18 +78,25 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Section Code</th>
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'subject.name',
-                        'displayName' => 'Subject',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'instructor.full_name',
-                        'displayName' => 'Instructor',
+                        'name' => 'schedule.schedule_code',
+                        'displayName' => 'Code',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'section.name',
                         'displayName' => 'Section',
+                    ])  
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'subject.name',
+                        'displayName' => 'Subject Code',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'subject.name',
+                        'displayName' => 'Subject',
+                    ])     
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'instructor.full_name',
+                        'displayName' => 'Instructor',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'college.name',
@@ -87,7 +112,7 @@
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'days_of_week',
-                        'displayName' => 'Days of Week',
+                        'displayName' => 'Weekdays',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'start_time',
@@ -105,13 +130,14 @@
                     <tr wire:key="{{ $schedule->id }}">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $schedule->schedule_code }}</td>
+                        <td>{{ $schedule->section->name }}</td>
+                        <td>{{ $schedule->subject->code }}</td>
                         <td>{{ $schedule->subject->name }}</td>
                         <td>{{ $schedule->instructor->full_name }}</td>
-                        <td>{{ $schedule->section->name }}</td>
                         <td>{{ $schedule->college->name }}</td>
                         <td>{{ $schedule->department->name }}</td>
                         <td>{{ $schedule->laboratory->name }}</td>
-                        <td>{{ implode(', ', json_decode($schedule->days_of_week)) }}</td>
+                        <td>{{ getShortenedDays(json_decode($schedule->days_of_week)) }}</td> <!-- Shortened Days of Week -->
                         <td>{{ Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                         <td>{{ Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                         <td class="text-center">

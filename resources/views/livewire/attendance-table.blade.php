@@ -4,6 +4,7 @@
 
 <div>
     <div class="row mb-4">
+        <!-- Filter options and controls remain unchanged -->
         <div class="col-md-10">
             <div class="filter">
                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -27,7 +28,7 @@
                 </ul>
             </div>
 
-            {{-- perpage --}}
+            <!-- Per Page and Filter Controls -->
             <div class="row g-1">
                 <div class="col-md-1 col-sm-2">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -40,6 +41,7 @@
                     </select>
                 </div>
 
+                <!-- Search and Filter Controls -->
                 <div class="col-12 col-md-3 col-sm-10">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search users...">
@@ -77,24 +79,28 @@
                 <div class="col-12 col-md-2 col-sm-6">
                     <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
                 </div>
-
-                <div class="col-12 col-md-2">
-
-                </div>
             </div>
         </div>
+
         <div class="col-12 col-md-2">
-            <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
-                Filters</button>
+            <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
         </div>
     </div>
 
+    <!-- Attendance Table -->
     <div class="overflow-auto">
         <table class="table">
             <thead>
                 <tr>
                     <th scope="col">#</th>
                     @include('livewire.includes.table-sortable-th', [
+                        'name' => 'date',
+                        'displayName' => 'Date',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'user.username',
+                        'displayName' => 'User ID',
+                    ]) @include('livewire.includes.table-sortable-th', [
                         'name' => 'user.name',
                         'displayName' => 'User',
                     ])
@@ -103,12 +109,12 @@
                         'displayName' => 'Subject',
                     ])
                     @include('livewire.includes.table-sortable-th', [
+                        'name' => 'schedule.schedule_code',
+                        'displayName' => 'Schedule Code',
+                    ]) 
+                    @include('livewire.includes.table-sortable-th', [
                         'name' => 'schedule.section.name',
                         'displayName' => 'Section',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'date',
-                        'displayName' => 'Date',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'time_in',
@@ -118,8 +124,10 @@
                         'name' => 'time_out',
                         'displayName' => 'Time Out',
                     ])
-                    <th scope="col" class="text-center">Percentage</th>
                     @include('livewire.includes.table-sortable-th', [
+                        'name' => 'percentage',
+                        'displayName' => 'Percentage',
+                    ]) @include('livewire.includes.table-sortable-th', [
                         'name' => 'status',
                         'displayName' => 'Status',
                     ])
@@ -131,11 +139,12 @@
                 @foreach ($attendances as $attendance)
                     <tr>
                         <th scope="row">{{ $loop->iteration }}</th>
+                        <td>{{ Carbon::parse($attendance->date)->format('F j, Y') }}</td>
+                        <td>{{ $attendance->user->username }}</td>
                         <td>{{ $attendance->user->full_name }}</td>
                         <td>{{ $attendance->schedule->subject->name }}</td>
+                        <td>{{ $attendance->schedule->schedule_code }}</td>
                         <td>{{ $attendance->schedule->section->name }}</td>
-                        <td>{{ Carbon::parse($attendance->date)->format('F j, Y') }}</td>
-                        <!-- Show first session time_in and last session time_out -->
                         <td>{{ optional($attendance->sessions->first())->time_in ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A') : '-' }}
                         </td>
                         <td>{{ optional($attendance->sessions->last())->time_out ? Carbon::parse($attendance->sessions->last()->time_out)->format('h:i A') : '-' }}
@@ -166,7 +175,6 @@
                                 {{ ucfirst($attendance->status) }}
                             </span>
                         </td>
-
                         <td>{{ $attendance->remarks }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
@@ -180,8 +188,7 @@
                                             data-bs-target="#verticalycentered">Edit</button></li>
                                     <li><button wire:click="delete({{ $attendance->id }})"
                                             wire:confirm="Are you sure you want to delete this record?" type="button"
-                                            class="dropdown-item text-danger">Delete</button>
-                                    </li>
+                                            class="dropdown-item text-danger">Delete</button></li>
                                 </ul>
                             </div>
                         </td>
@@ -190,43 +197,44 @@
             </tbody>
         </table>
     </div>
+
     <div class="mt-4">
         {{ $attendances->links('pagination::bootstrap-5') }}
     </div>
+</div>
 
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            @this.on('refresh-attendance-table', (event) => {
-                var myModalEl = document.querySelector('#verticalycentered')
-                var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
 
-                setTimeout(() => {
-                    modal.hide();
-                    @this.dispatch('reset-modal');
-                });
-            })
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        @this.on('refresh-attendance-table', (event) => {
+            var myModalEl = document.querySelector('#verticalycentered')
+            var modal = bootstrap.Modal.getOrCreateInstance(myModalEl)
 
-            var mymodal = document.getElementById('verticalycentered')
-            mymodal.addEventListener('hidden.bs.modal', (event) => {
+            setTimeout(() => {
+                modal.hide();
                 @this.dispatch('reset-modal');
-            })
+            });
         })
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var dropdowns = document.querySelectorAll('.dropdown-submenu');
+        var mymodal = document.getElementById('verticalycentered')
+        mymodal.addEventListener('hidden.bs.modal', (event) => {
+            @this.dispatch('reset-modal');
+        })
+    })
 
-            dropdowns.forEach(function(dropdown) {
-                dropdown.addEventListener('mouseover', function() {
-                    let submenu = this.querySelector('.dropdown-menu');
-                    submenu.classList.add('show');
-                });
+    document.addEventListener('DOMContentLoaded', function() {
+        var dropdowns = document.querySelectorAll('.dropdown-submenu');
 
-                dropdown.addEventListener('mouseout', function() {
-                    let submenu = this.querySelector('.dropdown-menu');
-                    submenu.classList.remove('show');
-                });
+        dropdowns.forEach(function(dropdown) {
+            dropdown.addEventListener('mouseover', function() {
+                let submenu = this.querySelector('.dropdown-menu');
+                submenu.classList.add('show');
+            });
+
+            dropdown.addEventListener('mouseout', function() {
+                let submenu = this.querySelector('.dropdown-menu');
+                submenu.classList.remove('show');
             });
         });
-    </script>
-
-</div>
+    });
+</script>

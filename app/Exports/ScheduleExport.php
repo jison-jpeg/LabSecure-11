@@ -21,7 +21,7 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 
     public function query()
     {
-        return Schedule::with(['subject', 'instructor', 'section.users', 'laboratory'])
+        return Schedule::with(['subject', 'instructor', 'section.users', 'laboratory', 'college', 'department'])
             ->when($this->search, function ($query) {
                 $query->search($this->search);
             });
@@ -30,7 +30,16 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     public function headings(): array
     {
         return [
-            'Subject Name', 'Instructor', 'Section', 'Days of the Week', 'Time', 'Laboratory/Room', 'Total Students'
+            'Code',            // schedule_code
+            'Section',         // section name
+            'Subject Code',    // subject code
+            'Subject Name',    // subject name
+            'Instructor',      // instructor name
+            'College',         // college name
+            'Department',      // department name
+            'Laboratory',      // laboratory name
+            'Schedule',        // formatted days and time
+            'Total Students'   // count of students in the section
         ];
     }
 
@@ -39,19 +48,41 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
         $studentsCount = $schedule->section ? $schedule->section->users->count() : 0;
         $studentsCount = $studentsCount ?: '0';  // Ensure it's always "0" if no students
 
-        // Format time to 12-hour format with AM/PM
+        // Format the schedule to show days as "M, T, W" and times like "(7:00 AM - 8:30 AM)"
         $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
-        $daysOfWeek = implode(', ', json_decode($schedule->days_of_week));
+        $daysOfWeek = $this->getShortenedDays(json_decode($schedule->days_of_week));
+        $formattedSchedule = $daysOfWeek . ' (' . $scheduleTime . ')';
 
         return [
-            optional($schedule->subject)->name,
-            optional($schedule->instructor)->full_name,
-            optional($schedule->section)->name,
-            $daysOfWeek,
-            $scheduleTime, // 12-hour format
-            optional($schedule->laboratory)->name,
-            $studentsCount, // Total students enrolled
+            $schedule->schedule_code,                      // Code
+            optional($schedule->section)->name,            // Section
+            optional($schedule->subject)->code,            // Subject Code
+            optional($schedule->subject)->name,            // Subject Name
+            optional($schedule->instructor)->full_name,    // Instructor
+            optional($schedule->college)->name,            // College
+            optional($schedule->department)->name,         // Department
+            optional($schedule->laboratory)->name,         // Laboratory
+            $formattedSchedule,                            // Schedule (shortened days and time)
+            $studentsCount,                                // Total Students
         ];
+    }
+
+    // Helper function to shorten days of the week
+    protected function getShortenedDays($days)
+    {
+        $shortDays = [
+            'Monday' => 'Mon',
+            'Tuesday' => 'Tue',
+            'Wednesday' => 'Wed',
+            'Thursday' => 'Thu',
+            'Friday' => 'Fri',
+            'Saturday' => 'Sat',
+            'Sunday' => 'Sun',
+        ];
+
+        return implode(', ', array_map(function ($day) use ($shortDays) {
+            return $shortDays[$day] ?? $day;
+        }, $days));
     }
 
     public function registerEvents(): array
@@ -83,14 +114,14 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                 ];
 
                 // Apply header style
-                $event->sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+                $event->sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
 
                 // Apply content style
                 $highestRow = $event->sheet->getHighestRow();
-                $event->sheet->getStyle('A2:G' . $highestRow)->applyFromArray($contentStyle);
+                $event->sheet->getStyle('A2:J' . $highestRow)->applyFromArray($contentStyle);
 
                 // Auto-size columns
-                foreach (range('A', 'G') as $columnID) {
+                foreach (range('A', 'J') as $columnID) {
                     $event->sheet->getColumnDimension($columnID)->setAutoSize(true);
                 }
             },

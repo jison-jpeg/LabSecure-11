@@ -14,10 +14,10 @@ class CreateSection extends Component
     public $formTitle = 'Create Section';
     public $editForm = false;
     public $section;
-    public $name;
+    public $name;          // Will represent the 'A', 'B', 'C', etc.
     public $college_id;
     public $department_id;
-    public $year_level;
+    public $year_level;    // Will represent the year level, e.g., 4 for 4A
     public $semester;
     public $school_year;
 
@@ -37,32 +37,31 @@ class CreateSection extends Component
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name' => 'required',     // This is the part 'A', 'B', etc.
             'college_id' => 'required',
             'department_id' => 'required',
-            'year_level' => 'required',
+            'year_level' => 'required',  // Year level like 1, 2, 3, or 4
             'semester' => 'required',
             'school_year' => [
-    'required',
-    'regex:/^\d{4}-\d{4}$/',
-    function ($attribute, $value, $fail) {
-        $years = explode('-', $value);
-        $currentYear = (int)date('Y');
-        $minYear = $currentYear - 3;
-        $maxYear = $currentYear + 3;
+                'required',
+                'regex:/^\d{4}-\d{4}$/',
+                function ($attribute, $value, $fail) {
+                    $years = explode('-', $value);
+                    $currentYear = (int)date('Y');
+                    $minYear = $currentYear - 3;
+                    $maxYear = $currentYear + 3;
 
-        if (count($years) !== 2) {
-            $fail('The school year must be in the format YYYY-YYYY.');
-        } elseif ((int)$years[0] <= 0 || (int)$years[1] <= 0) {
-            $fail('The school year must contain positive integers.');
-        } elseif ((int)$years[0] >= (int)$years[1]) {
-            $fail('The first year must be less than the second year.');
-        } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
-            $fail("The school year must be between $minYear and $maxYear.");
-        }
-    }
-],
-
+                    if (count($years) !== 2) {
+                        $fail('The school year must be in the format YYYY-YYYY.');
+                    } elseif ((int)$years[0] <= 0 || (int)$years[1] <= 0) {
+                        $fail('The school year must contain positive integers.');
+                    } elseif ((int)$years[0] >= (int)$years[1]) {
+                        $fail('The first year must be less than the second year.');
+                    } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
+                        $fail("The school year must be between $minYear and $maxYear.");
+                    }
+                }
+            ],
         ];
     }
 
@@ -70,8 +69,11 @@ class CreateSection extends Component
     {
         $this->validate($this->rules());
 
+        // Combine the year level and section name
+        $combinedName = $this->year_level . $this->name;
+
         Section::create([
-            'name' => $this->name,
+            'name' => $combinedName,  // Combined name like '4A', '3B'
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'year_level' => $this->year_level,
@@ -112,8 +114,11 @@ class CreateSection extends Component
     {
         $this->validate($this->rules());
 
+        // Combine the year level and section name when updating
+        $combinedName = $this->year_level . $this->name;
+
         $this->section->update([
-            'name' => $this->name,
+            'name' => $combinedName,  // Combined name like '4A', '3B'
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'year_level' => $this->year_level,

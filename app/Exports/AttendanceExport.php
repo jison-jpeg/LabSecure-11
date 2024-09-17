@@ -48,39 +48,70 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
             'Date',
             'Name',
             'Role',
-            'Subject',
+            'Section Code',
             'Section',
-            'Laboratory',
+            'Subject',
             'Schedule',
-            'Status',
+            'Laboratory',
             'Time In',
             'Time Out',
+            'Status',
             'Remarks'
         ];
     }
 
     public function map($attendance): array
     {
+        $schedule = $attendance->schedule;
+
+        // Format the schedule time (e.g., "7:30 AM - 8:30 AM")
+        $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
+
+        // Get shortened days of the week
+        $shortDaysOfWeek = $this->getShortenedDays(json_decode($schedule->days_of_week));
+
+        // Combine the time and shortened days (e.g., "7:30 AM - 8:30 AM (Mon, Tue)")
+        $formattedSchedule = "{$scheduleTime} ({$shortDaysOfWeek})";
+
         return [
-            Carbon::parse($attendance->date)->format('Y-m-d'), // Date (first column)
+            Carbon::parse($attendance->date)->format('m/d/Y'), // Date (first column)
             $attendance->user->full_name,  // Full name of the user
             $attendance->user->role->name, // Role of the user (e.g., student/instructor)
-            optional($attendance->schedule->subject)->name, // Subject name
-            optional($attendance->schedule->section)->name, // Section name
-            optional($attendance->schedule->laboratory)->name, // Laboratory name
-            Carbon::parse($attendance->schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($attendance->schedule->end_time)->format('h:i A'), // Schedule
-            $attendance->status, // Status (Present, Late, Absent)
-            $attendance->formattedTimeIn, // Time In from accessor
+            $schedule->schedule_code,      // Section code
+            optional($schedule->section)->name, // Section name
+            optional($schedule->subject)->name, // Subject name
+            $formattedSchedule,            // Schedule (time and shortened days of week)
+            optional($schedule->laboratory)->name, // Laboratory name
+            $attendance->formattedTimeIn,  // Time In from accessor
             $attendance->formattedTimeOut, // Time Out from accessor
-            $attendance->remarks, // Remarks
+            $attendance->status,           // Status (Present, Late, Absent)
+            $attendance->remarks,          // Remarks
         ];
+    }
+
+    // Helper function to get shortened days of the week
+    protected function getShortenedDays($days)
+    {
+        $shortDays = [
+            'Monday' => 'Mon',
+            'Tuesday' => 'Tue',
+            'Wednesday' => 'Wed',
+            'Thursday' => 'Thu',
+            'Friday' => 'Fri',
+            'Saturday' => 'Sat',
+            'Sunday' => 'Sun',
+        ];
+
+        return implode(', ', array_map(function ($day) use ($shortDays) {
+            return $shortDays[$day] ?? $day;
+        }, $days));
     }
 
     public function registerEvents(): array
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Style the header row with green background
+                // Style the header row with blue background
                 $headerStyle = [
                     'font' => [
                         'bold' => true,
@@ -95,7 +126,7 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
                 ];
 
                 // Apply the header style
-                $event->sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+                $event->sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
 
                 // Apply left alignment to all cells in the data rows
                 $contentStyle = [
@@ -111,10 +142,10 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
 
                 // Apply the content style to the entire data range (A2 to the last row)
                 $highestRow = $event->sheet->getHighestRow();
-                $event->sheet->getStyle('A2:K' . $highestRow)->applyFromArray($contentStyle);
+                $event->sheet->getStyle('A2:L' . $highestRow)->applyFromArray($contentStyle);
 
                 // Auto-size the columns
-                foreach (range('A', 'K') as $columnID) {
+                foreach (range('A', 'L') as $columnID) {
                     $event->sheet->getColumnDimension($columnID)->setAutoSize(true);
                 }
             },
