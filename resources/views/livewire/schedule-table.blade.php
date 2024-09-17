@@ -60,6 +60,7 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
+                    <th scope="col">Section Code</th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'subject.name',
                         'displayName' => 'Subject',
@@ -103,6 +104,7 @@
                 @foreach ($schedules as $key => $schedule)
                     <tr wire:key="{{ $schedule->id }}">
                         <th scope="row">{{ $key + 1 }}</th>
+                        <td>{{ $schedule->schedule_code }}</td>
                         <td>{{ $schedule->subject->name }}</td>
                         <td>{{ $schedule->instructor->full_name }}</td>
                         <td>{{ $schedule->section->name }}</td>

@@ -10,6 +10,7 @@ class Schedule extends Model
     use HasFactory;
 
     protected $fillable = [
+        'schedule_code',
         'subject_id',
         'instructor_id',
         'laboratory_id',
@@ -19,6 +20,7 @@ class Schedule extends Model
         'days_of_week',
         'start_time',
         'end_time',
+        'section_code',
     ];
 
     public function subject()
@@ -54,6 +56,11 @@ class Schedule extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function getSectionName()
+    {
+        return $this->section ? $this->section->name : 'Unknown Section';
     }
 
     public function scopeSearch($query, $value)

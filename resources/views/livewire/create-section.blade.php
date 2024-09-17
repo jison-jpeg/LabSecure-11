@@ -12,9 +12,9 @@
                 <div class="modal-body">
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-4">
-                            <label for="name" class="form-label">Code</label>
+                            <label for="name" class="form-label">Name</label>
                             <input wire:model.lazy="name" type="text"
-                                class="form-control @error('name') is-invalid @enderror" name="name">
+                                class="form-control @error('name') is-invalid @enderror" name="name" placeholder="ex. A">
                             @error('name')
                                 <span class="invalid-feedback">
                                     {{ $message }}
@@ -53,8 +53,17 @@
                         </div>
                         <div class="col-md-4">
                             <label for="year_level" class="form-label">Year Level</label>
-                            <input wire:model.lazy="year_level" type="text" placeholder="e.g. 1st Year"
-                                class="form-control @error('year_level') is-invalid @enderror" name="year_level">
+                            <select wire:model.lazy="year_level" class="form-select @error('year_level') is-invalid @enderror"
+                                name="year_level">
+                                <option value="">Select Year Level</option>
+                                <option value="1">1st Year</option>
+                                <option value="2">2nd Year</option>
+                                <option value="3">3rd Year</option>
+                                <option value="4">4th Year</option>
+                                <option value="5">5th Year</option>
+                                <option value="irregular">Irregular</option>
+
+                            </select>
                             @error('year_level')
                                 <span class="invalid-feedback">
                                     {{ $message }}
@@ -63,8 +72,13 @@
                         </div>
                         <div class="col-md-4">
                             <label for="semester" class="form-label">Semester</label>
-                            <input wire:model.lazy="semester" type="text" placeholder="e.g. 1st Semester"
-                                class="form-control @error('semester') is-invalid @enderror" name="semester">
+                            <select wire:model.lazy="semester" class="form-select @error('semester') is-invalid @enderror"
+                                name="semester">
+                                <option value="">Select Semester</option>
+                                <option value="1st Semester">1st Semester</option>
+                                <option value="2nd Semester">2nd Semester</option>
+                                <option value="summer">Summer</option>
+                            </select>
                             @error('semester')
                                 <span class="invalid-feedback">
                                     {{ $message }}
@@ -73,7 +87,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="school_year" class="form-label">School Year</label>
-                            <input wire:model.lazy="school_year" id="school_year" type="text" placeholder="YYYY-YYYY"
+                            <input wire:model.lazy="school_year" id="school_year" type="text" placeholder="ex. YYYY-YYYY"
                                 class="form-control @error('school_year') is-invalid @enderror" name="school_year">
                             @error('school_year')
                                 <span class="invalid-feedback">

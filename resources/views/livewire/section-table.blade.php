@@ -80,7 +80,7 @@
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-section',{id:{{ $section->id }}})"
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $section->id }}})"
                                             type="button" class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycenteredsection">Edit</button></li>
                                     <li><button wire:click="delete({{ $section->id }})"

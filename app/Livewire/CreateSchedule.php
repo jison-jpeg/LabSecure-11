@@ -83,6 +83,9 @@ class CreateSchedule extends Component
             return;
         }
 
+        // Generate the schedule code
+        $schedule_code = $this->generateScheduleCode();
+
         Schedule::create([
             'subject_id' => $this->subject_id,
             'instructor_id' => $this->instructor_id,
@@ -90,6 +93,7 @@ class CreateSchedule extends Component
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'section_id' => $this->section_id,
+            'schedule_code' => $schedule_code,  // Add generated schedule_code
             'days_of_week' => json_encode($this->days_of_week),
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
@@ -102,6 +106,14 @@ class CreateSchedule extends Component
             ->position('y', 'top')
             ->success('Schedule created successfully');
         $this->reset();
+    }
+
+    // Function to generate a unique schedule code
+    protected function generateScheduleCode()
+    {
+        $lastSchedule = Schedule::orderBy('id', 'desc')->first();
+        $newCodeNumber = $lastSchedule ? $lastSchedule->id + 1 : 1;
+        return 'T-' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
     }
 
     public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)

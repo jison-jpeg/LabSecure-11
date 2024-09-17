@@ -149,9 +149,9 @@ class ListenToMQTT extends Command
         return;
     }
 
-    // Access the subject name from the schedule
+    // Access the subject name and schedule code from the schedule
     $subjectName = $schedule->subject->name;
-
+    $scheduleCode = $schedule->schedule_code; // Get the schedule code
     $laboratory = $schedule->laboratory;
 
     // Handle attendance
@@ -177,10 +177,11 @@ class ListenToMQTT extends Command
                 'details' => json_encode([
                     'rfid_number' => $user->rfid_number,
                     'laboratory_status' => 'Occupied',
-                    'subject_name' => $subjectName, // Include subject name in the transaction log
+                    'subject_name' => $subjectName,
+                    'schedule_code' => $scheduleCode,  // Include schedule code in the log
                 ]),
             ]);
-            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName);
+            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName, $scheduleCode);  // Include schedule code
             break;
 
         case 'exit':
@@ -200,10 +201,11 @@ class ListenToMQTT extends Command
                 'details' => json_encode([
                     'rfid_number' => $user->rfid_number,
                     'laboratory_status' => 'Available',
-                    'subject_name' => $subjectName, // Include subject name in the transaction log
+                    'subject_name' => $subjectName,
+                    'schedule_code' => $scheduleCode,  // Include schedule code in the log
                 ]),
             ]);
-            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName);
+            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName, $scheduleCode);  // Include schedule code
             break;
     }
 
@@ -215,15 +217,16 @@ class ListenToMQTT extends Command
 }
 
     // Helper method to publish the access result to MQTT with error handling
-    private function publishToMqtt($rfid_number, $type, $status, $fullName = null, $error = null, $subjectName = null)
+    private function publishToMqtt($rfid_number, $type, $status, $fullName = null, $error = null, $subjectName = null, $scheduleCode = null)
 {
     $message = json_encode([
         'rfid_number' => $rfid_number,
         'type' => $type,
         'status' => $status,
-        'full_name' => $fullName,  // Include user's full name in the message
-        'subject_name' => $subjectName,  // Include subject name in the message
-        'error' => $error,  // Include error in the message if present
+        'full_name' => $fullName,  
+        'subject_name' => $subjectName, 
+        'schedule_code' => $scheduleCode,
+        'error' => $error,
     ]);
 
     try {
