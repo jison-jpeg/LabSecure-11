@@ -52,7 +52,7 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    @include('livewire.includes.table-sortable-th', ['name' => 'name', 'displayName' => 'Name'])
+                    @include('livewire.includes.table-sortable-th', ['name' => 'name', 'displayName' => 'Code'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'college.name', 'displayName' => 'College'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'department.name', 'displayName' => 'Department'])
                     @include('livewire.includes.table-sortable-th', ['name' => 'year_level', 'displayName' => 'Year Level'])

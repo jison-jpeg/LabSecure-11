@@ -123,7 +123,7 @@
                 @foreach ($users as $key => $user)
                     <tr wire:key="{{ $user->id }}">
                         <th scope="row"> {{ $users->firstItem() + $key }}</th>
-                        <td> 
+                        <td>
                             <input class="form-check-input" type="checkbox" wire:key="{{ $user->id }}"
                                 value="{{ $user->id }}" wire:model.live="selected_user_id">
                         </td>

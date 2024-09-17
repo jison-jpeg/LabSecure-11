@@ -1,8 +1,8 @@
 <div>
-    <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#createFacultyModal">
+    <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#verticalycentered">
         Create Faculty
     </button>
-    <div wire:ignore.self class="modal fade" id="createFacultyModal" tabindex="-1">
+    <div wire:ignore.self class="modal fade" id="verticalycentered" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
