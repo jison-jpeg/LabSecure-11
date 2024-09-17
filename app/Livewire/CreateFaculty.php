@@ -78,11 +78,11 @@ class CreateFaculty extends Component
             'model' => 'User',
             'model_id' => $faculty->id,
             'details' => json_encode([
-                'user' => $faculty->full_name, 
+                'user' => $faculty->full_name,
                 'username' => $faculty->username,
                 'college' => College::find($this->college_id)->name,
                 'department' => Department::find($this->department_id)->name,
-                'created_by' => Auth::user()->full_name, 
+                'created_by' => Auth::user()->full_name,
             ]),
         ]);
 
@@ -108,8 +108,8 @@ class CreateFaculty extends Component
         $this->editForm = true;
         $this->user = User::findOrFail($id);
         $this->first_name = $this->user->first_name;
-        $this->middle_name = $this->middle_name;
-        $this->last_name = $this->last_name;
+        $this->middle_name = $this->user->middle_name;
+        $this->last_name = $this->user->last_name;
         $this->username = $this->user->username;
         $this->email = $this->user->email;
         $this->college_id = $this->user->college_id;
@@ -144,11 +144,11 @@ class CreateFaculty extends Component
             'model' => 'User',
             'model_id' => $this->user->id,
             'details' => json_encode([
-                'user' => $this->user->full_name, 
+                'user' => $this->user->full_name,
                 'username' => $this->user->username,
                 'college' => College::find($this->college_id)->name,
                 'department' => Department::find($this->department_id)->name,
-                'updated_by' => Auth::user()->full_name, 
+                'updated_by' => Auth::user()->full_name,
             ]),
         ]);
 

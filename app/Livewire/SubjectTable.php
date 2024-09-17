@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exports\SubjectExport;
 use App\Models\Subject;
 use App\Models\College;
 use App\Models\Department;
@@ -10,6 +11,7 @@ use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SubjectTable extends Component
 {
@@ -69,6 +71,20 @@ class SubjectTable extends Component
             ->success('Subject deleted successfully');
     }
 
+    public function exportAs($format)
+    {
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), 'subjects.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), 'subjects.xlsx');
+            case 'pdf':
+                // Implement PDF export if needed
+                break;
+        }
+    }
+
+
     public function render()
     {
         $user = Auth::user();
@@ -77,20 +93,20 @@ class SubjectTable extends Component
 
         // If the user is an instructor, filter subjects by the instructor's ID
         if ($user->role->name === 'instructor') {
-            $query = $query->whereHas('schedules', function($q) use ($user) {
+            $query = $query->whereHas('schedules', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
         }
 
         $subjects = $query->search($this->search)
-                          ->when($this->college !== '', function ($query) {
-                              $query->where('college_id', $this->college);
-                          })
-                          ->when($this->department !== '', function ($query) {
-                              $query->where('department_id', $this->department);
-                          })
-                          ->orderBy($this->sortBy, $this->sortDir)
-                          ->paginate($this->perPage);
+            ->when($this->college !== '', function ($query) {
+                $query->where('college_id', $this->college);
+            })
+            ->when($this->department !== '', function ($query) {
+                $query->where('department_id', $this->department);
+            })
+            ->orderBy($this->sortBy, $this->sortDir)
+            ->paginate($this->perPage);
 
         return view('livewire.subject-table', [
             'subjects' => $subjects,
