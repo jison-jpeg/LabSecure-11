@@ -31,6 +31,12 @@ class LaboratoryController extends Controller
         }
     }
 
+    // View a specific laboratory
+public function viewLaboratory(Laboratory $laboratory)
+{
+    return view('admin.view-laboratory', compact('laboratory'));
+}
+
     // API endpoint to handle laboratory access via RFID
     public function handleLaboratoryAccess(Request $request)
     {

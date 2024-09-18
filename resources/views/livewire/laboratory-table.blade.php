@@ -40,6 +40,7 @@
             @foreach ($laboratories as $laboratory)
                 <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
                     <a href="#">
+                        <!-- Link to specific laboratory -->
                         <div class="card info-card sales-card lab-card">
                             <div class="action">
                                 <a class="icon" href="#" data-bs-toggle="dropdown"><i
@@ -48,15 +49,20 @@
                                     <li class="dropdown-header text-start">
                                         <h6>Action</h6>
                                     </li>
-                                    <li><a class="dropdown-item" href="#">View</a></li>
-                                    <li><a  @click="$dispatch('edit-mode',{id:{{ $laboratory->id }}})" class="dropdown-item" data-bs-toggle="modal"
-                                        data-bs-target="#verticalycentered">Edit</a></li>
-                                    <li><a wire:click="delete({{ $laboratory->id }})"  wire:confirm="Are you sure you want to delete laboratory {{ $laboratory->name}} ?" class="dropdown-item text-danger" href="#">Delete LAB
+                                    <li><a href="{{ route('laboratory.view', ['laboratory' => $laboratory->id]) }}"
+                                            class="dropdown-item">View</a></li>
+                                    <li><a @click="$dispatch('edit-mode',{id:{{ $laboratory->id }}})"
+                                            class="dropdown-item" data-bs-toggle="modal"
+                                            data-bs-target="#verticalycentered">Edit</a></li>
+                                    <li><a wire:click="delete({{ $laboratory->id }})"
+                                            wire:confirm="Are you sure you want to delete laboratory {{ $laboratory->name }} ?"
+                                            class="dropdown-item text-danger" href="#">Delete LAB
                                             {{ $laboratory->name }}</a></li>
                                 </ul>
                             </div>
                             <div class="card-body mt-3">
-                                <h5 class="badge rounded-pill {{ $laboratory->status == 'Occupied' ? 'bg-warning text-black' : ($laboratory->status == 'Locked' ? 'bg-danger' : ($laboratory->status == 'Available' ? 'bg-success' : 'bg-secondary')) }}">
+                                <h5
+                                    class="badge rounded-pill {{ $laboratory->status == 'Occupied' ? 'bg-warning text-black' : ($laboratory->status == 'Locked' ? 'bg-danger' : ($laboratory->status == 'Available' ? 'bg-success' : 'bg-secondary')) }}">
                                     {{ $laboratory->status }}
                                 </h5>
                                 <div class="row mt-4 sub-header">
@@ -87,7 +93,7 @@
                                     <div class="col-6 text-truncate text-end align-self-end">
                                         <span class="text-muted">{{ $laboratory->time_ago }}</span>
                                     </div>
-                                </div>                            
+                                </div>
                             </div>
                         </div>
                     </a>

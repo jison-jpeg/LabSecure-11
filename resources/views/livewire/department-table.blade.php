@@ -74,10 +74,6 @@
                         'name' => 'college.name',
                         'displayName' => 'College',
                     ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'created_at',
-                        'displayName' => 'Created At',
-                    ])
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -87,7 +83,6 @@
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $department->name }}</td>
                         <td>{{ $department->college->name }}</td>
-                        <td>{{ $department->created_at->diffForHumans() }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
