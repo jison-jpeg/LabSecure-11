@@ -39,7 +39,6 @@
         <div class="row">
             @foreach ($laboratories as $laboratory)
                 <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-                    <a href="#">
                         <!-- Link to specific laboratory -->
                         <div class="card info-card sales-card lab-card">
                             <div class="action">
@@ -60,43 +59,45 @@
                                             {{ $laboratory->name }}</a></li>
                                 </ul>
                             </div>
-                            <div class="card-body mt-3">
-                                <h5
-                                    class="badge rounded-pill {{ $laboratory->status == 'Occupied' ? 'bg-warning text-black' : ($laboratory->status == 'Locked' ? 'bg-danger' : ($laboratory->status == 'Available' ? 'bg-success' : 'bg-secondary')) }}">
-                                    {{ $laboratory->status }}
-                                </h5>
-                                <div class="row mt-4 sub-header">
-                                    <div class="col-6 text-start text-truncate">
-                                        <h6 class="text-muted">TYPE</h6>
-                                        <span>{{ $laboratory->type }}</span>
+                            <a href="{{ route('laboratory.view', ['laboratory' => $laboratory->id]) }}" class="card-link">
+                                
+                                <div class="card-body mt-3">
+                                    <h5
+                                        class="badge rounded-pill {{ $laboratory->status == 'Occupied' ? 'bg-warning text-black' : ($laboratory->status == 'Locked' ? 'bg-danger' : ($laboratory->status == 'Available' ? 'bg-success' : 'bg-secondary')) }}">
+                                        {{ $laboratory->status }}
+                                    </h5>
+                                    <div class="row mt-4 sub-header">
+                                        <div class="col-6 text-start text-truncate">
+                                            <h6 class="text-muted">TYPE</h6>
+                                            <span>{{ $laboratory->type }}</span>
+                                        </div>
+                                        <div class="col-6 text-end text-truncate">
+                                            <h6 class="text-muted">LOCATION</h6>
+                                            <span>{{ $laboratory->location }}</span>
+                                        </div>
                                     </div>
-                                    <div class="col-6 text-end text-truncate">
-                                        <h6 class="text-muted">LOCATION</h6>
-                                        <span>{{ $laboratory->location }}</span>
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <h1 class="lab-title">LAB</h1>
+                                        </div>
+                                        <div class="col-auto">
+                                            <h5 class="sub-lab-title">{{ $laboratory->name }}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-4 sub-header">
+                                        <div class="col-6 text-start text-truncate">
+                                            <span class="text-muted">
+                                                {{ $laboratory->recent_user_action }}
+                                            </span>
+                                            <h6 class="text-truncate">{{ $laboratory->recent_user_name }}</h6>
+                                        </div>
+                                        <div class="col-6 text-truncate text-end align-self-end">
+                                            <span class="text-muted">{{ $laboratory->time_ago }}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="row mt-2">
-                                    <div class="col-12">
-                                        <h1 class="lab-title">LAB</h1>
-                                    </div>
-                                    <div class="col-auto">
-                                        <h5 class="sub-lab-title">{{ $laboratory->name }}</h5>
-                                    </div>
-                                </div>
-                                <div class="row mt-4 sub-header">
-                                    <div class="col-6 text-start text-truncate">
-                                        <span class="text-muted">
-                                            {{ $laboratory->recent_user_action }}
-                                        </span>
-                                        <h6 class="text-truncate">{{ $laboratory->recent_user_name }}</h6>
-                                    </div>
-                                    <div class="col-6 text-truncate text-end align-self-end">
-                                        <span class="text-muted">{{ $laboratory->time_ago }}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            </a>
                         </div>
-                    </a>
                 </div>
             @endforeach
         </div>

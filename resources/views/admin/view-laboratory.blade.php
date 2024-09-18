@@ -1,4 +1,4 @@
-@section('pageTitle', 'Dashboard')
+@section('pageTitle', 'Laboratory')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -6,8 +6,9 @@
             <h1>Hello, {{ Auth::user()->first_name }}! 👋</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Home</a></li>
-                    <li class="breadcrumb-item active">@yield('pageTitle')</li>
+                    <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/laboratories">@yield('pageTitle')</a></li>
+                    <li class="breadcrumb-item active">{{$laboratory->name}}</li>
                 </ol>
             </nav>
         </div>

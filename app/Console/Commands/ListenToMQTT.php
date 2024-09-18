@@ -149,10 +149,19 @@ class ListenToMQTT extends Command
         return;
     }
 
+    $laboratory = $schedule->laboratory;
+
+    // Prevent access if the laboratory is locked and the user is not an admin
+    if ($laboratory->status === 'Locked' && !$user->isAdmin()) {
+        $error = 'Laboratory is locked.';
+        $this->error($error);
+        $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
+        return;
+    }
+
     // Access the subject name and schedule code from the schedule
     $subjectName = $schedule->subject->name;
     $scheduleCode = $schedule->schedule_code; // Get the schedule code
-    $laboratory = $schedule->laboratory;
 
     // Handle attendance
     $currentDate = $currentTime->toDateString();
@@ -215,6 +224,7 @@ class ListenToMQTT extends Command
 
     $this->info('Attendance recorded successfully.');
 }
+
 
     // Helper method to publish the access result to MQTT with error handling
     private function publishToMqtt($rfid_number, $type, $status, $fullName = null, $error = null, $subjectName = null, $scheduleCode = null)
