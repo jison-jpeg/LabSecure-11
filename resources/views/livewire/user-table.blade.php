@@ -73,7 +73,7 @@
     </div>
 
     <div class="overflow-auto">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th scope="col">#</th>
@@ -121,8 +121,8 @@
             </thead>
             <tbody>
                 @foreach ($users as $key => $user)
-                    <tr wire:key="{{ $user->id }}">
-                        <th scope="row"> {{ $users->firstItem() + $key }}</th>
+                <tr wire:key="{{ $user->id }}" onclick="window.location='{{ route('user.view', ['user' => $user->id]) }}';" style="cursor: pointer;">
+                    <th scope="row"> {{ $users->firstItem() + $key }}</th>
                         <td>
                             <input class="form-check-input" type="checkbox" wire:key="{{ $user->id }}"
                                 value="{{ $user->id }}" wire:model.live="selected_user_id">
@@ -144,7 +144,10 @@
                                     <i class="bi bi-three-dots"></i>
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
+                                    {{-- <li><button type="button" class="dropdown-item" href="#">View</button></li> --}}
+                                    <li>
+                                        <a href="{{ route('user.view', ['user' => $user->id]) }}" class="dropdown-item">View</a>
+                                    </li>                                    
                                     <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})" type="button"
                                             class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>

@@ -14,4 +14,9 @@ class UserController extends Controller
         return view('admin.user');
     }
 
+    // View a specific user
+    public function viewUser(User $user)
+    {
+        return view('admin.view-user', ['user' => $user]);
+    }
 }

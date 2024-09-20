@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('users')
     ->group(function () {
         Route::get('/', [UserController::class, 'viewUsers'])->name('users');
+        Route::get('/{user}', [UserController::class, 'viewUser'])->name('user.view');
     });
 
 // Faculty Management

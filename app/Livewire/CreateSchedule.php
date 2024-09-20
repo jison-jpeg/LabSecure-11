@@ -189,11 +189,11 @@ class CreateSchedule extends Component
 
     // Function to generate a unique schedule code
     protected function generateScheduleCode()
-    {
-        $lastSchedule = Schedule::orderBy('id', 'desc')->first();
-        $newCodeNumber = $lastSchedule ? $lastSchedule->id + 1 : 1;
-        return 'T' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
-    }
+{
+    $lastSchedule = Schedule::orderBy('id', 'desc')->first();
+    $newCodeNumber = $lastSchedule ? $lastSchedule->id + 1 + 100 : 100;
+    return 'T' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
+}
 
     public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)
     {

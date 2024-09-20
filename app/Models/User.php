@@ -64,10 +64,20 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
+    // public function schedules()
+    // {
+    //     return $this->hasMany(Schedule::class, 'instructor_id', 'student_id');
+    // }
+
     public function schedules()
-    {
-        return $this->hasMany(Schedule::class, 'instructor_id', 'student_id');
-    }
+{
+    // A user can either be an instructor or a student in a schedule
+    return $this->hasMany(Schedule::class, 'instructor_id')
+        ->orWhereHas('section', function ($query) {
+            $query->where('section_id', $this->section_id);
+        });
+}
+
 
     public function getFullNameAttribute()
     {

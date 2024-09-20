@@ -1,20 +1,20 @@
-@section('pageTitle', 'Laboratory')
+@section('pageTitle', 'View User')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
         <div class="pagetitle">
-            <h1>Hello, {{ Auth::user()->first_name }}! 👋</h1>
+            <h1>@yield('pageTitle')</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ url()->previous() }}">@yield('pageTitle')</a></li>
-                    <li class="breadcrumb-item active">{{$laboratory->name}}</li>
+                    <li class="breadcrumb-item active">{{$user->full_name}}</li>
                 </ol>
             </nav>
         </div>
         <!-- End Page Title -->
 
-        @livewire('view-laboratory', ['laboratory' => $laboratory])
+        @livewire('view-user', ['user' => $user])
 
     </main>
 </x-app-layout>

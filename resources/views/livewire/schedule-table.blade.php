@@ -1,23 +1,5 @@
 @php
     use Carbon\Carbon;
-
-    // Helper function to shorten days of the week
-    function getShortenedDays($days)
-    {
-        $shortDays = [
-            'Monday' => 'Mon',
-            'Tuesday' => 'Tue',
-            'Wednesday' => 'Wed',
-            'Thursday' => 'Thu',
-            'Friday' => 'Fri',
-            'Saturday' => 'Sat',
-            'Sunday' => 'Sun',
-        ];
-
-        return implode(', ', array_map(function ($day) use ($shortDays) {
-            return $shortDays[$day] ?? $day;
-        }, $days));
-    }
 @endphp
 
 <div>
@@ -137,7 +119,7 @@
                         <td>{{ $schedule->college->name }}</td>
                         <td>{{ $schedule->department->name }}</td>
                         <td>{{ $schedule->laboratory->name }}</td>
-                        <td>{{ getShortenedDays(json_decode($schedule->days_of_week)) }}</td> <!-- Shortened Days of Week -->
+                        <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
                         <td>{{ Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                         <td>{{ Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                         <td class="text-center">

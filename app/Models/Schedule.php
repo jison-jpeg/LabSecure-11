@@ -23,6 +23,27 @@ class Schedule extends Model
         'section_code',
     ];
 
+    public function getShortenedDaysOfWeek()
+    {
+        $daysOfWeek = json_decode($this->days_of_week, true);
+
+        // Mapping full day names to shortened versions
+        $shortDays = [
+            'Monday' => 'Mon',
+            'Tuesday' => 'Tue',
+            'Wednesday' => 'Wed',
+            'Thursday' => 'Thu',
+            'Friday' => 'Fri',
+            'Saturday' => 'Sat',
+            'Sunday' => 'Sun',
+        ];
+
+        // Replace the full day names with their shortened versions
+        return array_map(function ($day) use ($shortDays) {
+            return $shortDays[$day] ?? $day;  // Fallback to the original day if not found in the map
+        }, $daysOfWeek);
+    }
+
     public function subject()
     {
         return $this->belongsTo(Subject::class);
