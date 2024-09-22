@@ -8,6 +8,7 @@
             <li><a class="dropdown-item" href="#" wire:click.prevent="$set('filter', 'today')">Today</a></li>
             <li><a class="dropdown-item" href="#" wire:click.prevent="$set('filter', 'month')">This Month</a></li>
             <li><a class="dropdown-item" href="#" wire:click.prevent="$set('filter', 'year')">This Year</a></li>
+            <li><a class="dropdown-item text-primary" href="{{route ('transaction-logs')}}">View All</a></li>
         </ul>
     </div>
 

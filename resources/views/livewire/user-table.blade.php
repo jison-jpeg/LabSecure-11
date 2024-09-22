@@ -77,9 +77,6 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    <th>
-                        <input class="form-check-input" type="checkbox" wire:model="selectAll">
-                    </th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'username',
                         'displayName' => 'Username',
@@ -121,12 +118,10 @@
             </thead>
             <tbody>
                 @foreach ($users as $key => $user)
-                <tr wire:key="{{ $user->id }}" onclick="window.location='{{ route('user.view', ['user' => $user->id]) }}';" style="cursor: pointer;">
-                    <th scope="row"> {{ $users->firstItem() + $key }}</th>
-                        <td>
-                            <input class="form-check-input" type="checkbox" wire:key="{{ $user->id }}"
-                                value="{{ $user->id }}" wire:model.live="selected_user_id">
-                        </td>
+                    <tr wire:key="{{ $user->id }}"
+                        onclick="window.location='{{ route('user.view', ['user' => $user->id]) }}';"
+                        style="cursor: pointer;">
+                        <th scope="row"> {{ $users->firstItem() + $key }}</th>
                         <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->first_name }}</td>
@@ -140,14 +135,17 @@
                         {{-- <td>{{ $user->updated_at->diffForHumans() }}</td> --}}
                         <td class="text-center">
                             <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                    onclick="event.stopPropagation()">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                    onclick="event.stopPropagation()">
                                     {{-- <li><button type="button" class="dropdown-item" href="#">View</button></li> --}}
                                     <li>
-                                        <a href="{{ route('user.view', ['user' => $user->id]) }}" class="dropdown-item">View</a>
-                                    </li>                                    
+                                        <a href="{{ route('user.view', ['user' => $user->id]) }}"
+                                            class="dropdown-item">View</a>
+                                    </li>
                                     <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})" type="button"
                                             class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
