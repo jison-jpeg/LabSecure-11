@@ -15,6 +15,7 @@ class DepartmentSeeder extends Seeder
     {
         Department::create([
             'name' => 'Information Technology',
+            'description' => 'The Department of Information Technology is the premier institution for technology education in the country.',
             'college_id' => 1,
         ]);
         Department::create([

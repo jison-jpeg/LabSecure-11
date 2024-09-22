@@ -111,7 +111,7 @@
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'schedule.schedule_code',
                         'displayName' => 'Schedule Code',
-                    ]) 
+                    ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'schedule.section.name',
                         'displayName' => 'Section',
@@ -137,7 +137,9 @@
             </thead>
             <tbody>
                 @foreach ($attendances as $attendance)
-                    <tr>
+                    <tr wire:key="{{ $attendance->id }}"
+                        onclick="window.location='{{ route('attendance.user.view', ['user' => $attendance->user->id]) }}';"
+                        style="cursor: pointer;">
                         <th scope="row">{{ $loop->iteration }}</th>
                         <td>{{ Carbon::parse($attendance->date)->format('F j, Y') }}</td>
                         <td>{{ $attendance->user->username }}</td>
@@ -178,10 +180,10 @@
                         <td>{{ $attendance->remarks }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
                                     <li><button type="button" class="dropdown-item">View</button></li>
                                     <li><button @click="$dispatch('edit-mode',{id:{{ $attendance->id }}})"
                                             type="button" class="dropdown-item" data-bs-toggle="modal"
@@ -192,6 +194,7 @@
                                 </ul>
                             </div>
                         </td>
+                        
                     </tr>
                 @endforeach
             </tbody>

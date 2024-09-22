@@ -5,19 +5,20 @@ namespace App\Livewire;
 use App\Models\Section;
 use App\Models\College;
 use App\Models\Department;
+use App\Models\TransactionLog;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\On;
-use Illuminate\Support\Facades\Validator;
 
 class CreateSection extends Component
 {
     public $formTitle = 'Create Section';
     public $editForm = false;
     public $section;
-    public $name;          // Will represent the 'A', 'B', 'C', etc.
+    public $name;          
     public $college_id;
     public $department_id;
-    public $year_level;    // Will represent the year level, e.g., 4 for 4A
+    public $year_level;
     public $semester;
     public $school_year;
 
@@ -37,10 +38,10 @@ class CreateSection extends Component
     public function rules()
     {
         return [
-            'name' => 'required',     // This is the part 'A', 'B', etc.
+            'name' => 'required',
             'college_id' => 'required',
             'department_id' => 'required',
-            'year_level' => 'required',  // Year level like 1, 2, 3, or 4
+            'year_level' => 'required',
             'semester' => 'required',
             'school_year' => [
                 'required',
@@ -53,8 +54,6 @@ class CreateSection extends Component
 
                     if (count($years) !== 2) {
                         $fail('The school year must be in the format YYYY-YYYY.');
-                    } elseif ((int)$years[0] <= 0 || (int)$years[1] <= 0) {
-                        $fail('The school year must contain positive integers.');
                     } elseif ((int)$years[0] >= (int)$years[1]) {
                         $fail('The first year must be less than the second year.');
                     } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
@@ -72,8 +71,9 @@ class CreateSection extends Component
         // Combine the year level and section name
         $combinedName = $this->year_level . $this->name;
 
-        Section::create([
-            'name' => $combinedName,  // Combined name like '4A', '3B'
+        // Create the section
+        $section = Section::create([
+            'name' => $combinedName,
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'year_level' => $this->year_level,
@@ -81,11 +81,68 @@ class CreateSection extends Component
             'school_year' => $this->school_year,
         ]);
 
+        // Create transaction log for section creation
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'model' => 'Section',
+            'model_id' => $section->id,
+            'details' => json_encode([
+                'section_name' => $combinedName,
+                'college' => College::find($this->college_id)->name,
+                'department' => Department::find($this->department_id)->name,
+                'year_level' => $this->year_level,
+                'semester' => $this->semester,
+                'school_year' => $this->school_year,
+            ]),
+        ]);
+
         $this->dispatch('refresh-section-table');
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Section created successfully');
+        $this->reset();
+    }
+
+    public function update()
+    {
+        $this->validate($this->rules());
+
+        // Combine the year level and section name when updating
+        $combinedName = $this->year_level . $this->name;
+
+        // Update the section
+        $this->section->update([
+            'name' => $combinedName,
+            'college_id' => $this->college_id,
+            'department_id' => $this->department_id,
+            'year_level' => $this->year_level,
+            'semester' => $this->semester,
+            'school_year' => $this->school_year,
+        ]);
+
+        // Create transaction log for section update
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'model' => 'Section',
+            'model_id' => $this->section->id,
+            'details' => json_encode([
+                'section_name' => $combinedName,
+                'college' => College::find($this->college_id)->name,
+                'department' => Department::find($this->department_id)->name,
+                'year_level' => $this->year_level,
+                'semester' => $this->semester,
+                'school_year' => $this->school_year,
+            ]),
+        ]);
+
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Section updated successfully');
+        $this->dispatch('refresh-section-table');
         $this->reset();
     }
 
@@ -108,29 +165,5 @@ class CreateSection extends Component
         $this->year_level = $this->section->year_level;
         $this->semester = $this->section->semester;
         $this->school_year = $this->section->school_year;
-    }
-
-    public function update()
-    {
-        $this->validate($this->rules());
-
-        // Combine the year level and section name when updating
-        $combinedName = $this->year_level . $this->name;
-
-        $this->section->update([
-            'name' => $combinedName,  // Combined name like '4A', '3B'
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-            'year_level' => $this->year_level,
-            'semester' => $this->semester,
-            'school_year' => $this->school_year,
-        ]);
-
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Section updated successfully');
-        $this->dispatch('refresh-section-table');
-        $this->reset();
     }
 }

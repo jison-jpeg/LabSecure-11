@@ -61,7 +61,7 @@ class CollegeTable extends Component
             'model' => 'College',
             'model_id' => $college->id,
             'details' => json_encode([
-                'college_name' => $college->user,
+                'college_name' => $college->name,
                 'user' => Auth::user()->full_name,
                 'username' => Auth::user()->username,
             ]),

@@ -29,7 +29,6 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/', [LaboratoryController::class, 'viewLaboratories'])->name('laboratories');
         Route::get('/{laboratory}', [LaboratoryController::class, 'viewLaboratory'])->name('laboratory.view');
-
     });
 
 // User Management
@@ -37,7 +36,15 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('users')
     ->group(function () {
         Route::get('/', [UserController::class, 'viewUsers'])->name('users');
-        Route::get('/{user}', [UserController::class, 'viewUser'])->name('user.view');
+        Route::get('/{user}', action: [UserController::class, 'viewUser'])->name('user.view');
+    });
+
+// Attendance Management
+Route::middleware(['auth', 'verified'])
+    ->prefix('attendances')
+    ->group(function () {
+        Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
+        Route::get('/user/{user}', [AttendanceController::class, 'viewUserAttendance'])->name('attendance.user.view');
     });
 
 // Faculty Management
@@ -62,19 +69,15 @@ Route::middleware(['auth', 'verified'])
     });
 
 
-// Attendance Management
-Route::middleware(['auth', 'verified'])
-    ->prefix('attendances')
-    ->group(function () {
-        Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
-        Route::post('/', [AttendanceController::class, 'store'])->name('attendance.store');
-    });
+
 
 // Courses Management
 Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('courses')
     ->group(function () {
         Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
+        Route::get('/college/{college}', [CollegeManagementController::class, 'viewCollege'])->name('college.view');
+        Route::get('/department/{department}', [CollegeManagementController::class, 'viewDepartment'])->name('department.view');
     });
 
 // Schedule
