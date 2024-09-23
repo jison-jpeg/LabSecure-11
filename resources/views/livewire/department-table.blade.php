@@ -79,16 +79,16 @@
             </thead>
             <tbody>
                 @foreach ($departments as $key => $department)
-                    <tr wire:key="{{ $department->id }}">
+                    <tr wire:key="{{ $department->id }}" onclick="window.location='{{ route('department.view', ['department' => $department->id]) }}';" style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $department->name }}</td>
                         <td>{{ $department->college->name }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
                                     <li><button @click="$dispatch('edit-department',{id:{{ $department->id }}})"
                                             type="button" class="dropdown-item" data-bs-toggle="modal"
