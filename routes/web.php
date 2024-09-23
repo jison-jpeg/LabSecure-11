@@ -66,7 +66,8 @@ Route::middleware(['auth', 'verified'])
 Route::middleware(['auth', 'verified'])
     ->prefix('subjects')
     ->group(function () {
-        Route::get('/', [SubjectController::class, 'viewSubject'])->name('subjects');
+        Route::get('/', [SubjectController::class, 'viewSubjects'])->name('subjects');
+        Route::get('/{subject}', [SubjectController::class, 'viewSubject'])->name('subject.view');
     });
 
 // Courses Management

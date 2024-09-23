@@ -70,7 +70,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ $department->name }}</h5>
                         <p><strong>College:</strong> {{ $department->name ?? 'N/A' }}</p>
-                        <p class="mb-0"><strong>Description:</strong> {{$department->description }}</p>
+                        <p class="mb-0"><strong>Description:</strong> {{ $department->description }}</p>
                     </div>
                 </div>
 
@@ -81,15 +81,16 @@
                         <div class="row">
                             <div class="col-8">
                                 <ul class="list-unstyled">
-                                    @foreach($sections as $section)
+                                    @foreach ($sections as $section)
                                         <li>{{ $section->name }}</li>
                                     @endforeach
                                 </ul>
                             </div>
                             <div class="col-4 text-end">
                                 <ul class="list-unstyled">
-                                    @foreach($sections as $section)
-                                        <li><a href="{{ route('section.view', ['section' => $section->id]) }}" class="text-primary">View Details</a></li>
+                                    @foreach ($sections as $section)
+                                        <li><a href="{{ route('section.view', ['section' => $section->id]) }}"
+                                                class="text-primary">View Details</a></li>
                                     @endforeach
                                 </ul>
                             </div>
@@ -104,15 +105,16 @@
                         <div class="row">
                             <div class="col-8">
                                 <ul class="list-unstyled">
-                                    @foreach($subjects as $subject)
+                                    @foreach ($subjects as $subject)
                                         <li>{{ $subject->name }}</li>
                                     @endforeach
                                 </ul>
                             </div>
                             <div class="col-4 text-end">
                                 <ul class="list-unstyled">
-                                    @foreach($subjects as $subject)
-                                        <li><a href="#" class="text-primary">View Details</a></li>
+                                    @foreach ($subjects as $subject)
+                                        <li><a href="{{ route('subject.view', ['subject' => $subject->id]) }}"
+                                                class="text-primary">View Details</a></li>
                                     @endforeach
                                 </ul>
                             </div>
@@ -125,11 +127,7 @@
             <!-- Right side columns -->
             <div class="col-lg-4 d-flex flex-column">
                 <div class="card h-100">
-                    <!-- Placeholder for future widgets -->
-                    <div class="card-body">
-                        <h5 class="card-title">Placeholder Widget</h5>
-                        <p>This section can be used for additional widgets such as logs, charts, etc.</p>
-                    </div>
+                    @livewire('logs-widget')
                 </div>
             </div>
         </div>

@@ -48,8 +48,8 @@
                                             <td>{{ $student->email }}</td>
                                             <td>
                                                 <span
-                                                    class="badge {{ $student->is_active ? 'bg-success' : 'bg-danger' }}">
-                                                    {{ $student->is_active ? 'Active' : 'Inactive' }}
+                                                    class="badge rounded-pill {{ $student->status ? 'bg-success' : 'bg-danger' }}">
+                                                    {{ $student->status ? 'Active' : 'Inactive' }}
                                                 </span>
                                             </td>
                                             <td class="text-center">
