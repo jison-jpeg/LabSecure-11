@@ -131,8 +131,8 @@
                         'name' => 'status',
                         'displayName' => 'Status',
                     ])
-                    <th scope="col">Remarks</th>
-                    <th scope="col" class="text-center">Action</th>
+                    <th scope="col" class="text-dark fw-semibold">Remarks</th>
+                    <th scope="col" class="text-center text-dark fw-semibold">Action</th>
                 </tr>
             </thead>
             <tbody>

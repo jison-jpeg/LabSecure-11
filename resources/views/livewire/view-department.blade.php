@@ -89,7 +89,7 @@
                             <div class="col-4 text-end">
                                 <ul class="list-unstyled">
                                     @foreach($sections as $section)
-                                        <li><a href="#" class="text-primary">View Details</a></li>
+                                        <li><a href="{{ route('section.view', ['section' => $section->id]) }}" class="text-primary">View Details</a></li>
                                     @endforeach
                                 </ul>
                             </div>

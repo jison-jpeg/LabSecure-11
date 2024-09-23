@@ -58,7 +58,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 Route::middleware(['auth', 'verified'])
     ->prefix('students')
     ->group(function () {
-        Route::get('/', [StudentController::class, 'viewStudent'])->name('students');
+        Route::get('/', [StudentController::class, 'viewStudents'])->name('students');
+        Route::get('/{student}', [StudentController::class, 'viewStudent'])->name('student.view');
     });
 
 // Subject Management
@@ -67,9 +68,6 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/', [SubjectController::class, 'viewSubject'])->name('subjects');
     });
-
-
-
 
 // Courses Management
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -84,7 +82,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 Route::middleware(['auth'])
     ->prefix('schedules')
     ->group(function () {
-        Route::get('/', [ScheduleController::class, 'viewSchedule'])->name('schedule');
+        Route::get('/', [ScheduleController::class, 'viewSchedules'])->name('schedule');
+        Route::get('/{schedule}', [ScheduleController::class, 'viewSchedule'])->name('schedule.view');
+
     });
 
 // Classes
@@ -100,7 +100,8 @@ Route::middleware('auth')
 Route::middleware('auth')
     ->prefix('sections')
     ->group(function () {
-        Route::get('/', [SectionController::class, 'viewSection'])->name('sections');
+        Route::get('/', [SectionController::class, 'viewSections'])->name('sections');
+        Route::get('/{section}', [SectionController::class, 'viewSection'])->name('section.view');
     });
 
 

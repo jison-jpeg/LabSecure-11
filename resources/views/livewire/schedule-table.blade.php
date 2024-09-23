@@ -104,7 +104,7 @@
                         'name' => 'end_time',
                         'displayName' => 'End Time',
                     ])
-                    <th scope="col" class="text-center">Action</th>
+                    <th scope="col" class="text-center text-dark fw-semibold">Action</th>
                 </tr>
             </thead>
             <tbody>

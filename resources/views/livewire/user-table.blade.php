@@ -105,6 +105,7 @@
                         'name' => 'role_id',
                         'displayName' => 'Role',
                     ])
+                    <th scope="col" class="text-center text-dark fw-semibold">Status</th>
                     {{-- @include('livewire.includes.table-sortable-th', [
                                 'name' => 'created_at',
                                 'displayName' => 'Created At',
@@ -113,7 +114,7 @@
                                 'name' => 'updated_at',
                                 'displayName' => 'Updated At',
                             ]) --}}
-                    <th scope="col" class="text-center">Action</th>
+                    <th scope="col" class="text-center text-dark fw-semibold">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,7 +130,10 @@
                         <td>{{ $user->last_name }}</td>
                         <td>{{ $user->suffix }}</td>
                         <td><span
-                                class="badge rounded-pill {{ $user->role->name == 'admin' ? 'bg-danger' : ($user->role->name == 'instructor' ? 'bg-success' : 'bg-secondary') }}">{{ $user->role->name }}</span>
+                                class="badge rounded-pill {{ $user->role->name == 'admin' ? 'bg-danger' : ($user->role->name == 'instructor' ? 'bg-info text-black' : 'bg-dark') }}">{{ $user->role->name }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill {{ $user->status ? 'bg-success' : 'bg-secondary' }}">{{ $user->status ? 'Active' : 'Inactive' }}</span>
                         </td>
                         {{-- <td>{{ $user->created_at->diffForHumans() }}</td> --}}
                         {{-- <td>{{ $user->updated_at->diffForHumans() }}</td> --}}
