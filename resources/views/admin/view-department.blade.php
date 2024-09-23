@@ -14,7 +14,7 @@
         </div>
         <!-- End Page Title -->
 
-        @livewire('view-department')
+        @livewire('view-department', ['department' => $department])
 
     </main>
 </x-app-layout>

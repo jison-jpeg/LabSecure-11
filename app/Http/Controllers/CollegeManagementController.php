@@ -13,13 +13,13 @@ class CollegeManagementController extends Controller
         return view('admin.college-management');
     }
 
-    // view college specific college
+    // view specific college
     public function viewCollege(College $college)
     {
         return view('admin.view-college', ['college' => $college]);
     }
 
-    // view college specific department
+    // view specific department
     public function viewDepartment(Department $department)
     {
         return view('admin.view-department', ['department' => $department]);
