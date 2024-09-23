@@ -41,23 +41,23 @@
                 </div>
 
                 @if (Auth::user()->role->name === 'admin')
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="college" name="college" class="form-select">
-                        <option value="">Select College</option>
-                        @foreach ($colleges as $college)
-                            <option value="{{ $college->id }}">{{ $college->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="college" name="college" class="form-select">
+                            <option value="">Select College</option>
+                            @foreach ($colleges as $college)
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="department" name="department" class="form-select">
-                        <option value="">Select Department</option>
-                        @foreach ($departments as $department)
-                            <option value="{{ $department->id }}">{{ $department->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="department" name="department" class="form-select">
+                            <option value="">Select Department</option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 @endif
 
                 <div class="col-12 col-md-2">
@@ -67,9 +67,9 @@
             </div>
         </div>
         @if (Auth::user()->role->name === 'admin')
-        <div class="col-12 col-md-2">
-            <livewire:create-subject />
-        </div>
+            <div class="col-12 col-md-2">
+                <livewire:create-subject />
+            </div>
         @endif
     </div>
 
@@ -99,13 +99,15 @@
                         'displayName' => 'Department',
                     ]) --}}
                     @if (Auth::user()->role->name === 'admin')
-                    <th scope="col" class="text-center">Action</th>
+                        <th scope="col" class="text-center">Action</th>
                     @endif
                 </tr>
             </thead>
             <tbody>
                 @foreach ($subjects as $key => $subject)
-                    <tr wire:key="{{ $subject->id }}">
+                    <tr wire:key="{{ $subject->id }}"
+                        onclick="window.location='{{ route('subject.view', ['subject' => $subject->id]) }}';"
+                        style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $subject->name }}</td>
                         <td>{{ $subject->code }}</td>
@@ -113,23 +115,24 @@
                         {{-- <td>{{ $subject->college->name ?? 'N/A' }}</td>
                         <td>{{ $subject->department->name ?? 'N/A' }}</td> --}}
                         @if (Auth::user()->role->name === 'admin')
-                        <td class="text-center">
-                            <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots"></i>
-                                </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $subject->id }}})" type="button"
-                                            class="dropdown-item" data-bs-toggle="modal"
-                                            data-bs-target="#verticalycentered">Edit</button></li>
-                                    <li><button wire:click="delete({{ $subject->id }})"
-                                            wire:confirm="Are you sure you want to delete '{{ $subject->name }}'"
-                                            type="button" class="dropdown-item text-danger" href="#">Delete
-                                            {{ $subject->name }}</button>
-                                </ul>
-                            </div>
-                        </td>
+                            <td class="text-center">
+                                <div class="btn-group dropstart">
+                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                        <i class="bi bi-three-dots"></i>
+                                    </a>
+                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
+                                        <li><button type="button" class="dropdown-item" href="#">View</button>
+                                        </li>
+                                        <li><button @click="$dispatch('edit-mode',{id:{{ $subject->id }}})"
+                                                type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#verticalycentered">Edit</button></li>
+                                        <li><button wire:click="delete({{ $subject->id }})"
+                                                wire:confirm="Are you sure you want to delete '{{ $subject->name }}'"
+                                                type="button" class="dropdown-item text-danger" href="#">Delete
+                                                {{ $subject->name }}</button>
+                                    </ul>
+                                </div>
+                            </td>
                         @endif
                     </tr>
                 @endforeach
@@ -159,19 +162,19 @@
         })
 
         document.addEventListener('DOMContentLoaded', function() {
-        var dropdowns = document.querySelectorAll('.dropdown-submenu');
+            var dropdowns = document.querySelectorAll('.dropdown-submenu');
 
-        dropdowns.forEach(function(dropdown) {
-            dropdown.addEventListener('mouseover', function() {
-                let submenu = this.querySelector('.dropdown-menu');
-                submenu.classList.add('show');
-            });
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('mouseover', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.add('show');
+                });
 
-            dropdown.addEventListener('mouseout', function() {
-                let submenu = this.querySelector('.dropdown-menu');
-                submenu.classList.remove('show');
+                dropdown.addEventListener('mouseout', function() {
+                    let submenu = this.querySelector('.dropdown-menu');
+                    submenu.classList.remove('show');
+                });
             });
         });
-    });
     </script>
 </div>

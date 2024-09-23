@@ -66,8 +66,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">{{ $college->name }}</h5>
-                        <p class="mb-0">Description: {{ $college->description }}</p>
-                        <p class="mb-0">College Dean: N/A</p>
+                        <p><strong>Description:</strong> {{ $college->description }}</p>
+                        <p class="mb-0"><strong>College Dean:</strong> N/A</p>
 
                     </div>
                 </div>

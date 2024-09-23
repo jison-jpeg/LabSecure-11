@@ -2,46 +2,43 @@
 
 namespace Database\Seeders;
 
-use App\Models\College;
-use App\Models\Department;
-use App\Models\Laboratory;
+use Illuminate\Database\Seeder;
 use App\Models\Schedule;
-use App\Models\Section;
 use App\Models\Subject;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\Models\Laboratory;
+use App\Models\College;
+use App\Models\Department;
+use App\Models\Section;
 
 class ScheduleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
-        // Fetch the first subject, instructor, and laboratory
-        // $subject = Subject::first();
-        // $instructor = User::where('role_id', 2)->first();
-        // $laboratory = Laboratory::first();
-        // $college = College::first();
-        // $department = Department::first();
-        // $section = Section::first();
+        // Fetch required IDs
+        $subjectId = Subject::where('name', 'Capstone Project and Research 3')->first()->id;
+        $instructorId = User::where('first_name', 'Sales')
+                            ->whereNull('middle_name')
+                            ->where('last_name', 'Aribe')
+                            ->where('suffix', 'Jr.')
+                            ->first()->id;
+        $laboratoryId = Laboratory::find(1)->id;
+        $collegeId = College::where('name', 'College of Technologies')->first()->id;
+        $departmentId = Department::where('name', 'Information Technology')->first()->id;
+        $sectionId = Section::where('name', '4A')->first()->id;
 
-        // Fetch all the students
-        // $students = User::where(column: 'role_id', 3)->get();
-
-        // Create a schedule for the subject
-        // Schedule::create([
-        //     'subject_id' => $subject->id,
-        //     'instructor_id' => $instructor->id,
-        //     'laboratory_id' => $laboratory->id,
-        //     'college_id' => $college->id,
-        //     'department_id' => $department->id,
-        //     'section_id' => $section->id,
-        //     'days_of_week' => json_encode(['Monday', 'Wednesday', 'Friday']), // Example for multiple days
-        //     'start_time' => '08:00:00',
-        //     'end_time' => '10:00:00',
-        // ]);
-        
+        // Create the schedule
+        Schedule::create([
+            'schedule_code' => 'T100',
+            'subject_id' => $subjectId,
+            'instructor_id' => $instructorId,
+            'laboratory_id' => $laboratoryId,
+            'college_id' => $collegeId,
+            'department_id' => $departmentId,
+            'section_id' => $sectionId,
+            'days_of_week' => json_encode(['Monday', 'Thursday']),
+            'start_time' => '07:30:00',
+            'end_time' => '10:00:00',
+        ]);
     }
 }

@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
             SubjectSeeder::class,
             SectionSeeder::class,
             UserSeeder::class,
-            // ScheduleSeeder::class,
+            ScheduleSeeder::class,
             // AttendanceSeeder::class,
         ]);
     }
