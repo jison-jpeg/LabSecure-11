@@ -73,7 +73,7 @@
     </div>
 
     <div class="overflow-auto">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th scope="col">#</th>
@@ -120,7 +120,7 @@
             </thead>
             <tbody>
                 @foreach ($users as $key => $user)
-                    <tr wire:key="{{ $user->id }}">
+                    <tr wire:key="{{ $user->id }}" onclick="window.location='{{ route('student.view', ['student' => $user->id]) }}';" style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>

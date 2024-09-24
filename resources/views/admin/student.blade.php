@@ -1,4 +1,4 @@
-@section('pageTitle', 'Users')
+@section('pageTitle', 'Students')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
