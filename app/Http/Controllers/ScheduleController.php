@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,7 +24,7 @@ class ScheduleController extends Controller
         }
     }
 
-    public function viewSchedule($schedule)
+    public function viewSchedule(Schedule $schedule)
     {
         $user = Auth::user();
 
