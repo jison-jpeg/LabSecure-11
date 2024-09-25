@@ -41,15 +41,29 @@ class ListenToMQTT extends Command
             return;
         }
 
-        // Subscribe to the topic
+        // Subscribe to separate topics for entrance and exit
         try {
-            $this->mqtt->subscribe('laravel_topic', function ($topic, $message) {
+            // Subscribe to entrance topic
+            $this->mqtt->subscribe('laravel_topic/entrance', function ($topic, $message) {
                 $this->info("Received '{$message}' on topic '{$topic}'");
 
                 // Decode the JSON message
                 $payload = json_decode($message, true);
                 if (isset($payload['rfid_number']) && isset($payload['type'])) {
-                    $this->handleLaboratoryAccess($payload['rfid_number'], $payload['type']);
+                    $this->handleLaboratoryAccess($payload['rfid_number'], 'entrance');
+                } else {
+                    $this->error('Invalid message format.');
+                }
+            }, 0);
+
+            // Subscribe to exit topic
+            $this->mqtt->subscribe('laravel_topic/exit', function ($topic, $message) {
+                $this->info("Received '{$message}' on topic '{$topic}'");
+
+                // Decode the JSON message
+                $payload = json_decode($message, true);
+                if (isset($payload['rfid_number']) && isset($payload['type'])) {
+                    $this->handleLaboratoryAccess($payload['rfid_number'], 'exit');
                 } else {
                     $this->error('Invalid message format.');
                 }
@@ -58,6 +72,7 @@ class ListenToMQTT extends Command
             $this->error("Failed to subscribe to topic: " . $e->getMessage());
             return;
         }
+
 
         // Keep the MQTT loop running
         try {
@@ -123,128 +138,130 @@ class ListenToMQTT extends Command
 
     // Handle access for users with active schedules
     private function handleScheduledUserAccess($user, $type)
-{
-    // Find the current time and day
-    $currentTime = Carbon::now();
-    $currentDay = $currentTime->format('l'); // Full day name (e.g., Monday)
+    {
+        // Find the current time and day
+        $currentTime = Carbon::now();
+        $currentDay = $currentTime->format('l'); // Full day name (e.g., Monday)
 
-    // Find the current schedule based on time, day, and user's role
-    $scheduleQuery = Schedule::where('start_time', '<=', $currentTime)
-        ->where('end_time', '>=', $currentTime)
-        ->whereJsonContains('days_of_week', $currentDay);
+        // Find the current schedule based on time, day, and user's role
+        $scheduleQuery = Schedule::where('start_time', '<=', $currentTime)
+            ->where('end_time', '>=', $currentTime)
+            ->whereJsonContains('days_of_week', $currentDay);
 
-    $schedule = null;
-    if ($user->isInstructor()) {
-        // Check if the user is the assigned instructor for this schedule
-        $schedule = $scheduleQuery->where('instructor_id', $user->id)->first();
-    } elseif ($user->isStudent()) {
-        // Check if the student's section matches the section in the schedule
-        $schedule = $scheduleQuery->where('section_id', $user->section_id)->first();
+        $schedule = null;
+        if ($user->isInstructor()) {
+            // Check if the user is the assigned instructor for this schedule
+            $schedule = $scheduleQuery->where('instructor_id', $user->id)->first();
+        } elseif ($user->isStudent()) {
+            // Check if the student's section matches the section in the schedule
+            $schedule = $scheduleQuery->where('section_id', $user->section_id)->first();
+        }
+
+        if (!$schedule) {
+            $error = 'No schedule found.';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
+            return;
+        }
+
+        $laboratory = $schedule->laboratory;
+
+        // Prevent access if the laboratory is locked and the user is not an admin
+        if ($laboratory->status === 'Locked' && !$user->isAdmin()) {
+            $error = 'Laboratory is locked.';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
+            return;
+        }
+
+        // Access the subject name and schedule code from the schedule
+        $subjectName = $schedule->subject->name;
+        $scheduleCode = $schedule->schedule_code; // Get the schedule code
+
+        // Handle attendance
+        $currentDate = $currentTime->toDateString();
+        $attendance = Attendance::firstOrCreate([
+            'user_id' => $user->id,
+            'date' => $currentDate,
+            'schedule_id' => $schedule->id,
+        ]);
+
+        switch ($type) {
+            case 'entrance':
+                // Log the entrance action
+                $attendance->sessions()->create(['time_in' => $currentTime]);
+                $laboratory->update(['status' => 'Occupied']);
+                LaboratoryStatusUpdated::dispatch($laboratory);
+
+                TransactionLog::create([
+                    'user_id' => $user->id,
+                    'action' => 'check_in',
+                    'model' => 'Attendance',
+                    'model_id' => $attendance->id,
+                    'details' => json_encode([
+                        'rfid_number' => $user->rfid_number,
+                        'laboratory_status' => 'Occupied',
+                        'subject_name' => $subjectName,
+                        'schedule_code' => $scheduleCode,  // Include schedule code in the log
+                    ]),
+                ]);
+                $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName, $scheduleCode);  // Include schedule code
+                break;
+
+            case 'exit':
+                // Log the exit action
+                $lastSession = $attendance->sessions()->whereNull('time_out')->latest('time_in')->first();
+                if ($lastSession) {
+                    $lastSession->update(['time_out' => $currentTime]);
+                }
+                $laboratory->update(['status' => 'Available']);
+                LaboratoryStatusUpdated::dispatch($laboratory);
+
+                TransactionLog::create([
+                    'user_id' => $user->id,
+                    'action' => 'check_out',
+                    'model' => 'Attendance',
+                    'model_id' => $attendance->id,
+                    'details' => json_encode([
+                        'rfid_number' => $user->rfid_number,
+                        'laboratory_status' => 'Available',
+                        'subject_name' => $subjectName,
+                        'schedule_code' => $scheduleCode,  // Include schedule code in the log
+                    ]),
+                ]);
+                $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName, $scheduleCode);  // Include schedule code
+                break;
+        }
+
+        // Finalize attendance for the day
+        $attendance->calculateAndSaveStatusAndRemarks();
+        AttendanceRecorded::dispatch($attendance);
+
+        $this->info('Attendance recorded successfully.');
     }
-
-    if (!$schedule) {
-        $error = 'No schedule found.';
-        $this->error($error);
-        $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
-        return;
-    }
-
-    $laboratory = $schedule->laboratory;
-
-    // Prevent access if the laboratory is locked and the user is not an admin
-    if ($laboratory->status === 'Locked' && !$user->isAdmin()) {
-        $error = 'Laboratory is locked.';
-        $this->error($error);
-        $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
-        return;
-    }
-
-    // Access the subject name and schedule code from the schedule
-    $subjectName = $schedule->subject->name;
-    $scheduleCode = $schedule->schedule_code; // Get the schedule code
-
-    // Handle attendance
-    $currentDate = $currentTime->toDateString();
-    $attendance = Attendance::firstOrCreate([
-        'user_id' => $user->id,
-        'date' => $currentDate,
-        'schedule_id' => $schedule->id,
-    ]);
-
-    switch ($type) {
-        case 'entrance':
-            // Log the entrance action
-            $attendance->sessions()->create(['time_in' => $currentTime]);
-            $laboratory->update(['status' => 'Occupied']);
-            LaboratoryStatusUpdated::dispatch($laboratory);
-
-            TransactionLog::create([
-                'user_id' => $user->id,
-                'action' => 'check_in',
-                'model' => 'Attendance',
-                'model_id' => $attendance->id,
-                'details' => json_encode([
-                    'rfid_number' => $user->rfid_number,
-                    'laboratory_status' => 'Occupied',
-                    'subject_name' => $subjectName,
-                    'schedule_code' => $scheduleCode,  // Include schedule code in the log
-                ]),
-            ]);
-            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName, $scheduleCode);  // Include schedule code
-            break;
-
-        case 'exit':
-            // Log the exit action
-            $lastSession = $attendance->sessions()->whereNull('time_out')->latest('time_in')->first();
-            if ($lastSession) {
-                $lastSession->update(['time_out' => $currentTime]);
-            }
-            $laboratory->update(['status' => 'Available']);
-            LaboratoryStatusUpdated::dispatch($laboratory);
-
-            TransactionLog::create([
-                'user_id' => $user->id,
-                'action' => 'check_out',
-                'model' => 'Attendance',
-                'model_id' => $attendance->id,
-                'details' => json_encode([
-                    'rfid_number' => $user->rfid_number,
-                    'laboratory_status' => 'Available',
-                    'subject_name' => $subjectName,
-                    'schedule_code' => $scheduleCode,  // Include schedule code in the log
-                ]),
-            ]);
-            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name, null, $subjectName, $scheduleCode);  // Include schedule code
-            break;
-    }
-
-    // Finalize attendance for the day
-    $attendance->calculateAndSaveStatusAndRemarks();
-    AttendanceRecorded::dispatch($attendance);
-
-    $this->info('Attendance recorded successfully.');
-}
 
 
     // Helper method to publish the access result to MQTT with error handling
     private function publishToMqtt($rfid_number, $type, $status, $fullName = null, $error = null, $subjectName = null, $scheduleCode = null)
-{
-    $message = json_encode([
-        'rfid_number' => $rfid_number,
-        'type' => $type,
-        'status' => $status,
-        'full_name' => $fullName,  
-        'subject_name' => $subjectName, 
-        'schedule_code' => $scheduleCode,
-        'error' => $error,
-    ]);
+    {
+        $message = json_encode([
+            'rfid_number' => $rfid_number,
+            'type' => $type,
+            'status' => $status,
+            'full_name' => $fullName,
+            'subject_name' => $subjectName,
+            'schedule_code' => $scheduleCode,
+            'error' => $error,
+        ]);
 
-    try {
-        $this->mqtt->publish('laravel_topic_response', $message, 0); // QoS 0 for simplicity
-        $this->info("Published access result: {$message}");
-    } catch (\Exception $e) {
-        $this->error("Failed to publish to MQTT: " . $e->getMessage());
+        // Publish to specific topic based on entrance or exit type
+        $topic = ($type === 'entrance') ? 'laravel_topic_response/entrance' : 'laravel_topic_response/exit';
+
+        try {
+            $this->mqtt->publish($topic, $message, 0); // QoS 0 for simplicity
+            $this->info("Published access result to {$topic}: {$message}");
+        } catch (\Exception $e) {
+            $this->error("Failed to publish to MQTT: " . $e->getMessage());
+        }
     }
-}
-
 }
