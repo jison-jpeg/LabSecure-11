@@ -43,11 +43,11 @@
             <thead>
                 <tr>
                     <th scope="col">#</th>
+                    <th scope="col">Date</th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'time',
                         'displayName' => 'Time',
                     ])
-                    <th scope="col">Date</th>
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'user_id',
                         'displayName' => 'User',
@@ -72,8 +72,8 @@
                         <th scope="row">
                             {{ $logs->firstItem() + $key }}
                         </th>
+                        <td>{{ $log->created_at->format('m/d/Y') }}</td>
                         <td>{{ $log->created_at->format('m:i A') }}</td>
-                        <td>{{ $log->created_at->format('F j, Y') }}</td>
                         <td>{{ $log->user->full_name }}</td>
                         <td>{{ $log->action }}</td>
                         <td>{{ $log->model }}</td>

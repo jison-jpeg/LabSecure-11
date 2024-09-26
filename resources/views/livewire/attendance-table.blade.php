@@ -99,7 +99,7 @@
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'user.username',
-                        'displayName' => 'User ID',
+                        'displayName' => 'Username',
                     ]) @include('livewire.includes.table-sortable-th', [
                         'name' => 'user.name',
                         'displayName' => 'User',
@@ -141,7 +141,7 @@
                         onclick="window.location='{{ route('attendance.user.view', ['user' => $attendance->user->id]) }}';"
                         style="cursor: pointer;">
                         <th scope="row">{{ $loop->iteration }}</th>
-                        <td>{{ Carbon::parse($attendance->date)->format('F j, Y') }}</td>
+                        <td>{{ Carbon::parse($attendance->date)->format('m/d/Y') }}</td>
                         <td>{{ $attendance->user->username }}</td>
                         <td>{{ $attendance->user->full_name }}</td>
                         <td>{{ $attendance->schedule->subject->name }}</td>
