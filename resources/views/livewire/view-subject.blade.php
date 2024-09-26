@@ -4,16 +4,20 @@
 
             <!-- Subject Overview -->
             <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Subject Overview</h5>
-                        <p><strong>Subject Code:</strong> {{ $subject->code }}</p>
-                        <p><strong>Name:</strong> {{ $subject->name }}</p>
-                        <p><strong>Description:</strong> {{ $subject->description }}</p>
-                        <p><strong>Department:</strong> {{ $subject->department->name }}</p>
+                <div class="card mb-4 shadow-sm" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none; border-radius: 15px;">
+                    <div class="card-body text-white">
+                        <div class="d-flex flex-column">
+                            <h5 class="card-title text-white mb-2">{{ $subject->code }} - {{ $subject->name }}</h5>
+                            <p class="text-light mb-4">{{ $subject->description }}</p>
+                
+                            <div class="d-flex flex-column">
+                                <p class="mb-2"><span class="fw-semibold">College:</span> {{ $subject->college->name }}</p>
+                                <p class="mb-0"><span class="fw-semibold">Department:</span> {{ $subject->department->name }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
+                  
                 <!-- List of Schedules -->
                 <div class="card">
                     <div class="card-body">

@@ -39,7 +39,7 @@ class UserSeeder extends Seeder
 
         // Student User
         User::create([
-            'rfid_number' => 'RFID1001',
+            'rfid_number' => 'D7CA7675',
             'first_name' => 'Jayson',
             'middle_name' => 'Licmoan',
             'last_name' => 'Tadayca',
@@ -67,7 +67,7 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'rfid_number' => 'RFID1003',
+            'rfid_number' => 'B3F4F048',
             'first_name' => 'Rey Ivan',
             'middle_name' => 'Rubiato',
             'last_name' => 'Dionaldo',
@@ -81,7 +81,7 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'rfid_number' => 'RFID1004',
+            'rfid_number' => '64282183',
             'first_name' => 'Jeffrey',
             'middle_name' => 'Mati-ong',
             'last_name' => 'Sedoro',
