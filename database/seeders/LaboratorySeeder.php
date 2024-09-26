@@ -56,7 +56,7 @@ class LaboratorySeeder extends Seeder
         ]);
 
         Laboratory::create([
-            'name' => '6',
+            'name' => '7',
             'location' => 'Building 1',
             'type' => 'Multimedia Laboratory',
             'status' => 'Available',

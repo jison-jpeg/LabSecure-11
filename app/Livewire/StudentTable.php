@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class StudentTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $user;
     public $title = 'Create Student';

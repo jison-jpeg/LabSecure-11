@@ -1078,6 +1078,20 @@ th.sortable.desc:after {
     flex-grow: 0;
 }
 
+.card-info {
+    background: linear-gradient(135deg, #4e54c8, #8f94fb); 
+}
+
+.card-info p, 
+.card-info h5 {
+    color: white;
+}
+
+.card-info h6 {
+    color: #d7d5ff;
+    font-weight: bold;
+}
+
 .dashboard .sales-card .card-icon {
     color: #4154f1;
     background: #f6f6fe;

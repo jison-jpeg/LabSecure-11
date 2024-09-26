@@ -4,11 +4,11 @@
 
             <!-- Subject Overview -->
             <div class="col-lg-8">
-                <div class="card mb-4 shadow-sm" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none; border-radius: 15px;">
+                <div class="card card-info">
                     <div class="card-body text-white">
                         <div class="d-flex flex-column">
-                            <h5 class="card-title text-white mb-2">{{ $subject->code }} - {{ $subject->name }}</h5>
-                            <p class="text-light mb-4">{{ $subject->description }}</p>
+                            <h5 class="card-title fs-3">{{ $subject->code }} - {{ $subject->name }}</h5>
+                            <p class="mb-4">{{ $subject->description }}</p>
                 
                             <div class="d-flex flex-column">
                                 <p class="mb-2"><span class="fw-semibold">College:</span> {{ $subject->college->name }}</p>

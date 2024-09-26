@@ -112,6 +112,11 @@ class User extends Authenticatable
         return $this->role->name === 'admin';
     }
 
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
     public function transactionLogs()
     {
         return $this->hasMany(TransactionLog::class);

@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class SubjectTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $subject;
     public $title = 'Create Subject';

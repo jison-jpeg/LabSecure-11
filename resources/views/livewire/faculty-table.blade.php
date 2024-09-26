@@ -70,7 +70,7 @@
     </div>
 
     <div class="overflow-auto">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th scope="col">#</th>
@@ -110,17 +110,19 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($users as $key => $user)
-                    <tr wire:key="{{ $user->id }}">
+                @foreach ($faculties as $key => $faculty)
+                    <tr wire:key="{{ $faculty->id }}"
+                        onclick="window.location='{{ route('faculty.view', ['faculty' => $faculty->id]) }}';"
+                        style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
-                        <td>{{ $user->username }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->first_name }}</td>
-                        <td>{{ $user->middle_name }}</td>
-                        <td>{{ $user->last_name }}</td>
-                        <td>{{ $user->suffix }}</td>
-                        <td>{{ $user->college->name ?? 'N/A' }}</td>
-                        <td>{{ $user->department->name ?? 'N/A' }}</td>
+                        <td>{{ $faculty->username }}</td>
+                        <td>{{ $faculty->email }}</td>
+                        <td>{{ $faculty->first_name }}</td>
+                        <td>{{ $faculty->middle_name }}</td>
+                        <td>{{ $faculty->last_name }}</td>
+                        <td>{{ $faculty->suffix }}</td>
+                        <td>{{ $faculty->college->name ?? 'N/A' }}</td>
+                        <td>{{ $faculty->department->name ?? 'N/A' }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -128,13 +130,13 @@
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})" type="button"
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $faculty->id }}})" type="button"
                                             class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
-                                    <li><button wire:click="delete({{ $user->id }})"
-                                            wire:confirm="Are you sure you want to delete '{{ $user->first_name }} {{ $user->last_name }}'"
+                                    <li><button wire:click="delete({{ $faculty->id }})"
+                                            wire:confirm="Are you sure you want to delete '{{ $faculty->first_name }} {{ $faculty->last_name }}'"
                                             type="button" class="dropdown-item text-danger" href="#">Delete
-                                            {{ $user->username }}</button>
+                                            {{ $faculty->username }}</button>
                                 </ul>
                             </div>
                         </td>
@@ -144,7 +146,7 @@
         </table>
     </div>
     <div class="mt-4">
-        {{ $users->links('pagination::bootstrap-5') }}
+        {{ $faculties->links('pagination::bootstrap-5') }}
     </div>
 
     <script>

@@ -94,6 +94,14 @@ class ListenToMQTT extends Command
             return;
         }
 
+        // Check if the user is active
+        if (!$user->isActive()) {
+            $error = 'User is inactive';
+            $this->error($error);
+            $this->publishToMqtt($rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
+            return;
+        }
+
         // Check if the user is Admin, IT Support, or can access without a schedule
         if (in_array($user->role->name, ['admin', 'it_support'])) {
             $this->handlePersonnelAccess($user, $type);
@@ -105,6 +113,14 @@ class ListenToMQTT extends Command
     // Handle access for personnel without schedules (Admin, IT Support, etc.)
     private function handlePersonnelAccess($user, $type)
     {
+        // Check if the user is active
+        if (!$user->isActive()) {
+            $error = 'User is inactive';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
+            return;
+        }
+
         $laboratory = Laboratory::where('id', 1)->first();  // Adjust logic to find the correct laboratory
 
         switch ($type) {
@@ -139,6 +155,14 @@ class ListenToMQTT extends Command
     // Handle access for users with active schedules
     private function handleScheduledUserAccess($user, $type)
     {
+        // Check if the user is active
+        if (!$user->isActive()) {
+            $error = 'User is inactive';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);  // Publish error
+            return;
+        }
+
         // Find the current time and day
         $currentTime = Carbon::now();
         $currentDay = $currentTime->format('l'); // Full day name (e.g., Monday)
@@ -239,7 +263,6 @@ class ListenToMQTT extends Command
 
         $this->info('Attendance recorded successfully.');
     }
-
 
     // Helper method to publish the access result to MQTT with error handling
     private function publishToMqtt($rfid_number, $type, $status, $fullName = null, $error = null, $subjectName = null, $scheduleCode = null)

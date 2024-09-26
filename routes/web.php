@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('faculties')
     ->group(function () {
         Route::get('/', [FacultyController::class, 'viewFaculties'])->name('faculties');
+        Route::get('/{faculty}', [FacultyController::class, 'viewFaculty'])->name('faculty.view');
     });
 
 // Student Management

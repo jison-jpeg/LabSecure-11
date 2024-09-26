@@ -16,7 +16,7 @@ class FacultyTable extends Component
 {
     use WithPagination;
 
-    public $user;
+    public $faculty;
     public $title = 'Create Faculty';
     public $event = 'create-faculty';
 
@@ -61,9 +61,9 @@ class FacultyTable extends Component
         $this->sortDir = 'DESC';
     }
 
-    public function delete(User $user)
+    public function delete(User $faculty)
     {
-        $user->delete();
+        $faculty->delete();
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
@@ -86,7 +86,7 @@ class FacultyTable extends Component
     public function render()
     {
         return view('livewire.faculty-table', [
-            'users' => User::where('role_id', 2) // Assuming role_id 2 is for faculty
+            'faculties' => User::where('role_id', 2) // Assuming role_id 2 is for faculty
                 ->search($this->search)
                 ->when($this->college !== '', function ($query) {
                     $query->where('college_id', $this->college);
