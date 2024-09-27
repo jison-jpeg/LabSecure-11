@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])
     ->prefix('attendances')
     ->group(function () {
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
+        Route::get('/subject/{schedule}', [AttendanceController::class, 'viewSubjectAttendance'])->name('attendance.subject.view');
         Route::get('/user/{user}', [AttendanceController::class, 'viewUserAttendance'])->name('attendance.user.view');
     });
 

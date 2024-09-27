@@ -2,21 +2,23 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Attendance;
 use Carbon\Carbon;
+use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceStats extends Component
 {
+    public $scheduleId = null; // Nullable schedule ID for optional filtering
     public $presentCount;
     public $lateCount;
     public $absentCount;
     public $incompleteCount;
     public $filter = 'month';
 
-    public function mount()
+    public function mount($scheduleId = null)
     {
+        $this->scheduleId = $scheduleId;
         $this->loadAttendanceStats();
     }
 
@@ -28,9 +30,19 @@ class AttendanceStats extends Component
 
     public function loadAttendanceStats()
     {
-        $userId = Auth::id();
+        $query = Attendance::query();
 
-        $query = Attendance::where('user_id', $userId);
+        if ($this->scheduleId) {
+            // When scheduleId is provided, filter by schedule
+            $query->where('schedule_id', $this->scheduleId)
+                ->whereHas('user', function ($query) {
+                    $query->where('role_id', 3); // Filter for students only
+                });
+        } else {
+            // Otherwise, filter by authenticated user's attendance
+            $userId = Auth::id();
+            $query->where('user_id', $userId);
+        }
 
         switch ($this->filter) {
             case 'today':
@@ -38,7 +50,7 @@ class AttendanceStats extends Component
                 break;
             case 'month':
                 $query->whereMonth('date', Carbon::now()->month)
-                      ->whereYear('date', Carbon::now()->year);
+                    ->whereYear('date', Carbon::now()->year);
                 break;
             case 'year':
                 $query->whereYear('date', Carbon::now()->year);
