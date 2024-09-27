@@ -79,6 +79,8 @@
                                 <option value="1">Admin</option>
                                 <option value="2">Instructor</option>
                                 <option value="3">Student</option>
+                                <option value="4">Dean</option>
+                                <option value="5">Chairperson</option>
                             </select>
                             @error('role_id')
                                 <span class="invalid-feedback">

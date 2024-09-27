@@ -112,6 +112,16 @@ class User extends Authenticatable
         return $this->role->name === 'admin';
     }
 
+    public function isDean()
+    {
+        return $this->role->name === 'dean';
+    }
+
+    public function isChairperson()
+    {
+        return $this->role->name === 'chairperson';
+    }
+
     public function isActive()
     {
         return $this->status === 'active';

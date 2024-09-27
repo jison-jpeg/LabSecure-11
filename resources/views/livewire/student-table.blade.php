@@ -11,19 +11,15 @@
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
-                            </li>
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
                         </ul>
                     </li>
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
-            
-            {{-- Per Page --}}
+    
             <div class="row g-1">
                 <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -35,42 +31,97 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-
+    
                 <div class="col-12 col-md-3">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search students...">
                 </div>
-
+    
+                {{-- Admin only filters --}}
+                @if (Auth::user()->isAdmin())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="college" name="college" class="form-select">
+                            <option value="">Select College</option>
+                            @foreach ($colleges as $college)
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="department" name="department" class="form-select">
+                            <option value="">Select Department</option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+    
+                {{-- Instructor-specific filters --}}
+                @if (Auth::user()->isInstructor())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="scheduleCode" name="schedule_code" class="form-select">
+                            <option value="">Select Schedule Code</option>
+                            @foreach ($schedules as $schedule)
+                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="section" name="section" class="form-select">
+                            <option value="">Select Section</option>
+                            @foreach ($sections as $section)
+                                <option value="{{ $section->id }}">{{ $section->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+    
+                {{-- Dean filters (college, department, section) --}}
+                @if (Auth::user()->isDean())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
+                            <option value="">Select Schedule Code</option>
+                            @foreach ($schedules as $schedule)
+                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="section" name="section" class="form-select">
+                            <option value="">Select Section</option>
+                            @foreach ($sections as $section)
+                                <option value="{{ $section->id }}">{{ $section->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="department" name="department" class="form-select">
+                            <option value="">Select Department</option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+    
                 <div class="col-12 col-md-2">
-                    <select wire:model.live="college" name="college" class="form-select">
-                        <option value="">Select College</option>
-                        @foreach ($colleges as $college)
-                            <option value="{{ $college->id }}">{{ $college->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="department" name="department" class="form-select">
-                        <option value="">Select Department</option>
-                        @foreach ($departments as $department)
-                            <option value="{{ $department->id }}">{{ $department->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
-                        Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
                 </div>
             </div>
         </div>
-        @if (Auth::user()->role->name === 'admin')
+    
+        @if (Auth::user()->isAdmin())
             <div class="col-12 col-md-2">
                 <livewire:create-student />
             </div>
         @endif
     </div>
+    
 
     <div class="overflow-auto">
         <table class="table table-hover">
@@ -134,10 +185,10 @@
                         @if (Auth::user()->role->name === 'admin')
                             <td class="text-center">
                                 <div class="btn-group dropstart">
-                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="bi bi-three-dots"></i>
                                     </a>
-                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
+                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
                                         <li><button type="button" class="dropdown-item" href="#">View</button>
                                         </li>
                                         <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})"
