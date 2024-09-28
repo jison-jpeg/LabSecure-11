@@ -69,8 +69,8 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Class</th>
                                         <th>Date</th>
+                                        <th>Class</th>
                                         <th>Status</th>
                                         <th>Time In</th>
                                         <th>Time Out</th>
@@ -83,9 +83,9 @@
                                         <tr onclick="window.location='{{ route('attendance.subject.view', ['schedule' => $attendance->schedule->id]) }}';"
                                             style="cursor: pointer;">
                                             <td>{{ $loop->iteration }}</td>
+                                            <td>{{ $attendance->formatted_date }}</td>
                                             <td>{{ $attendance->schedule->schedule_code }} -
                                                 {{ $attendance->schedule->subject->name }}</td>
-                                            <td>{{ $attendance->formatted_date }}</td>
                                             <td>{{ ucfirst($attendance->status) }}</td>
                                             <td>{{ $attendance->formatted_time_in }}</td>
                                             <td>{{ $attendance->formatted_time_out }}</td>

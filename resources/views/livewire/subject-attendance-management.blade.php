@@ -79,6 +79,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
+                        <th>Date</th>
                         <th>Name</th>
                         <th>Time In</th>
                         <th>Time Out</th>
@@ -89,6 +90,7 @@
                     @foreach ($students as $student)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
+                            <td>{{ $student->formatted_date }}</td>
                             <td>{{ $student->user->full_name }}</td>
                             <td>{{ $student->formatted_time_in }}</td>
                             <td>{{ $student->formatted_time_out }}</td>

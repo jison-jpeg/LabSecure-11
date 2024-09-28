@@ -95,7 +95,7 @@ Route::middleware('auth')
     ->prefix('classes')
     ->group(function () {
         Route::get('/', [ClassController::class, 'viewClasses'])->name('classes');
-        Route::get('/{section}', [ClassController::class, 'viewSection'])->name('viewSection');
+        Route::get('/{schedule}', [ClassController::class, 'viewClass'])->name('class.view');
     });
 
 

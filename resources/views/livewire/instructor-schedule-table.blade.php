@@ -1,9 +1,10 @@
 @php
-use Carbon\Carbon;
+    use Carbon\Carbon;
 @endphp
 <div>
     <div class="row mb-4">
         <div class="col-md-10">
+            {{-- Filter --}}
 
             {{-- Per Page --}}
             <div class="row g-1">
@@ -24,7 +25,8 @@ use Carbon\Carbon;
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
+                        Filters</button>
                 </div>
             </div>
         </div>
@@ -35,15 +37,42 @@ use Carbon\Carbon;
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    @include('livewire.includes.table-sortable-th', ['name' => 'subject.name', 'displayName' => 'Subject'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'instructor.full_name', 'displayName' => 'Instructor'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'college.name', 'displayName' => 'College'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'department.name', 'displayName' => 'Department'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'section.name', 'displayName' => 'Section'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'laboratory.name', 'displayName' => 'Laboratory'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'days_of_week', 'displayName' => 'Days of Week'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'start_time', 'displayName' => 'Start Time'])
-                    @include('livewire.includes.table-sortable-th', ['name' => 'end_time', 'displayName' => 'End Time'])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'subject.name',
+                        'displayName' => 'Subject',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'instructor.full_name',
+                        'displayName' => 'Instructor',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'college.name',
+                        'displayName' => 'College',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'department.name',
+                        'displayName' => 'Department',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'section.name',
+                        'displayName' => 'Section',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'laboratory.name',
+                        'displayName' => 'Laboratory',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'days_of_week',
+                        'displayName' => 'Days of Week',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'start_time',
+                        'displayName' => 'Start Time',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'end_time',
+                        'displayName' => 'End Time',
+                    ])
                 </tr>
             </thead>
             <tbody>
@@ -65,6 +94,6 @@ use Carbon\Carbon;
         </table>
     </div>
     <div class="mt-4">
-        {{ $schedules->links('pagination::bootstrap-5') }}
+        {{ $schedules->links() }}
     </div>
 </div>
