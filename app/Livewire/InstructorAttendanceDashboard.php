@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Models\Attendance;
 use App\Models\Schedule;
+use App\Models\Section;
+use App\Models\Subject;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -18,6 +20,8 @@ class InstructorAttendanceDashboard extends Component
     public $status = '';  // Attendance status filter
     public $search = '';  // Search through classes or subjects
     public $perPage = 10;  // Pagination
+    public $selectedSubject = '';  // Subject filter
+    public $selectedSection = '';  // Section filter
     public $overview = [];
 
     public function mount()
@@ -25,10 +29,32 @@ class InstructorAttendanceDashboard extends Component
         $this->loadOverview();
     }
 
+    public function clear()
+    {
+        $this->selectedSchedule = '';
+        $this->selectedDate = '';
+        $this->status = '';
+        $this->search = '';
+        $this->selectedSubject = '';
+        $this->selectedSection = '';    
+    }
+
     public function updatedSelectedSchedule()
     {
         $this->resetPage();
-        $this->loadOverview();  // Update the overview stats when the schedule changes
+        $this->loadOverview(); // Update the overview stats when the schedule changes
+    }
+
+    public function updatedSelectedSubject()
+    {
+        $this->resetPage();
+        $this->loadOverview(); // Update overview when subject filter changes
+    }
+
+    public function updatedSelectedSection()
+    {
+        $this->resetPage();
+        $this->loadOverview();  // Update overview when section filter changes
     }
 
     public function updatedSelectedDate()
@@ -48,6 +74,16 @@ class InstructorAttendanceDashboard extends Component
             ->when($this->selectedSchedule, function ($query) {
                 $query->where('schedule_id', $this->selectedSchedule);
             })
+            ->when($this->selectedSubject, function ($query) {
+                $query->whereHas('schedule.subject', function ($q) {
+                    $q->where('id', $this->selectedSubject);
+                });
+            })
+            ->when($this->selectedSection, function ($query) {
+                $query->whereHas('schedule.section', function ($q) {
+                    $q->where('id', $this->selectedSection);
+                });
+            })
             ->when($this->selectedDate, function ($query) {
                 $query->whereDate('date', $this->selectedDate);
             })
@@ -65,6 +101,10 @@ class InstructorAttendanceDashboard extends Component
 
     public function render()
     {
+        // Get all subjects and sections for filtering
+        $subjects = Subject::all();
+        $sections = Section::all();
+
         // Get all schedules for the authenticated instructor
         $schedules = Schedule::where('instructor_id', Auth::id())->get();
 
@@ -72,6 +112,16 @@ class InstructorAttendanceDashboard extends Component
         $attendancesQuery = Attendance::where('user_id', Auth::id())  // Instructor's own attendance
             ->when($this->selectedSchedule, function ($query) {
                 $query->where('schedule_id', $this->selectedSchedule);
+            })
+            ->when($this->selectedSubject, function ($query) {
+                $query->whereHas('schedule.subject', function ($q) {
+                    $q->where('id', $this->selectedSubject);
+                });
+            })
+            ->when($this->selectedSection, function ($query) {
+                $query->whereHas('schedule.section', function ($q) {
+                    $q->where('id', $this->selectedSection);
+                });
             });
 
         // Apply date filter only if a date is selected
@@ -88,6 +138,8 @@ class InstructorAttendanceDashboard extends Component
 
         return view('livewire.instructor-attendance-dashboard', [
             'schedules' => $schedules,
+            'subjects' => $subjects,
+            'sections' => $sections,
             'attendances' => $attendances,
         ]);
     }

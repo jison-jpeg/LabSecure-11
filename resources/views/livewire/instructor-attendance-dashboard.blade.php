@@ -9,25 +9,46 @@
                     <div class="card-body">
                         <h5 class="card-title">My Attendance Records</h5>
                         <div class="row mb-4">
-                            <div class="col-md-10">
-                                <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <select wire:model="selectedSchedule" class="form-select">
-                                            <option value="">Select Class</option>
-                                            @foreach ($schedules as $schedule)
-                                                <option value="{{ $schedule->id }}">{{ $schedule->schedule_code }} -
-                                                    {{ $schedule->subject->name }}</option>
+                            <div class="col-md-12">
+                                <div class="row g-1 align-items-center">
+                                    <div class="col-md-1">
+                                        <select wire:model.live="perPage" class="form-select">
+                                            <option value="10">10</option>
+                                            <option value="15">15</option>
+                                            <option value="20">20</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <select wire:model.live="selectedSection" class="form-select">
+                                            <option value="">Section</option>
+                                            @foreach ($sections as $section)
+                                                <option value="{{ $section->id }}">{{ $section->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-
-                                    <div class="col-md-3">
-                                        <input type="date" wire:model="selectedDate" class="form-control"
-                                            placeholder="Select a date">
+                                    <div class="col-md-2">
+                                        <select wire:model.live="selectedSchedule" class="form-select">
+                                            <option value="">Select Schedule Code</option>
+                                            @foreach ($schedules as $schedule)
+                                                <option value="{{ $schedule->id }}">{{ $schedule->schedule_code }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
-
-                                    <div class="col-md-3">
-                                        <select wire:model="status" class="form-select">
+                                    <div class="col-md-2">
+                                        <select wire:model.live="selectedSubject" class="form-select">
+                                            <option value="">Select Subject</option>
+                                            @foreach ($subjects as $subject)
+                                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="date" wire:model.live="selectedDate" class="form-control" placeholder="Select a date">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select wire:model.live="status" class="form-select">
                                             <option value="">All Statuses</option>
                                             <option value="present">Present</option>
                                             <option value="absent">Absent</option>
@@ -35,41 +56,45 @@
                                             <option value="incomplete">Incomplete</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-2 text-md-end mt-2 mt-md-0">
+                                        <button class="btn btn-secondary w-100" type="reset" wire:click="clear">Clear Filters</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
 
                         <div class="overflow-auto">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Class</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th>Time In</th>
-                                    <th>Time Out</th>
-                                    <th>Percentage</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($attendances as $attendance)
-                                    <tr onclick="window.location='{{ route('attendance.subject.view', ['schedule' => $attendance->schedule->id]) }}';"
-                                        style="cursor: pointer;">
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $attendance->schedule->schedule_code }} -
-                                            {{ $attendance->schedule->subject->name }}</td>
-                                        <td>{{ $attendance->formatted_date }}</td>
-                                        <td>{{ ucfirst($attendance->status) }}</td>
-                                        <td>{{ $attendance->formatted_time_in }}</td>
-                                        <td>{{ $attendance->formatted_time_out }}</td>
-                                        <td>{{ $attendance->percentage }}%</td>
-                                        <td>{{ $attendance->remarks }}</td>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Class</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Time In</th>
+                                        <th>Time Out</th>
+                                        <th>Percentage</th>
+                                        <th>Remarks</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($attendances as $attendance)
+                                        <tr onclick="window.location='{{ route('attendance.subject.view', ['schedule' => $attendance->schedule->id]) }}';"
+                                            style="cursor: pointer;">
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td>{{ $attendance->schedule->schedule_code }} -
+                                                {{ $attendance->schedule->subject->name }}</td>
+                                            <td>{{ $attendance->formatted_date }}</td>
+                                            <td>{{ ucfirst($attendance->status) }}</td>
+                                            <td>{{ $attendance->formatted_time_in }}</td>
+                                            <td>{{ $attendance->formatted_time_out }}</td>
+                                            <td>{{ $attendance->percentage }}%</td>
+                                            <td>{{ $attendance->remarks }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
 
                         <div class="mt-4">

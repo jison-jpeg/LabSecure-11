@@ -80,9 +80,9 @@
                     <tr>
                         <th>#</th>
                         <th>Name</th>
-                        <th>Status</th>
                         <th>Time In</th>
                         <th>Time Out</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,9 +90,9 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $student->user->full_name }}</td>
-                            <td>{{ ucfirst($student->status) }}</td>
                             <td>{{ $student->formatted_time_in }}</td>
                             <td>{{ $student->formatted_time_out }}</td>
+                            <td>{{ ucfirst($student->status) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
