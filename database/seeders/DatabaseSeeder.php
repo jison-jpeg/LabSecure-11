@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
             SectionSeeder::class,
             UserSeeder::class,
             ScheduleSeeder::class,
-            // AttendanceSeeder::class,
+            AttendanceSeeder::class,
         ]);
     }
 }

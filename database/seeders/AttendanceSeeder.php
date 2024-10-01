@@ -23,25 +23,50 @@ class AttendanceSeeder extends Seeder
 
         // Create attendance records
         foreach ($schedules as $schedule) {
-            foreach ($users as $user) {
-                // Generate a random date within the past month
-                $randomDate = Carbon::now()->subDays(rand(0, 30));
+            // Decode the days of the week for the schedule
+            $daysOfWeek = json_decode($schedule->days_of_week, true);
 
-                // Generate random time_in and time_out within the same day
-                $timeIn = $randomDate->copy()->setTime(rand(7, 10), rand(0, 59)); // Time between 7:00 AM and 10:59 AM
-                $timeOut = $timeIn->copy()->addHours(rand(1, 8))->addMinutes(rand(0, 59)); // Random time between 1 to 8 hours after time_in
+            // Define the date range for the attendance (e.g., last month)
+            $startDate = Carbon::now()->subMonth()->startOfMonth();
+            $endDate = Carbon::now()->subMonth()->endOfMonth();
 
-                // Create an attendance record without setting the status
-                $attendance = Attendance::create([
-                    'user_id' => $user->id,
-                    'schedule_id' => $schedule->id,
-                    'time_in' => $timeIn,
-                    'time_out' => $timeOut,
-                    'date' => $randomDate->toDateString(),
-                ]);
+            // Iterate over each day in the range
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                // Check if the current date's day name matches any of the schedule's days of the week
+                if (in_array($date->format('l'), $daysOfWeek)) {
+                    foreach ($users as $user) {
+                        // Skip if user does not belong to the schedule's section or instructor is not assigned
+                        if ($user->isStudent() && $user->section_id !== $schedule->section_id) {
+                            continue;
+                        }
+                        if ($user->isInstructor() && $user->id !== $schedule->instructor_id) {
+                            continue;
+                        }
 
-                // Calculate and save the status and remarks
-                $attendance->calculateAndSaveStatusAndRemarks();
+                        // Generate the time_in based on the schedule's start time, adding 1 to 30 minutes
+                        $startTime = Carbon::parse($schedule->start_time);
+                        $timeIn = $startTime->copy()->addMinutes(rand(1, 30));
+
+                        // Generate the time_out based on the time_in, adding another 1 to 30 minutes
+                        $timeOut = $timeIn->copy()->addMinutes(rand(1, 30));
+
+                        // Create an attendance record without setting the status
+                        $attendance = Attendance::create([
+                            'user_id' => $user->id,
+                            'schedule_id' => $schedule->id,
+                            'date' => $date->toDateString(),
+                        ]);
+
+                        // Create attendance sessions
+                        $attendance->sessions()->create([
+                            'time_in' => $timeIn->toDateTimeString(),
+                            'time_out' => $timeOut->toDateTimeString(),
+                        ]);
+
+                        // Calculate and save the status and remarks
+                        $attendance->calculateAndSaveStatusAndRemarks();
+                    }
+                }
             }
         }
     }
