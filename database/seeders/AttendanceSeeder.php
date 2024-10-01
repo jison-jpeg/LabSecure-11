@@ -30,6 +30,11 @@ class AttendanceSeeder extends Seeder
             $startDate = Carbon::now()->subMonth()->startOfMonth();
             $endDate = Carbon::now()->subMonth()->endOfMonth();
 
+            // Calculate total scheduled minutes for the schedule
+            $scheduleStartTime = Carbon::parse($schedule->start_time);
+            $scheduleEndTime = Carbon::parse($schedule->end_time);
+            $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
+
             // Iterate over each day in the range
             for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
                 // Check if the current date's day name matches any of the schedule's days of the week
@@ -43,12 +48,26 @@ class AttendanceSeeder extends Seeder
                             continue;
                         }
 
-                        // Generate the time_in based on the schedule's start time, adding 1 to 30 minutes
-                        $startTime = Carbon::parse($schedule->start_time);
-                        $timeIn = $startTime->copy()->addMinutes(rand(1, 30));
+                        // Generate a random attendance scenario
+                        $scenario = rand(1, 4);
 
-                        // Generate the time_out based on the time_in, adding another 1 to 30 minutes
-                        $timeOut = $timeIn->copy()->addMinutes(rand(1, 30));
+                        if ($scenario === 1) {
+                            // Present: On time or within grace period, with attendance >= 75%
+                            $timeIn = $scheduleStartTime->copy()->addMinutes(rand(0, 15)); // On time or within 15 min grace
+                            $timeOut = $scheduleStartTime->copy()->addMinutes(rand(ceil($totalScheduledMinutes * 0.75), $totalScheduledMinutes));
+                        } elseif ($scenario === 2) {
+                            // Late: Arrived after 15 minutes but attended >= 75%
+                            $timeIn = $scheduleStartTime->copy()->addMinutes(rand(16, 30)); // Arrived late between 16 to 30 minutes
+                            $timeOut = $timeIn->copy()->addMinutes(rand(ceil($totalScheduledMinutes * 0.75), $totalScheduledMinutes));
+                        } elseif ($scenario === 3) {
+                            // Absent: Attended very short duration or late and attended less than required
+                            $timeIn = $scheduleStartTime->copy()->addMinutes(rand(20, 40)); // Arrived very late
+                            $timeOut = $timeIn->copy()->addMinutes(rand(1, 9)); // Attended less than 10 minutes
+                        } elseif ($scenario === 4) {
+                            // Incomplete: No time out recorded
+                            $timeIn = $scheduleStartTime->copy()->addMinutes(rand(0, 30));
+                            $timeOut = null; // No time out recorded
+                        }
 
                         // Create an attendance record without setting the status
                         $attendance = Attendance::create([
@@ -58,10 +77,16 @@ class AttendanceSeeder extends Seeder
                         ]);
 
                         // Create attendance sessions
-                        $attendance->sessions()->create([
-                            'time_in' => $timeIn->toDateTimeString(),
-                            'time_out' => $timeOut->toDateTimeString(),
-                        ]);
+                        if ($timeOut) {
+                            $attendance->sessions()->create([
+                                'time_in' => $timeIn->toDateTimeString(),
+                                'time_out' => $timeOut->toDateTimeString(),
+                            ]);
+                        } else {
+                            $attendance->sessions()->create([
+                                'time_in' => $timeIn->toDateTimeString(),
+                            ]);
+                        }
 
                         // Calculate and save the status and remarks
                         $attendance->calculateAndSaveStatusAndRemarks();
