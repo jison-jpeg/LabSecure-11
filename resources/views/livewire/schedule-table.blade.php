@@ -56,7 +56,7 @@
     </div>
 
     <div class="overflow-auto">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th scope="col">#</th>
@@ -67,7 +67,7 @@
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'section.name',
                         'displayName' => 'Section',
-                    ])  
+                    ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'subject.name',
                         'displayName' => 'Subject Code',
@@ -75,7 +75,7 @@
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'subject.name',
                         'displayName' => 'Subject',
-                    ])     
+                    ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'instructor.full_name',
                         'displayName' => 'Instructor',
@@ -109,7 +109,9 @@
             </thead>
             <tbody>
                 @foreach ($schedules as $key => $schedule)
-                    <tr wire:key="{{ $schedule->id }}">
+                    <tr wire:key="{{ $schedule->id }}"
+                        onclick="window.location='{{ route('schedule.view', $schedule->id) }}';"
+                        style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $schedule->schedule_code }}</td>
                         <td>{{ $schedule->section->name }}</td>
@@ -124,10 +126,12 @@
                         <td>{{ Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                    onclick="event.stopPropagation()">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3">
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                    onclick="event.stopPropagation()">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
                                     <li><button @click="$dispatch('edit-mode',{id:{{ $schedule->id }}})" type="button"
                                             class="dropdown-item" data-bs-toggle="modal"

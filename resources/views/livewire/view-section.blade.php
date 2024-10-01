@@ -6,18 +6,39 @@
     <section class="section dashboard">
         <div class="row">
             <!-- Section Overview -->
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Section Overview</h5>
-                        <ul class="list-unstyled">
-                            <li><strong>Section Name:</strong> {{ $section->name }}</li>
-                            <li><strong>Year Level:</strong> {{ $section->year_level }}</li>
-                            <li><strong>Semester:</strong> {{ $section->semester }}</li>
-                            <li><strong>School Year:</strong> {{ $section->school_year }}</li>
-                            <li><strong>College:</strong> {{ $section->college->name }}</li>
-                            <li><strong>Department:</strong> {{ $section->department->name }}</li>
-                        </ul>
+            <div class="col-12 d-flex flex-column">
+                <div class="card h-100 card-info position-relative mb-4">
+                    <div class="card-body text-white">
+                        <h5 class="card-title fs-3">Section {{ $section->name }}</h5>
+
+                        <div class="row">
+                            <div class="col-6 col-md-4">
+                                <h6 class="text-truncate">Year Level</h6>
+                                <p class="text-truncate">{{ $section->year_level }}</p>
+                            </div>
+
+                            <div class="col-6 col-md-4">
+                                <h6 class="text-truncate">Semester</h6>
+                                <p class="text-truncate">{{ $section->semester }}</p>
+                            </div>
+
+                            <div class="col-6 col-md-4">
+                                <h6 class="text-truncate">School Year</h6>
+                                <p class="text-truncate">{{ $section->school_year }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            
+                            <div class="col-6 col-md-4">
+                                <h6 class="text-truncate">College</h6>
+                                <p class="text-truncate">{{ $section->college->name }}</p>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <h6 class="text-truncate">Department</h6>
+                                <p class="text-truncate">{{ $section->department->name }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

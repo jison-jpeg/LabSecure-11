@@ -52,7 +52,7 @@
                         <div class="row align-items-end mb-3">
                             <div class="col-12 col-lg-10">
                                 <div class="row g-2">
-                                    <div class="col-6 col-sm-3 col-md-2 col-lg-1">
+                                    <div class="col-3 col-lg-1">
                                         <select wire:model.live="perPage" name="perPage" class="form-select">
                                             <option value="10">10</option>
                                             <option value="15">15</option>
@@ -63,11 +63,11 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                    <div class="col-9 col-lg-3">
                                         <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search students...">
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                    <div class="col-3 col-lg-3">
                                         <select wire:model.live="status" name="status" class="form-select">
                                             <option value="">All Statuses</option>
                                             <option value="present">Present</option>
@@ -77,7 +77,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                    <div class="col-9 col-lg-3">
                                         <input type="date" wire:model.live="selectedDate" name="selectedDate" class="form-control">
                                     </div>
                                 </div>
@@ -94,6 +94,7 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th>Date</th>
                                         <th>Name</th>
                                         <th>Username</th>
                                         <th>Email</th>
@@ -105,6 +106,7 @@
                                     @forelse ($students as $key => $student)
                                         <tr>
                                             <td>{{ $key + 1 }}</td>
+                                            <td>{{ Carbon::now()->format('m/d/Y') }}</td>
                                             <td>{{ $student->full_name }}</td>
                                             <td>{{ $student->username }}</td>
                                             <td>{{ $student->email }}</td>

@@ -29,7 +29,7 @@ class ScheduleController extends Controller
         $user = Auth::user();
 
         if ($user->role->name === 'admin') {
-            return view('admin.view-schedule', ['schedule' => $schedule]);
+            return view('admin.view-schedule', data: ['schedule' => $schedule]);
         } elseif ($user->role->name === 'instructor') {
             return view('instructor.view-schedule', ['schedule' => $schedule]);
         } elseif ($user->role->name === 'student') {
