@@ -23,7 +23,6 @@
                             </li>
                         </ul>
                     </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
             {{-- Per Page --}}
@@ -50,9 +49,11 @@
                 </div>
             </div>
         </div>
+        @if (Auth::user()->isAdmin())
         <div class="col-12 col-md-2">
             <livewire:create-schedule />
         </div>
+        @endif
     </div>
 
     <div class="overflow-auto">
@@ -104,7 +105,9 @@
                         'name' => 'end_time',
                         'displayName' => 'End Time',
                     ])
+                    @if (Auth::user()->isAdmin())
                     <th scope="col" class="text-center text-dark fw-semibold">Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -124,6 +127,7 @@
                         <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
                         <td>{{ Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                         <td>{{ Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
+                        @if (Auth::user()->isAdmin())
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
@@ -142,6 +146,7 @@
                                 </ul>
                             </div>
                         </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

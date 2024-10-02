@@ -79,7 +79,7 @@
                 </a>
             </li>
 
-            {{-- @if (Auth::user()->role->name === 'admin') --}}
+            @if (Auth::user()->role->name === 'admin')
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('schedules*') ? '' : 'collapsed' }}"
                     href="{{ url('/schedules') }}">
@@ -87,7 +87,7 @@
                     <span>Schedules</span>
                 </a>
             </li>
-            {{-- @endif --}}
+            @endif
 
             @if (Auth::user()->role->name === 'instructor')
             <li class="nav-item">

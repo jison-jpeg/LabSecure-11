@@ -41,6 +41,7 @@
                 <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
                         <!-- Link to specific laboratory -->
                         <div class="card info-card sales-card lab-card">
+                            @if (Auth::user()->isAdmin())
                             <div class="action">
                                 <a class="icon" href="#" data-bs-toggle="dropdown"><i
                                         class="bi bi-three-dots"></i></a>
@@ -59,6 +60,7 @@
                                             {{ $laboratory->name }}</a></li>
                                 </ul>
                             </div>
+                            @endif
                             <a href="{{ route('laboratory.view', ['laboratory' => $laboratory->id]) }}" class="card-link">
                                 
                                 <div class="card-body mt-3">

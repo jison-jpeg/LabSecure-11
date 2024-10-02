@@ -36,7 +36,7 @@
 
                             <div class="col-12 col-md-4">
                                 <h6>Time</h6>
-                                <p>{{ $schedule->start_time }} - {{ $schedule->end_time }}</p>
+                                <p>{{ Carbon::parse($schedule->start_time)->format('h:i A') }} - {{ Carbon::parse($schedule->end_time)->format('h:i A') }}</p>
                             </div>
                         </div>
                     </div>
@@ -99,7 +99,9 @@
                                         <th>Username</th>
                                         <th>Email</th>
                                         <th>Status</th>
+                                        @if (Auth::user()->isAdmin())
                                         <th class="text-center">Actions</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -117,6 +119,7 @@
                                                     N/A
                                                 @endif
                                             </td>
+                                            @if (Auth::user()->isAdmin())
                                             <td class="text-center">
                                                 <div class="btn-group dropstart">
                                                     <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -131,6 +134,7 @@
                                                     </ul>
                                                 </div>
                                             </td>
+                                            @endif
                                         </tr>
                                     @empty
                                         <tr>

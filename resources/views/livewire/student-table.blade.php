@@ -16,7 +16,6 @@
                             <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
                         </ul>
                     </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
     
