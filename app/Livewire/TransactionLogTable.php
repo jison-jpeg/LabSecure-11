@@ -10,6 +10,7 @@ use Livewire\WithPagination;
 class TransactionLogTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     #[Url(history: true)]
     public $search = '';

@@ -84,6 +84,6 @@
         </table>
     </div>
     <div class="mt-4">
-        {{ $logs->links('pagination::bootstrap-5') }}
+        {{ $logs->links() }}
     </div>
 </div>

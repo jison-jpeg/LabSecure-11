@@ -202,7 +202,7 @@
     </div>
 
     <div class="mt-4">
-        {{ $attendances->links('pagination::bootstrap-5') }}
+        {{ $attendances->links() }}
     </div>
 </div>
 

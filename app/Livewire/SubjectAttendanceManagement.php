@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 class SubjectAttendanceManagement extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $schedule;
     public $selectedDate = '';  // Date filter (empty for unfiltered)

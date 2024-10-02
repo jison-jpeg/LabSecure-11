@@ -20,6 +20,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class AttendanceTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $attendance;
     public $title = 'Attendance Records';

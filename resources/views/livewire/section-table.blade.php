@@ -142,7 +142,7 @@
         </table>
     </div>
     <div class="mt-4">
-        {{ $sections->links('pagination::bootstrap-5') }}
+        {{ $sections->links() }}
     </div>
 
     <script>

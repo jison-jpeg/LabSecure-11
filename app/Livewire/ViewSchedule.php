@@ -12,6 +12,7 @@ use Livewire\WithPagination;
 class ViewSchedule extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $schedule;
     public $perPage = 10;

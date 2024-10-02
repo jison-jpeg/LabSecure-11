@@ -10,6 +10,7 @@ use Livewire\WithPagination;
 class ViewFaculty extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $faculty;
     public $perPage = 10;

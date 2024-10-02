@@ -208,7 +208,7 @@
         </table>
     </div>
     <div class="mt-4">
-        {{ $users->links('pagination::bootstrap-5') }}
+        {{ $users->links() }}
     </div>
 
     <script>

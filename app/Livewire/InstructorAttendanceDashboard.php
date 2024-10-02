@@ -14,6 +14,7 @@ use Livewire\WithPagination;
 class InstructorAttendanceDashboard extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $selectedSchedule = '';  // Class selection
     public $selectedDate = '';  // Unfiltered by default

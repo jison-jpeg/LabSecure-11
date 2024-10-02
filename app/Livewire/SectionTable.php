@@ -13,6 +13,7 @@ use Livewire\WithPagination;
 class SectionTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $section;
     public $title = 'Create Section';

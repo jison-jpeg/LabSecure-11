@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 class StudentPerSectionTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $section;
     public $search = '';

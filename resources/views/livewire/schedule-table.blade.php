@@ -148,7 +148,7 @@
         </table>
     </div>
     <div class="mt-4">
-        {{ $schedules->links('pagination::bootstrap-5') }}
+        {{ $schedules->links() }}
     </div>
 
     <script>

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class StudentScheduleTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $schedule;
     public $title = 'My Schedule';

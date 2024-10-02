@@ -146,7 +146,7 @@
         </table>
     </div>
     <div class="mt-4">
-        {{ $faculties->links('pagination::bootstrap-5') }}
+        {{ $faculties->links() }}
     </div>
 
     <script>

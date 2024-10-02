@@ -15,6 +15,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class FacultyTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $faculty;
     public $title = 'Create Faculty';

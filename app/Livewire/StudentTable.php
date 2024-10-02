@@ -13,6 +13,7 @@ use Livewire\WithPagination;
 class StudentTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $user;
     public $title = 'Create Student';

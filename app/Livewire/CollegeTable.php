@@ -15,6 +15,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class CollegeTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $college;
     public $title = 'Create College';

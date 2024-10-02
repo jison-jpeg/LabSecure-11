@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class DepartmentTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $department;
     public $title = 'Create Department';

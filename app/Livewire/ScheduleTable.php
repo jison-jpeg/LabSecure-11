@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class ScheduleTable extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $schedule;
     public $title = 'Create Schedule';
