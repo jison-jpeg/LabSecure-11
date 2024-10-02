@@ -2,13 +2,16 @@
 
 namespace App\Livewire;
 
+use App\Mail\UserCredentials;
 use App\Models\TransactionLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Illuminate\Support\Str;
 use Flasher\Notyf\Prime\NotyfInterface;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class CreateUser extends Component
 {
@@ -48,8 +51,12 @@ class CreateUser extends Component
             'username' => 'required|unique:users',
             'role_id' => 'required',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
+            'password' => 'nullable|min:6',
         ]);
+
+        if (empty($this->password)) {
+            $this->password = Str::random(10);
+        }
 
         $user = User::create([
             'first_name' => $this->first_name,
@@ -72,6 +79,8 @@ class CreateUser extends Component
                 'username' => $user->username,
             ]),
         ]);
+
+        Mail::to($user->email)->queue(new UserCredentials($user, $this->password));
         
         $this->dispatch('refresh-user-table');
         notyf()
@@ -110,6 +119,7 @@ class CreateUser extends Component
             'username' => 'required|unique:users,username,' . $this->user->id,
             'role_id' => 'required',
             'email' => 'required|email|unique:users,email,' . $this->user->id,
+            'password' => 'nullable|min:6',
         ]);
 
         $this->user->update([
@@ -119,6 +129,7 @@ class CreateUser extends Component
             'username' => $this->username,
             'role_id' => $this->role_id,
             'email' => $this->email,
+            'password' => Hash::make($this->password),
         ]);
 
         // Log update of user
