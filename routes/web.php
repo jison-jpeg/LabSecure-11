@@ -82,7 +82,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     });
 
 // Schedule
-Route::middleware(['auth'])
+Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('schedules')
     ->group(function () {
         Route::get('/', [ScheduleController::class, 'viewSchedules'])->name('schedule');
@@ -100,7 +100,7 @@ Route::middleware('auth')
 
 
 // Section
-Route::middleware('auth')
+Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('sections')
     ->group(function () {
         Route::get('/', [SectionController::class, 'viewSections'])->name('sections');

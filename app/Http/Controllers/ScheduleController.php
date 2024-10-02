@@ -20,7 +20,7 @@ class ScheduleController extends Controller
         } elseif ($user->role->name === 'student') {
             return view('student.schedule');
         } else {
-            return redirect()->route('unauthorized');
+            abort(401, message: 'Unauthorized access.');
         }
     }
 
