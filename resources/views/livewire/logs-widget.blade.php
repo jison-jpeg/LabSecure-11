@@ -20,8 +20,8 @@
                 <div class="activity-item d-flex">
                     <div class="activite-label">{{ $log->created_at->diffForHumans(null, null, true) }}</div>
                     <i class='bi bi-circle-fill activity-badge 
-                        @if ($log->action == 'check_in') text-info
-                        @elseif ($log->action == 'check_out') text-secondary
+                        @if ($log->action == 'in') text-info
+                        @elseif ($log->action == 'out') text-secondary
                         @elseif ($log->action == 'update') text-warning
                         @elseif ($log->action == 'create') text-success
                         @else text-danger @endif align-self-start'></i>

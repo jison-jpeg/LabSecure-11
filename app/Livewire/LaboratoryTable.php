@@ -90,7 +90,7 @@ class LaboratoryTable extends Component
 
         if ($recentLog && $recentLog->user) {
             $laboratory->recent_user_name = $recentLog->user->full_name; // Assuming `full_name` is a user attribute
-            $laboratory->recent_user_action = $recentLog->action == 'check_in' ? 'CURRENT USER' : 'RECENT USER';
+            $laboratory->recent_user_action = $recentLog->action == 'in' ? 'CURRENT USER' : 'RECENT USER';
             $laboratory->time_ago = $recentLog->created_at->diffForHumans();
         } else {
             $laboratory->recent_user_name = 'N/A';

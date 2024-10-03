@@ -72,7 +72,7 @@ public function viewLaboratory(Laboratory $laboratory)
                 // Log the entrance action for personnel
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_in',
+                    'action' => 'in',
                     'model' => 'Laboratory',
                     'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
@@ -84,7 +84,7 @@ public function viewLaboratory(Laboratory $laboratory)
                 // Log the exit action for personnel
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_out',
+                    'action' => 'out',
                     'model' => 'Laboratory',
                     'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),
@@ -136,7 +136,7 @@ public function viewLaboratory(Laboratory $laboratory)
                 // Log the entrance action
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_in',
+                    'action' => 'in',
                     'model' => 'Attendance',
                     'model_id' => $attendance->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
@@ -156,7 +156,7 @@ public function viewLaboratory(Laboratory $laboratory)
                 // Log the exit action
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_out',
+                    'action' => 'out',
                     'model' => 'Attendance',
                     'model_id' => $attendance->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),

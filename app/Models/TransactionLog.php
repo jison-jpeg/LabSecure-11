@@ -53,13 +53,13 @@ class TransactionLog extends Model
             return "{$userFullName} deleted {$this->model} with ID {$this->model_id}.";
 
         // Handle attendance with subject details
-        case 'check_in':
+        case 'in':
             if ($this->model === 'Attendance' && isset($details['subject_name'])) {
                 return "{$userFullName} checked in for attendance in the subject {$details['subject_name']}.";
             }
             return "{$userFullName} checked in for attendance.";
 
-        case 'check_out':
+        case 'out':
             if ($this->model === 'Attendance' && isset($details['subject_name'])) {
                 return "{$userFullName} checked out from attendance in the subject {$details['subject_name']}.";
             }

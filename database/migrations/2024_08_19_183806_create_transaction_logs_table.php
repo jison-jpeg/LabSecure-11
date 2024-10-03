@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('transaction_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('action');  // e.g., 'create', 'update', 'delete', 'check_in', 'check_out'
+            $table->string('action');  // e.g., 'create', 'update', 'delete', 'in', 'out'
             $table->string('model');   // e.g., 'Laboratory', 'Attendance'
             $table->unsignedBigInteger('model_id'); // ID of the model being acted upon
             $table->text('details')->nullable(); // Any additional details (e.g., old values, new values)

@@ -128,7 +128,7 @@ class ListenToMQTT extends Command
                 // Log the entrance action
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_in',
+                    'action' => 'in',
                     'model' => 'Laboratory',
                     'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
@@ -140,7 +140,7 @@ class ListenToMQTT extends Command
                 // Log the exit action
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_out',
+                    'action' => 'out',
                     'model' => 'Laboratory',
                     'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),
@@ -219,7 +219,7 @@ class ListenToMQTT extends Command
 
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_in',
+                    'action' => 'in',
                     'model' => 'Attendance',
                     'model_id' => $attendance->id,
                     'details' => json_encode([
@@ -243,7 +243,7 @@ class ListenToMQTT extends Command
 
                 TransactionLog::create([
                     'user_id' => $user->id,
-                    'action' => 'check_out',
+                    'action' => 'out',
                     'model' => 'Attendance',
                     'model_id' => $attendance->id,
                     'details' => json_encode([

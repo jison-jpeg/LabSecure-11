@@ -23,7 +23,7 @@
                 <div class="col-12 col-md-2">
                     <select wire:model.live="action" name="action" class="form-select">
                         <option value="">Action Type</option>
-                        <option value="check_in">Check In</option>
+                        <option value="in">Check In</option>
                         <option value="create">Create</option>
                         <option value="update">Update</option>
                         <option value="delete">Delete</option>

@@ -32,10 +32,10 @@ class Laboratory extends Model
         $attendanceIds = Attendance::whereIn('schedule_id', $this->schedules->pluck('id'))
             ->pluck('id');
 
-        // Retrieve the most recent 'check_in' or 'check_out' log for this laboratory based on related attendances
+        // Retrieve the most recent 'in' or 'out' log for this laboratory based on related attendances
         return TransactionLog::where('model', 'Attendance')  // Match to Attendance, not Laboratory
             ->whereIn('model_id', $attendanceIds)  // Fetch related attendance IDs
-            ->whereIn('action', ['check_in', 'check_out'])
+            ->whereIn('action', ['in', 'out'])
             ->latest()
             ->with('user') // Ensure TransactionLog is associated with User
             ->first();
@@ -43,30 +43,30 @@ class Laboratory extends Model
 
     public function getCurrentUser()
     {
-        // Retrieve the most recent 'check_in' log for the laboratory based on related attendances
+        // Retrieve the most recent 'in' log for the laboratory based on related attendances
         $attendanceIds = Attendance::whereIn('schedule_id', $this->schedules->pluck('id'))
             ->pluck('id');
 
         return TransactionLog::where('model', 'Attendance')
             ->whereIn('model_id', $attendanceIds)
-            ->where('action', 'check_in')
+            ->where('action', 'in')
             ->latest()
             ->with('user') // Load the related User
-            ->first();  // Return the latest 'check_in' log
+            ->first();  // Return the latest 'in' log
     }
 
     public function getRecentUser()
     {
-        // Retrieve the most recent 'check_out' log for the laboratory based on related attendances
+        // Retrieve the most recent 'out' log for the laboratory based on related attendances
         $attendanceIds = Attendance::whereIn('schedule_id', $this->schedules->pluck('id'))
             ->pluck('id');
 
         return TransactionLog::where('model', 'Attendance')
             ->whereIn('model_id', $attendanceIds)
-            ->where('action', 'check_out')
+            ->where('action', 'out')
             ->latest()
             ->with('user') // Load the related User
-            ->first();  // Return the latest 'check_out' log
+            ->first();  // Return the latest 'out' log
     }
 
 
