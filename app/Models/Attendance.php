@@ -39,67 +39,75 @@ class Attendance extends Model
     }
 
     // Method to calculate and save the status and remarks
-    public function calculateAndSaveStatusAndRemarks()
-    {
-        $scheduleStartTime = Carbon::parse($this->schedule->start_time);
-        $scheduleEndTime = Carbon::parse($this->schedule->end_time);
-        $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
+public function calculateAndSaveStatusAndRemarks()
+{
+    $scheduleStartTime = Carbon::parse($this->schedule->start_time);
+    $scheduleEndTime = Carbon::parse($this->schedule->end_time);
+    $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
 
-        // Get the first session's time_in
-        $firstSession = $this->sessions->first();
-        if ($firstSession && $firstSession->time_in) {
-            $timeIn = Carbon::parse($firstSession->time_in);
-            $lateMinutes = max(0, $scheduleStartTime->diffInMinutes($timeIn, false));
+    // Get the first session's time_in
+    $firstSession = $this->sessions->first();
+    if ($firstSession && $firstSession->time_in) {
+        $timeIn = Carbon::parse($firstSession->time_in);
+        $lateMinutes = max(0, $scheduleStartTime->diffInMinutes($timeIn, false));
 
-            // Determine initial status based on late minutes
-            if ($lateMinutes <= 15 && $lateMinutes >= 0) {
-                $this->status = 'present';  // On time or within 15 minutes grace period
-            } elseif ($lateMinutes > 15) {
-                $this->status = 'late';  // Arrived after 15 minutes grace period
-            } else {
-                $this->status = 'absent';  // Did not attend in time
-            }
-        }
-
-        // Get the last session's time_out
-        $lastSession = $this->sessions->last();
-        if ($lastSession && $lastSession->time_out) {
-            $timeOut = Carbon::parse($lastSession->time_out);
-            $attendedDurationMinutes = max(0, $timeIn->diffInMinutes($timeOut));
-
-            // Calculate the percentage of the session attended, capped at 100%
-            $this->percentage = round(min(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 100), 2);
-
-            // Determine final status and remarks based on the attended duration and late minutes
-            if ($attendedDurationMinutes < 10) {
-                // Absent if attended less than 10 minutes
-                $this->status = 'absent';
-                $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
-            } elseif ($attendedDurationMinutes >= 10 && $attendedDurationMinutes < ceil($totalScheduledMinutes * 0.75)) {
-                if ($lateMinutes > 15) {
-                    $this->status = 'absent';
-                    $this->remarks = "Marked as absent. Arrived late by {$lateMinutes} minutes and attended only {$attendedDurationMinutes} minutes.";
-                } else {
-                    $this->status = 'absent';
-                    $this->remarks = "Marked as absent. Attended {$attendedDurationMinutes} minutes, which is less than the required 75%.";
-                }
-            } elseif ($attendedDurationMinutes >= ceil($totalScheduledMinutes * 0.75)) {
-                if ($lateMinutes > 15) {
-                    $this->status = 'late';
-                    $this->remarks = "Marked as late. Arrived {$lateMinutes} minutes late but attended {$attendedDurationMinutes} minutes out of {$totalScheduledMinutes} minutes.";
-                } else {
-                    $this->status = 'present';
-                    $this->remarks = "Marked as present. Attended {$attendedDurationMinutes} out of {$totalScheduledMinutes} minutes ({$this->percentage}%).";
-                }
-            }
+        // Determine initial status based on late minutes
+        if ($lateMinutes <= 15 && $lateMinutes >= 0) {
+            $this->status = 'present';  // On time or within 15 minutes grace period
+        } elseif ($lateMinutes > 15) {
+            $this->status = 'late';  // Arrived after 15 minutes grace period
         } else {
-            // No time_out recorded, mark as incomplete
-            $this->status = 'incomplete';
-            $this->remarks = 'Incomplete attendance: No time out recorded.';
+            $this->status = 'absent';  // Did not attend in time
         }
-
-        $this->save();
     }
+
+    // Calculate total attended minutes based on all sessions
+    $attendedDurationMinutes = 0;
+    foreach ($this->sessions as $session) {
+        if ($session->time_in && $session->time_out) {
+            $timeIn = Carbon::parse($session->time_in);
+            $timeOut = Carbon::parse($session->time_out);
+            $attendedDurationMinutes += $timeIn->diffInMinutes($timeOut);
+        }
+    }
+
+    // Check if there are any sessions without a time_out
+    $incompleteSession = $this->sessions()->whereNull('time_out')->exists();
+
+    if ($incompleteSession) {
+        // No time_out recorded, mark as incomplete
+        $this->status = 'incomplete';
+        $this->remarks = 'Incomplete attendance: No time out recorded.';
+    } else {
+        // Calculate the percentage of the session attended, capped at 100%
+        $this->percentage = round(min(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 100), 2);
+
+        // Determine final status and remarks based on the attended duration and late minutes
+        if ($attendedDurationMinutes < 10) {
+            // Absent if attended less than 10 minutes
+            $this->status = 'absent';
+            $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
+        } elseif ($attendedDurationMinutes >= 10 && $attendedDurationMinutes < ceil($totalScheduledMinutes * 0.75)) {
+            if ($lateMinutes > 15) {
+                $this->status = 'absent';
+                $this->remarks = "Marked as absent. Arrived late by {$lateMinutes} minutes and attended only {$attendedDurationMinutes} minutes.";
+            } else {
+                $this->status = 'absent';
+                $this->remarks = "Marked as absent. Attended {$attendedDurationMinutes} minutes, which is less than the required 75%.";
+            }
+        } elseif ($attendedDurationMinutes >= ceil($totalScheduledMinutes * 0.75)) {
+            if ($lateMinutes > 15) {
+                $this->status = 'late';
+                $this->remarks = "Marked as late. Arrived {$lateMinutes} minutes late but attended {$attendedDurationMinutes} minutes out of {$totalScheduledMinutes} minutes.";
+            } else {
+                $this->status = 'present';
+                $this->remarks = "Marked as present. Attended {$attendedDurationMinutes} out of {$totalScheduledMinutes} minutes ({$this->percentage}%).";
+            }
+        }
+    }
+
+    $this->save();
+}
 
     // Accessor for formatted time_in
     public function getFormattedTimeInAttribute()
