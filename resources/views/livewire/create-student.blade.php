@@ -72,10 +72,8 @@
                             @enderror
                         </div>
                         <div class="col-md-4">
-                            <label for="section_id" class="form-label
-                                @if ($section_id) d-none @endif">Section</label>
-                            <select wire:model.lazy="section_id" class="form-select @error('section_id') is-invalid @enderror"
-                                name="section_id">
+                            <label for="section_id" class="form-label">Section</label>
+                            <select wire:model.lazy="section_id" class="form-select @error('section_id') is-invalid @enderror" name="section_id">
                                 <option value="">Select Section</option>
                                 @foreach($sections as $section)
                                     <option value="{{ $section->id }}">{{ $section->name }}</option>
@@ -87,6 +85,7 @@
                                 </span>
                             @enderror
                         </div>
+                        
                         <div class="col-md-4">
                             <label for="college_id" class="form-label">College</label>
                             <select wire:model.lazy="college_id" class="form-select @error('college_id') is-invalid @enderror" name="college_id">

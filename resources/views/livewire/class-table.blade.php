@@ -80,7 +80,7 @@
                         <td>{{ $section->year_level }}</td>
                         <td>{{ $section->semester }}</td>
                         <td>{{ $section->school_year }}</td>
-                        @if (Auth::user()->role->name === 'admin')
+                        @if (Auth::user()->isAdmin())
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">

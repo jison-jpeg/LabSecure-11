@@ -25,6 +25,9 @@ class InstructorAttendanceDashboard extends Component
     public $selectedSection = '';  // Section filter
     public $overview = [];
 
+    public $sortBy = 'date';  // Default column to sort by
+    public $sortDir = 'DESC'; // Default sorting direction
+
     public function mount()
     {
         $this->loadOverview();
@@ -37,7 +40,7 @@ class InstructorAttendanceDashboard extends Component
         $this->status = '';
         $this->search = '';
         $this->selectedSubject = '';
-        $this->selectedSection = '';    
+        $this->selectedSection = '';
     }
 
     public function updatedSelectedSchedule()
@@ -66,6 +69,18 @@ class InstructorAttendanceDashboard extends Component
     public function updatedStatus()
     {
         $this->resetPage();
+    }
+
+    // Set sorting criteria
+    public function setSortBy($sortByField)
+    {
+        if ($this->sortBy === $sortByField) {
+            $this->sortDir = ($this->sortDir == "ASC") ? 'DESC' : "ASC";
+            return;
+        }
+
+        $this->sortBy = $sortByField;
+        $this->sortDir = 'DESC';
     }
 
     // Load overview of instructor's attendance (total present, absent, etc.)
@@ -123,16 +138,21 @@ class InstructorAttendanceDashboard extends Component
                 $query->whereHas('schedule.section', function ($q) {
                     $q->where('id', $this->selectedSection);
                 });
+            })
+            ->when($this->selectedDate, function ($query) {
+                $query->whereDate('date', $this->selectedDate);
+            })
+            ->when(!empty($this->status), function ($query) {
+                $query->where('status', $this->status);
             });
 
-        // Apply date filter only if a date is selected
-        if ($this->selectedDate) {
-            $attendancesQuery->whereDate('date', $this->selectedDate);
-        }
-
-        // Apply status filter
-        if (!empty($this->status)) {
-            $attendancesQuery->where('status', $this->status);
+        // Apply sorting
+        if ($this->sortBy === 'schedule.schedule_code') {
+            $attendancesQuery->join('schedules', 'attendances.schedule_id', '=', 'schedules.id')
+                ->orderBy('schedules.schedule_code', $this->sortDir)
+                ->select('attendances.*');
+        } else {
+            $attendancesQuery->orderBy($this->sortBy, $this->sortDir);
         }
 
         $attendances = $attendancesQuery->paginate($this->perPage);

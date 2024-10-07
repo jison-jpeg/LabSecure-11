@@ -30,7 +30,9 @@
             </div>
         </div>
         <div class="col-12 col-md-2">
+            @if (Auth::user()->isAdmin())
             <livewire:create-laboratory />
+            @endif
         </div>
     </div>
 

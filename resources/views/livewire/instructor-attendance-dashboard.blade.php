@@ -32,7 +32,8 @@
                                         <select wire:model.live="selectedSchedule" class="form-select">
                                             <option value="">Select Schedule Code</option>
                                             @foreach ($schedules as $schedule)
-                                                <option value="{{ $schedule->id }}">{{ $schedule->schedule_code }}</option>
+                                                <option value="{{ $schedule->id }}">{{ $schedule->schedule_code }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -45,7 +46,8 @@
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <input type="date" wire:model.live="selectedDate" class="form-control" placeholder="Select a date">
+                                        <input type="date" wire:model.live="selectedDate" class="form-control"
+                                            placeholder="Select a date">
                                     </div>
                                     <div class="col-md-2">
                                         <select wire:model.live="status" class="form-select">
@@ -57,27 +59,41 @@
                                         </select>
                                     </div>
                                     <div class="col-md-2 text-md-end mt-2 mt-md-0">
-                                        <button class="btn btn-secondary w-100" type="reset" wire:click="clear">Clear Filters</button>
+                                        <button class="btn btn-secondary w-100" type="reset" wire:click="clear">Clear
+                                            Filters</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
 
                         <div class="overflow-auto">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Date</th>
-                                        <th>Class</th>
-                                        <th>Status</th>
+                                        @include('livewire.includes.table-sortable-th', [
+                                            'name' => 'date',
+                                            'displayName' => 'Date',
+                                        ])
+                                        @include('livewire.includes.table-sortable-th', [
+                                            'name' => 'schedule.schedule_code',
+                                            'displayName' => 'Class',
+                                        ])
+                                        @include('livewire.includes.table-sortable-th', [
+                                            'name' => 'status',
+                                            'displayName' => 'Status',
+                                        ])
+                                        @include('livewire.includes.table-sortable-th', [
+                                            'name' => 'percentage',
+                                            'displayName' => 'Percentage',
+                                        ])
                                         <th>Time In</th>
                                         <th>Time Out</th>
-                                        <th>Percentage</th>
                                         <th>Remarks</th>
                                     </tr>
                                 </thead>
+                                
                                 <tbody>
                                     @foreach ($attendances as $attendance)
                                         <tr onclick="window.location='{{ route('attendance.subject.view', ['schedule' => $attendance->schedule->id]) }}';"
@@ -89,7 +105,18 @@
                                             <td>{{ ucfirst($attendance->status) }}</td>
                                             <td>{{ $attendance->formatted_time_in }}</td>
                                             <td>{{ $attendance->formatted_time_out }}</td>
-                                            <td>{{ $attendance->percentage }}%</td>
+                                            <td class="text-center">
+                                                <div class="progress mt-progress">
+                                                    <div class="progress-bar 
+                                                        {{ $attendance->percentage < 50 ? 'bg-danger' : ($attendance->percentage < 70 ? 'bg-warning' : 'bg-success') }}"
+                                                        role="progressbar"
+                                                        style="width: {{ $attendance->percentage }}%;"
+                                                        aria-valuenow="{{ $attendance->percentage }}" aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                        {{ $attendance->percentage }}%
+                                                    </div>
+                                                </div>
+                                            </td>
                                             <td>{{ $attendance->remarks }}</td>
                                         </tr>
                                     @endforeach
