@@ -1,14 +1,24 @@
 <div class="card flex-fill">
     <div class="card-body profile-card pt-4 d-flex flex-column align-items-center position-relative">
         <!-- Profile Picture with Hover and Fade Effect -->
-        <div class="profile-image-wrapper position-relative" style="width: 150px; height: 150px;">
+        <div class="profile-image-wrapper position-relative rounded-circle overflow-hidden"
+            style="width: 150px; height: 150px;">
             <img id="profileImage" src="{{ Auth::user()->profile_photo_url }}" alt="Profile"
                 class="rounded-circle profile-image w-100 h-100" style="cursor: pointer; transition: filter 0.3s ease;">
 
             <!-- Upload icon that appears with fade effect on hover -->
             <div class="upload-icon position-absolute top-50 start-50 translate-middle"
                 style="opacity: 0; transition: opacity 0.3s ease;">
-                <i class="bi bi-upload text-white" style="font-size: 2rem;"></i>
+                <i class="bi bi-upload text-white" style="font-size: 1.2rem;"></i>
+            </div>
+
+            <!-- Remove Profile button that appears with fade effect on hover -->
+            <div id="removeProfileButton" class="position-absolute bottom-0 start-0 end-0 text-center"
+                style="opacity: 0; transition: opacity 0.3s ease; background: rgba(255, 0, 0, 0.9); cursor: pointer; transform: translateY(0%);">
+                <div class="text-white d-flex flex-column justify-content-center align-items-center"
+                    style="padding: 8px 0;">
+                    <i class="bi bi-trash" style="font-size: 1.2rem;"></i>
+                </div>
             </div>
 
             <!-- Hidden file input for profile picture -->
@@ -30,8 +40,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="img-container" style="max-height: 70vh; overflow: hidden; display: flex; justify-content: center; align-items: center;"> <!-- Ensure image fits container -->
-                    <img id="cropImage" src="" style="width: 100%; height: auto; max-height: 70vh; object-fit: contain;"> <!-- Scale image, maintain aspect ratio -->
+                <div class="img-container"
+                    style="max-height: 70vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                    <img id="cropImage" src=""
+                        style="width: 100%; height: auto; max-height: 70vh; object-fit: contain;">
                 </div>
             </div>
             <div class="modal-footer">
@@ -51,19 +63,22 @@
         document.getElementById('profilePictureInput').click();
     });
 
-    // Hover effect to show the upload icon and darken the image with fade animation
+    // Hover effect to show the upload icon, remove profile button, and darken the image with fade animation
     const profileImageWrapper = document.querySelector('.profile-image-wrapper');
     const profileImage = document.getElementById('profileImage');
     const uploadIcon = document.querySelector('.upload-icon');
+    const removeProfileButton = document.getElementById('removeProfileButton');
 
     profileImageWrapper.addEventListener('mouseenter', function() {
         profileImage.style.filter = 'brightness(50%)'; // Darken the image
         uploadIcon.style.opacity = '1'; // Fade in the upload icon
+        removeProfileButton.style.opacity = '1'; // Fade in the remove profile button
     });
 
     profileImageWrapper.addEventListener('mouseleave', function() {
         profileImage.style.filter = 'brightness(100%)'; // Restore original brightness
         uploadIcon.style.opacity = '0'; // Fade out the upload icon
+        removeProfileButton.style.opacity = '0'; // Fade out the remove profile button
     });
 
     // When a file is selected, show the crop modal
@@ -118,7 +133,6 @@
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'X-HTTP-Method-Override': 'PATCH'
-
                     }
                 })
                 .then(response => response.json())
@@ -138,5 +152,32 @@
                     console.error('Error:', error);
                 });
         });
+    });
+
+    // Remove profile picture
+    removeProfileButton.addEventListener('click', function() {
+        if (confirm('Are you sure you want to remove your profile picture?')) {
+            fetch('{{ route('profile.remove-picture') }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Set the profile image to a default picture after removal
+                        profileImage.src = '/path/to/default/profile/image.png';
+                        alert(data.message);
+                        window.location.reload();
+
+                    } else {
+                        alert('Error removing profile picture');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
     });
 </script>

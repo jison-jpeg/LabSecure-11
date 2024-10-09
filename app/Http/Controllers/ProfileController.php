@@ -90,6 +90,24 @@ class ProfileController extends Controller
 
         return response()->json(['status' => 'error', 'message' => 'No profile picture uploaded'], 400);
     }
+
+    /**
+     * Remove the user's profile picture.
+     */
+    public function removeProfilePicture(Request $request)
+    {
+        $user = $request->user();
+
+        // Remove the profile picture if it exists
+        if ($user->profile_picture) {
+            Storage::delete($user->profile_picture);
+            $user->profile_picture = null;
+            $user->save();
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Profile picture removed successfully!']);
+    }
+
     /**
      * Delete the user's account.
      */
