@@ -132,7 +132,9 @@
                         'displayName' => 'Status',
                     ])
                     <th scope="col" class="text-dark fw-semibold">Remarks</th>
+                    @if (Auth::user()->isAdmin())
                     <th scope="col" class="text-center text-dark fw-semibold">Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -178,6 +180,7 @@
                             </span>
                         </td>
                         <td>{{ $attendance->remarks }}</td>
+                        @if (Auth::user()->isAdmin())
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
@@ -194,7 +197,7 @@
                                 </ul>
                             </div>
                         </td>
-                        
+                        @endif    
                     </tr>
                 @endforeach
             </tbody>

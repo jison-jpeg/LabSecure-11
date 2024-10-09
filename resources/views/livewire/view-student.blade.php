@@ -63,7 +63,7 @@
                                     <th>Subject</th>
                                     <th>Time In</th>
                                     <th>Time Out</th>
-                                    <th>Status</th>
+                                    <th  class="text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,7 +73,14 @@
                                         <td>{{ $record->schedule->subject->name ?? 'N/A' }}</td>
                                         <td>{{ $record->formatted_time_in }}</td>
                                         <td>{{ $record->formatted_time_out }}</td>
-                                        <td>{{ ucfirst($record->status) }}</td>
+                                        <td class="text-center">
+                                            <span class="badge rounded-pill 
+                                                {{ $record->status == 'present' ? 'bg-success' : 
+                                                   ($record->status == 'absent' ? 'bg-danger' : 
+                                                   ($record->status == 'late' ? 'bg-warning' : 'bg-secondary')) }}">
+                                                {{ ucfirst($record->status) }}
+                                            </span>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

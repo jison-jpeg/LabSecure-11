@@ -174,6 +174,7 @@
             <!-- End Right side columns -->
 
             <!-- Recent User Activity -->
+            @if (Auth::user()->isAdmin())
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -262,6 +263,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </section>
 </div>

@@ -169,7 +169,7 @@
                                 <th>Subject</th>
                                 <th>Time In</th>
                                 <th>Time Out</th>
-                                <th>Status</th>
+                                <th class="text-center">Status</th>
                                 <th>Percentage</th>
                                 <th>Remarks</th>
                             </tr>
@@ -182,7 +182,14 @@
                                     <td>{{ $att->schedule->subject->name ?? 'N/A' }}</td>
                                     <td>{{ $att->formatted_time_in }}</td>
                                     <td>{{ $att->formatted_time_out }}</td>
-                                    <td>{{ ucfirst($att->status) }}</td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill 
+                                            {{ $att->status == 'present' ? 'bg-success' : 
+                                               ($att->status == 'absent' ? 'bg-danger' : 
+                                               ($att->status == 'late' ? 'bg-warning' : 'bg-secondary')) }}">
+                                            {{ ucfirst($att->status) }}
+                                        </span>
+                                    </td>
                                     <td class="text-center">
                                         <div class="progress mt-progress">
                                             <div class="progress-bar 

@@ -106,6 +106,7 @@
                         'name' => 'department.name',
                         'displayName' => 'Department',
                     ])
+                    <th scope="col" class="text-center">Status</th>
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -123,6 +124,11 @@
                         <td>{{ $faculty->suffix }}</td>
                         <td>{{ $faculty->college->name ?? 'N/A' }}</td>
                         <td>{{ $faculty->department->name ?? 'N/A' }}</td>
+                        <td class="text-center">
+                            <span class="badge {{ $faculty->status == 'active' ? 'bg-success' : 'bg-danger' }} rounded-pill">
+                                {{ $faculty->status }}
+                            </span>
+                        </td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">

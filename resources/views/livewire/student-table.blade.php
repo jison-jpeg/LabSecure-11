@@ -163,6 +163,7 @@
                         'name' => 'department.name',
                         'displayName' => 'Department',
                     ])
+                    <th scope="col" class="text-center">Status</th>
                     @if (Auth::user()->role->name === 'admin')
                         <th scope="col" class="text-center">Action</th>
                     @endif
@@ -181,6 +182,9 @@
                         <td>{{ $user->suffix }}</td>
                         <td>{{ $user->college->name ?? 'N/A' }}</td>
                         <td>{{ $user->department->name ?? 'N/A' }}</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill bg-{{ $user->status === 'active' ? 'success' : 'danger' }}">{{ ucfirst($user->status) }}</span>
+                        </td>
                         @if (Auth::user()->role->name === 'admin')
                             <td class="text-center">
                                 <div class="btn-group dropstart">

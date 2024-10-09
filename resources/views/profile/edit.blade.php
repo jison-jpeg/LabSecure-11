@@ -24,7 +24,7 @@
         
                 <div class="col-xl-12">
                     @include('profile.partials.update-password-form')
-                    @include('profile.partials.delete-user-form')
+                    {{-- @include('profile.partials.delete-user-form') --}}
                 </div>
             </div>
         </section>
