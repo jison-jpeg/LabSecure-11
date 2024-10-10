@@ -41,11 +41,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Attempt to authenticate the user
         if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
-
             throw ValidationException::withMessages([
                 'username' => trans('auth.failed'),
+            ]);
+        }
+
+        // Check if the user is active
+        $user = Auth::user();
+        if (!$user->isActive()) { // Assuming you have an `isActive` method in the User model
+            Auth::logout(); // Log the user out
+            throw ValidationException::withMessages([
+                'username' => 'Your account is not active. You may contact the data center to settle your account.',
             ]);
         }
 

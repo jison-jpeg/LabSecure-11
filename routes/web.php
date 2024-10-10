@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaboratoryController;
 use App\Http\Controllers\ProfileController;
@@ -15,6 +16,11 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TransactionLogController;
 use Illuminate\Support\Facades\Route;
 
+// Login
+Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+
+// Home
 Route::get('/', function () {
     return view('welcome');
 });
