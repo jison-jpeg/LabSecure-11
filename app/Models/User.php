@@ -144,10 +144,9 @@ class User extends Authenticatable
     }
 
     public function getProfilePhotoUrlAttribute()
-{
-    return $this->profile_picture
-        ? Storage::url($this->profile_picture)
-        : asset('assets/img/default-profile.png'); // Fallback to a default image
-}
-
+    {
+        return $this->profile_picture
+            ? Storage::url($this->profile_picture)
+            : asset('assets/img/default-profile.png'); // Fallback to a default image
+    }
 }

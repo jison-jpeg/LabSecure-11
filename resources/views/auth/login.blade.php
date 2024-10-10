@@ -27,7 +27,7 @@
                         @enderror
                     </div>
                 </div>
-                
+
                 <div class="col-12">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" required autocomplete="current-password">
@@ -41,14 +41,14 @@
                         </div>
                     @enderror
                 </div>
-            
+
                 <div class="col-12">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="remember" id="rememberMe">
                         <label class="form-check-label" for="rememberMe">{{ __('Remember me') }}</label>
                     </div>
                 </div>
-            
+
                 <div class="col-12">
                     @if (Route::has('password.request'))
                         <a class="small mb-0" href="{{ route('password.request') }}">
@@ -56,22 +56,30 @@
                         </a>
                     @endif
                 </div>
-                
+
                 <div class="col-12">
                     <button class="btn btn-primary w-100 text-white" type="submit">Login</button>
                 </div>
-            
-                <div class="col-12">
-                    <a href="{{ route('google.login') }}" class="btn btn-outline-primary w-100">Login with Google</a>
-                </div>
-                
-                <div class="col-12">
-                    <p class="small mb-0">Don't have an account? <a href="{{ route('register') }}">Create an account</a></p>
-                </div>
             </form>
-            
+
+            <!-- Line Separator -->
+            <div class="d-flex align-items-center my-3">
+                <hr class="flex-grow-1">
+                <span class="mx-2">or</span>
+                <hr class="flex-grow-1">
+            </div>
+
+            <!-- Google Login Button -->
+            <div class="col-12">
+                <a href="{{ route('google.login') }}" class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center">
+                    <i class="bi bi-google me-3"></i>
+                    Login with Google
+                </a>
+            </div>
+
+            <div class="col-12 text-center mt-3">
+                <p class="small mb-0">Don't have an account? <a href="{{ route('register') }}">Create an account</a></p>
+            </div>
         </div>
     </div>
 </x-guest-layout>
-
-
