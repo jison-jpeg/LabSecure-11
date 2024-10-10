@@ -144,9 +144,16 @@ class User extends Authenticatable
     }
 
     public function getProfilePhotoUrlAttribute()
-    {
-        return $this->profile_picture
-            ? Storage::url($this->profile_picture)
-            : asset('assets/img/default-profile.png'); // Fallback to a default image
+{
+    // Check if profile_picture is a valid URL
+    if (filter_var($this->profile_picture, FILTER_VALIDATE_URL)) {
+        return $this->profile_picture; // Return the Google profile picture URL directly
     }
+    
+    // If it's not a URL, check if it's a stored file
+    return $this->profile_picture
+        ? Storage::url($this->profile_picture) // Return the stored profile picture URL
+        : asset('assets/img/default-profile.png'); // Fallback to a default image
+}
+
 }

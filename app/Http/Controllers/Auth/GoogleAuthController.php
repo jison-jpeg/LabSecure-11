@@ -35,9 +35,15 @@ class GoogleAuthController extends Controller
             ]);
         }
 
+        if (!$user->profile_picture) {
+            // Store the Google profile picture URL
+            $user->profile_picture = $googleUser->getAvatar(); // Assuming getAvatar() returns the profile picture URL
+            $user->save();
+        }
+
         // If the user exists, log them in
         Auth::login($user, true);
 
-        return redirect()->intended('/'); // Redirect to your intended route
+        return redirect()->intended('/dashboard'); // Redirect to your intended route
     }
 }
