@@ -21,8 +21,12 @@ Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->na
 Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 
 // Home
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login'); // Redirect to the login route
 });
 
 // General Dashboard

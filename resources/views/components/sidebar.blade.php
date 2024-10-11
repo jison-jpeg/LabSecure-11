@@ -17,7 +17,8 @@
                 </a>
             </li>
             <li class="nav-heading">MENU</li>
-            @if (Auth::user()->role->name !== 'student')
+            {{-- @if (Auth::user()->role->name !== 'student') --}}
+            @if (!Auth::user()->isStudent())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('laboratories*') ? '' : 'collapsed' }}"
                     href="{{ url('/laboratories') }}">
@@ -27,8 +28,8 @@
             </li>
             @endif
 
-            @if (Auth::user()->role->name === 'admin')
-                <li class="nav-item">
+            @if (Auth::user()->isAdmin())
+            <li class="nav-item">
                     <a class="nav-link {{ request()->is('users*') ? '' : 'collapsed' }}" href="{{ url('/users') }}">
                         <i class="bi bi-people"></i>
                         <span>Users</span>
@@ -44,10 +45,10 @@
                 </a>
             </li>
 
-            @if (Auth::user()->role->name !== 'student')            
+            @if (!Auth::user()->isStudent())
             <li class="nav-heading">INSTITUTION</li>
 
-            @if (Auth::user()->role->name === 'admin')
+            @if (Auth::user()->isAdmin())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('courses*') ? '' : 'collapsed' }}" href="{{ url('/courses') }}">
                     <i class="bi bi-bank"></i>
@@ -79,7 +80,7 @@
                 </a>
             </li>
 
-            @if (Auth::user()->role->name === 'admin')
+            @if (Auth::user()->isAdmin())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('schedules*') ? '' : 'collapsed' }}"
                     href="{{ url('/schedules') }}">
@@ -89,7 +90,7 @@
             </li>
             @endif
 
-            @if (Auth::user()->role->name === 'instructor')
+            @if (Auth::user()->isInstructor())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('classes*') ? '' : 'collapsed' }}"
                     href="{{ url('/classes') }}">
@@ -99,7 +100,7 @@
             </li>
             @endif
 
-            @if (Auth::user()->role->name === 'admin')
+            @if (Auth::user()->isAdmin())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('sections*') ? '' : 'collapsed' }}"
                     href="{{ url('/sections') }}">
@@ -117,7 +118,7 @@
                 </a>
             </li>
 
-            @if (Auth::user()->role->name === 'admin')
+            @if (Auth::user()->isAdmin())
             <li class="nav-heading">SETTINGS</li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('logs') ? '' : 'collapsed' }}" href="{{ url('/logs') }}">

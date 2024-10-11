@@ -10,7 +10,6 @@
 
     <!-- Favicons -->
     <link href="{{ asset('assets/img/logo.png')}}" rel="icon">
-    <link href="{{ asset('assets/img/logo.png')}}" rel="icon">
 
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
