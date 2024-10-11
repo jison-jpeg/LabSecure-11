@@ -9,6 +9,7 @@ use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
 
 class ScheduleTable extends Component
 {
@@ -16,7 +17,7 @@ class ScheduleTable extends Component
     protected $paginationTheme = 'bootstrap';
 
     public $schedule;
-    public $title = 'Create Schedule';
+    public $title = 'Manage Schedules';
     public $event = 'create-schedule';
 
     #[Url(history: true)]
@@ -76,10 +77,27 @@ class ScheduleTable extends Component
 
     public function render()
     {
-        return view('livewire.schedule-table', [
-            'schedules' => Schedule::search($this->search)
+        $user = Auth::user();
+        
+        // Determine schedules based on user role
+        if ($user->isAdmin()) {
+            $schedules = Schedule::search($this->search)
                 ->sort($this->sortBy, $this->sortDir)
-                ->paginate($this->perPage),
+                ->paginate($this->perPage);
+        } elseif ($user->isInstructor()) {
+            $schedules = Schedule::where('instructor_id', $user->id)
+                ->search($this->search)
+                ->sort($this->sortBy, $this->sortDir)
+                ->paginate($this->perPage);
+        } elseif ($user->isStudent()) {
+            $schedules = Schedule::where('section_id', $user->section_id)  // Get schedules for the student's section
+                ->search($this->search)
+                ->sort($this->sortBy, $this->sortDir)
+                ->paginate($this->perPage);
+        }
+
+        return view('livewire.schedule-table', [
+            'schedules' => $schedules,
         ]);
     }
 

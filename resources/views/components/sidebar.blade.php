@@ -90,7 +90,7 @@
             </li>
             @endif
 
-            @if (Auth::user()->isInstructor())
+            @if (Auth::user()->isInstructor() || Auth::user()->isStudent())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('classes*') ? '' : 'collapsed' }}"
                     href="{{ url('/classes') }}">

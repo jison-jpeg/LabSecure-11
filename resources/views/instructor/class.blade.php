@@ -34,7 +34,7 @@
                                     </div>
 
                                     {{-- User Table Livewire --}}
-                                    @livewire('instructor-schedule-table')
+                                    @livewire('schedule-table')
                                     <!-- End User Table Livewire -->
 
                             </div>
