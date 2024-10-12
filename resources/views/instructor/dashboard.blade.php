@@ -25,6 +25,8 @@
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
+                    @livewire('upcoming-class')
+
                     @livewire('attendance-stats')
                     <div class="row">
 

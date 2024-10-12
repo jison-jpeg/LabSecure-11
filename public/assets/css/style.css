@@ -1082,6 +1082,10 @@ th.sortable.desc:after {
     background: linear-gradient(135deg, #4e54c8, #8f94fb); 
 }
 
+.upcoming-class {
+    background: linear-gradient(135deg, #c8b24e, #dd9a41); 
+}
+
 .card-info p, 
 .card-info h5 {
     color: white;
