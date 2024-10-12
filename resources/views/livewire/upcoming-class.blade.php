@@ -8,15 +8,15 @@
                     <div class="row">
                         <div class="col-12 col-md-4">
                             <h6>Subject</h6>
-                            <p>{{ $ongoingClass->subject->name }}</p>
+                            <p class="text-truncate">{{ $ongoingClass->subject->name }}</p>
                         </div>
                         <div class="col-12 col-md-4">
                             <h6>Instructor</h6>
-                            <p>{{ $ongoingClass->instructor->full_name }}</p>
+                            <p class="text-truncate">{{ $ongoingClass->instructor->full_name }}</p>
                         </div>
                         <div class="col-12 col-md-4">
                             <h6>Time</h6>
-                            <p>{{ Carbon\Carbon::parse($ongoingClass->start_time)->format('h:i A') }} - 
+                            <p class="text-truncate">{{ Carbon\Carbon::parse($ongoingClass->start_time)->format('h:i A') }} - 
                                 {{ Carbon\Carbon::parse($ongoingClass->end_time)->format('h:i A') }}</p>
                         </div>
                     </div>
@@ -33,15 +33,15 @@
                         <div class="row">
                             <div class="col-12 col-md-4">
                                 <h6>Subject</h6>
-                                <p>{{ $upcomingClass->subject->name }}</p>
+                                <p class="text-truncate">{{ $upcomingClass->subject->name }}</p>
                             </div>
                             <div class="col-12 col-md-4">
                                 <h6>Instructor</h6>
-                                <p>{{ $upcomingClass->instructor->full_name }}</p>
+                                <p class="text-truncate">{{ $upcomingClass->instructor->full_name }}</p>
                             </div>
                             <div class="col-12 col-md-4">
                                 <h6>Time</h6>
-                                <p>{{ Carbon\Carbon::parse($upcomingClass->start_time)->format('h:i A') }} - 
+                                <p class="text-truncate">{{ Carbon\Carbon::parse($upcomingClass->start_time)->format('h:i A') }} - 
                                     {{ Carbon\Carbon::parse($upcomingClass->end_time)->format('h:i A') }}</p>
                             </div>
                         </div>
@@ -60,15 +60,15 @@
                     <div class="row">
                         <div class="col-12 col-md-4">
                             <h6>Subject</h6>
-                            <p>{{ $upcomingClass->subject->name }}</p>
+                            <p class="text-truncate">{{ $upcomingClass->subject->name }}</p>
                         </div>
                         <div class="col-12 col-md-4">
                             <h6>Instructor</h6>
-                            <p>{{ $upcomingClass->instructor->full_name }}</p>
+                            <p class="text-truncate">{{ $upcomingClass->instructor->full_name }}</p>
                         </div>
                         <div class="col-12 col-md-4">
                             <h6>Time</h6>
-                            <p>{{ Carbon\Carbon::parse($upcomingClass->start_time)->format('h:i A') }} - 
+                            <p class="text-truncate">{{ Carbon\Carbon::parse($upcomingClass->start_time)->format('h:i A') }} - 
                                 {{ Carbon\Carbon::parse($upcomingClass->end_time)->format('h:i A') }}</p>
                         </div>
                     </div>
@@ -83,7 +83,7 @@
             <div class="card card-info position-relative">
                 <div class="card-body text-white">
                     <h5 class="card-title fs-3">No Upcoming Classes</h5>
-                    <p>You have no upcoming classes scheduled at the moment.</p>
+                    <p class="text-truncate">You have no upcoming classes scheduled at the moment.</p>
                 </div>
             </div>
         </div>
