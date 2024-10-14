@@ -63,13 +63,16 @@
                                     {{ $laboratory->status }}
                                 </h5>
                                 @if (Auth::user()->isAdmin())
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault"
-                                        wire:click="toggleLock" {{ $isLocked ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="flexSwitchCheckDefault">
+                                <div class="d-flex align-items-center">
+                                    <!-- Label is placed on the left with sufficient margin -->
+                                    <label class="form-check-label me-3 text-muted" for="flexSwitchCheckDefault">
                                         {{ $isLocked ? 'Locked' : 'Unlocked' }}
                                     </label>
-                                </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault"
+                                            wire:click="toggleLock" {{ $isLocked ? 'checked' : '' }}>
+                                    </div>
+                                </div>                                
                                 @endif
                             </div>
 
