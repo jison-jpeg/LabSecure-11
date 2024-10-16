@@ -19,7 +19,7 @@ class SubjectTable extends Component
     protected $paginationTheme = 'bootstrap';
 
     public $subject;
-    public $title = 'Create Subject';
+    public $title = 'Manage Subjects';
     public $event = 'create-subject';
 
     #[Url(history: true)]
@@ -85,20 +85,27 @@ class SubjectTable extends Component
         }
     }
 
-
     public function render()
     {
         $user = Auth::user();
-
         $query = Subject::query();
 
-        // If the user is an instructor, filter subjects by the instructor's ID
-        if ($user->role->name === 'instructor') {
-            $query = $query->whereHas('schedules', function ($q) use ($user) {
+        // Role-based filtering
+        if ($user->isAdmin()) {
+            // Admin sees all subjects
+        } elseif ($user->isInstructor()) {
+            // Instructors see subjects that are part of their assigned schedules
+            $query->whereHas('schedules', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
+            });
+        } elseif ($user->isStudent()) {
+            // Students see subjects that are part of their section schedules
+            $query->whereHas('schedules', function ($q) use ($user) {
+                $q->where('section_id', $user->section_id);
             });
         }
 
+        // Apply search, filters, and sorting
         $subjects = $query->search($this->search)
             ->when($this->college !== '', function ($query) {
                 $query->where('college_id', $this->college);

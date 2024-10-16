@@ -13,7 +13,8 @@
                                 <p><strong>Full Name:</strong> {{ $user->full_name }}</p>
                                 <p><strong>Role:</strong> {{ ucfirst($user->role->name) }}</p>
                                 <p><strong>College:</strong> {{ $user->college ? $user->college->name : 'N/A' }}</p>
-                                <p><strong>Department:</strong> {{ $user->department ? $user->department->name : 'N/A' }}</p>
+                                <p><strong>Department:</strong>
+                                    {{ $user->department ? $user->department->name : 'N/A' }}</p>
                                 @if ($user->isStudent())
                                     <p><strong>Section:</strong>
                                         {{ $user->section ? ($user->schedules->first() ? $user->schedules->first()->schedule_code . ' ' . $user->section->name : $user->section->name) : 'N/A' }}
@@ -34,7 +35,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">Present</h5>
                                 <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <div
+                                        class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                         <i class="bi bi-check-circle"></i>
                                     </div>
                                     <div class="ps-3">
@@ -52,7 +54,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">Absent</h5>
                                 <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <div
+                                        class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                         <i class="bi bi-x-circle"></i>
                                     </div>
                                     <div class="ps-3">
@@ -72,7 +75,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">Late</h5>
                                 <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <div
+                                        class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                         <i class="bi bi-clock"></i>
                                     </div>
                                     <div class="ps-3">
@@ -90,7 +94,8 @@
                             <div class="card-body">
                                 <h5 class="card-title">Incomplete</h5>
                                 <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <div
+                                        class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                         <i class="bi bi-exclamation-circle"></i>
                                     </div>
                                     <div class="ps-3">
@@ -109,7 +114,9 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Attendance Records</h5>
+                    <h5 class="card-title">
+                        {{ Auth::user()->isAdmin() ? 'Attendance Records' : 'My Attendance Records' }}
+                    </h5>
                     <div class="row mb-4">
                         <div class="col-md-10">
                             <div class="row g-1">
@@ -125,7 +132,7 @@
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <input wire:model.live.debounce.300ms="search" type="text" name="search"
-                                           class="form-control" placeholder="Search attendance...">
+                                        class="form-control" placeholder="Search attendance...">
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <select wire:model.live="status" name="status" class="form-select">
@@ -153,8 +160,8 @@
                                     </select>
                                 </div>
                                 <div class="col-12 col-md-2">
-                                    <button class="btn btn-secondary w-100 mb-1" type="reset"
-                                            wire:click="clear">Clear Filters</button>
+                                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
+                                        Filters</button>
                                 </div>
                             </div>
                         </div>
@@ -183,10 +190,15 @@
                                     <td>{{ $att->formatted_time_in }}</td>
                                     <td>{{ $att->formatted_time_out }}</td>
                                     <td class="text-center">
-                                        <span class="badge rounded-pill 
-                                            {{ $att->status == 'present' ? 'bg-success' : 
-                                               ($att->status == 'absent' ? 'bg-danger' : 
-                                               ($att->status == 'late' ? 'bg-warning' : 'bg-secondary')) }}">
+                                        <span
+                                            class="badge rounded-pill 
+                                            {{ $att->status == 'present'
+                                                ? 'bg-success'
+                                                : ($att->status == 'absent'
+                                                    ? 'bg-danger'
+                                                    : ($att->status == 'late'
+                                                        ? 'bg-warning'
+                                                        : 'bg-secondary')) }}">
                                             {{ ucfirst($att->status) }}
                                         </span>
                                     </td>
@@ -200,7 +212,8 @@
                                                 {{ $att->percentage }}%
                                             </div>
                                         </div>
-                                    </td>                                    <td>{{ $att->remarks }}</td>
+                                    </td>
+                                    <td>{{ $att->remarks }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
