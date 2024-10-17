@@ -29,7 +29,7 @@
             <div class="col-12 col-md-6">
                 <div class="card card-info position-relative">
                     <div class="card-body text-white">
-                        <h5 class="card-title fs-3">Up-next</h5>
+                        <h5 class="card-title fs-3">Upcoming Class</h5>
                         <div class="row">
                             <div class="col-12 col-md-4">
                                 <h6>Subject</h6>
@@ -56,7 +56,7 @@
         <div class="col-12">
             <div class="card card-info position-relative">
                 <div class="card-body text-white">
-                    <h5 class="card-title fs-3">Up-coming Class</h5>
+                    <h5 class="card-title fs-3">Upcoming Class</h5>
                     <div class="row">
                         <div class="col-12 col-md-4">
                             <h6>Subject</h6>

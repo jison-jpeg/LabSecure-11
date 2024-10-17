@@ -12,14 +12,18 @@ class SubjectController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
+        if ($user->isAdmin()) {
             return view('admin.subject');
-        } elseif ($user->role->name === 'instructor') {
+        } elseif ($user->isInstructor()) {
             return view('instructor.subject');
-        } elseif ($user->role->name === 'student') {
+        } elseif ($user->isStudent()) {
             return view('student.subject');
+        } elseif ($user->isDean()) {
+            return view('dean.subject'); // Optional for Dean
+        } elseif ($user->isChairperson()) {
+            return view('chairperson.subject'); // Optional for Chairperson
         } else {
-            return redirect()->route('unauthorized');
+            abort(401, 'Unauthorized access.');
         }
     }
 
@@ -27,14 +31,19 @@ class SubjectController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
+        if ($user->isAdmin()) {
             return view('admin.view-subject', ['subject' => $subject]);
-        } elseif ($user->role->name === 'instructor') {
+        } elseif ($user->isInstructor()) {
             return view('instructor.view-subject', ['subject' => $subject]);
-        } elseif ($user->role->name === 'student') {
+        } elseif ($user->isStudent()) {
             return view('student.view-subject', ['subject' => $subject]);
+        } elseif ($user->isDean()) {
+            return view('dean.view-subject', ['subject' => $subject]); // Optional for Dean
+        } elseif ($user->isChairperson()) {
+            return view('chairperson.view-subject', ['subject' => $subject]); // Optional for Chairperson
         } else {
-            return redirect()->route('unauthorized');
+            abort(401, 'Unauthorized access.');
         }
     }
 }
+

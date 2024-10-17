@@ -12,15 +12,19 @@ class ScheduleController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
+        if ($user->isAdmin()) {
             return view('admin.schedule');
-        } elseif ($user->role->name === 'instructor') {
+        } elseif ($user->isInstructor()) {
             // dd("You are in a schedule page of an instructor");
-            return view('instructor.class');
-        } elseif ($user->role->name === 'student') {
+            return view('instructor.schedule');
+        } elseif ($user->isStudent()) {
             return view('student.schedule');
+        } elseif ($user->isDean()) {
+            return view('dean.schedule'); // Optional for Dean
+        } elseif ($user->isChairperson()) {
+            return view('chairperson.schedule'); // Optional for Chairperson
         } else {
-            abort(401, message: 'Unauthorized access.');
+            abort(401, 'Unauthorized access.');
         }
     }
 
@@ -28,14 +32,19 @@ class ScheduleController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
-            return view('admin.view-schedule', data: ['schedule' => $schedule]);
-        } elseif ($user->role->name === 'instructor') {
+        if ($user->isAdmin()) {
+            return view('admin.view-schedule', ['schedule' => $schedule]);
+        } elseif ($user->isInstructor()) {
             return view('instructor.view-schedule', ['schedule' => $schedule]);
-        } elseif ($user->role->name === 'student') {
+        } elseif ($user->isStudent()) {
             return view('student.view-schedule', ['schedule' => $schedule]);
+        } elseif ($user->isDean()) {
+            return view('dean.view-schedule', ['schedule' => $schedule]); // Optional for Dean
+        } elseif ($user->isChairperson()) {
+            return view('chairperson.view-schedule', ['schedule' => $schedule]); // Optional for Chairperson
         } else {
-            return redirect()->route('unauthorized');
+            abort(401, 'Unauthorized access.');
         }
     }
 }
+

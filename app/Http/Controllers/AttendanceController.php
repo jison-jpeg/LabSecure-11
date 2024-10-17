@@ -20,14 +20,18 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
+        if ($user->isAdmin()) {
             return view('admin.attendance');
-        } elseif ($user->role->name === 'instructor') {
+        } elseif ($user->isInstructor()) {
             return view('instructor.attendance');
-        } elseif ($user->role->name === 'student') {
+        } elseif ($user->isStudent()) {
             return view('student.attendance');
+        } elseif ($user->isDean()) {
+            return view('dean.attendance');
+        } elseif ($user->isChairperson()) {
+            return view('chairperson.attendance');
         } else {
-            return redirect()->route('unauthorized');
+            abort(401, message: 'Unauthorized access.');
         }
     }
 

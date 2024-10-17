@@ -24,14 +24,14 @@ class GoogleAuthController extends Controller
         if (!$user) {
             // Return an error response if the user doesn't exist
             return redirect()->route('login')->withErrors([
-                'username' => 'Account is not registered. Please contact the data center.',
+                'username' => 'Account is not registered. Please contact the administrator.',
             ]);
         }
 
         if (!$user->isActive()) {
             Auth::logout(); // Log the user out
             return redirect()->route('login')->withErrors([
-                'username' => 'Your account is not active. You may contact the data center to settle your account.',
+                'username' => 'Your account is not active. You may contact the administrator to settle your account.',
             ]);
         }
 

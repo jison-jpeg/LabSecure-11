@@ -17,19 +17,27 @@ class LaboratoryController extends Controller
 {
     // View all laboratories
     public function viewLaboratories()
-    {
-        $user = Auth::user();
-        if ($user->role->name === 'admin') {
-            $laboratories = Laboratory::paginate(2);
+{
+    $user = Auth::user();
 
-            return view('admin.laboratory', compact('laboratories'));
-        } elseif ($user->role->name === 'instructor') {
-
-            return view('instructor.laboratory');
-        } else {
-            return redirect()->route('unauthorized');
-        }
+    if ($user->isAdmin()) {
+        $laboratories = Laboratory::paginate(2);
+        return view('admin.laboratory', compact('laboratories'));
+    } elseif ($user->isInstructor()) {
+        return view('instructor.laboratory');
+    } elseif ($user->isStudent()) {
+        // Optional: If students need access to labs, you can return the appropriate view here
+        return view('student.laboratory');
+    } elseif ($user->isDean()) {
+        // Optional: Add a view for dean if needed
+        return view('dean.laboratory');
+    } elseif ($user->isChairperson()) {
+        // Optional: Add a view for chairperson if needed
+        return view('chairperson.laboratory');
+    } else {
+        abort(401, 'Unauthorized access.');
     }
+}
 
     // View a specific laboratory
 public function viewLaboratory(Laboratory $laboratory)

@@ -11,14 +11,18 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
+        if ($user->isAdmin()) {
             return view('admin.dashboard');
-        } elseif ($user->role->name === 'instructor') {
+        } elseif ($user->isInstructor()) {
             return view('instructor.dashboard');
-        } elseif ($user->role->name === 'student') {
+        } elseif ($user->isStudent()) {
             return view('student.dashboard');
+        } elseif ($user->isDean()) {
+            return view('dean.dashboard');
+        } elseif ($user->isChairperson()) {
+            return view('chairperson.dashboard');
         } else {
-            return redirect()->route('unauthorized');
+            abort(401, message: 'Unauthorized access.');
         }
     }
 }

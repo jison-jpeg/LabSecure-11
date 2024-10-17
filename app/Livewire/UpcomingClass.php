@@ -21,27 +21,35 @@ class UpcomingClass extends Component
     {
         $user = Auth::user();
         $now = Carbon::now();
+        $currentDay = Carbon::now()->format('l'); // Get the current day of the week (e.g., 'Monday')
 
         // Only handle instructor and student roles
         if ($user->isInstructor()) {
+            // Ongoing class based on today's schedules
             $this->ongoingClass = Schedule::where('instructor_id', $user->id)
+                ->whereJsonContains('days_of_week', $currentDay) // Filter by the current day
                 ->where('start_time', '<=', $now)
                 ->where('end_time', '>=', $now)
                 ->first();
 
+            // Upcoming class based on today's schedules
             $this->upcomingClass = Schedule::where('instructor_id', $user->id)
+                ->whereJsonContains('days_of_week', $currentDay) // Filter by the current day
                 ->where('start_time', '>', $now)
                 ->orderBy('start_time')
                 ->first();
         } elseif ($user->isStudent()) {
-            $this->ongoingClass = Schedule::where('section_id', $user->section_id)  // Get schedules for the student's section
+            // Ongoing class for students based on today's schedules
+            $this->ongoingClass = Schedule::where('section_id', $user->section_id) // Get schedules for the student's section
+                ->whereJsonContains('days_of_week', $currentDay) // Filter by the current day
                 ->where('start_time', '<=', $now)
                 ->where('end_time', '>=', $now)
                 ->first();
 
-            $this->upcomingClass = Schedule::where('section_id', $user->section_id)  // Get upcoming schedules for the student's section
+            // Upcoming class for students based on today's schedules
+            $this->upcomingClass = Schedule::where('section_id', $user->section_id) // Get upcoming schedules for the student's section
+                ->whereJsonContains('days_of_week', $currentDay) // Filter by the current day
                 ->where('start_time', '>', $now)
-                ->whereJsonContains('days_of_week', Carbon::now()->format('l')) // Check if today is a scheduled day
                 ->orderBy('start_time')
                 ->first();
         }

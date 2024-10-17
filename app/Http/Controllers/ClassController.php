@@ -10,19 +10,23 @@ use Illuminate\Support\Facades\Auth;
 class ClassController extends Controller
 {
     public function viewClasses()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
-            return view('admin.class');
-        } elseif ($user->role->name === 'instructor') {
-            return view('instructor.class');
-        } elseif ($user->role->name === 'student') {
-            return view('student.class');
-        } else {
-            return redirect()->route('unauthorized');
-        }
+    if ($user->isAdmin()) {
+        return view('admin.class');
+    } elseif ($user->isInstructor()) {
+        return view('instructor.class');
+    } elseif ($user->isStudent()) {
+        return view('student.class');
+    } elseif ($user->isDean()) {
+        return view('dean.class');
+    } elseif ($user->isChairperson()) {
+        return view('chairperson.class');
+    } else {
+        abort(401, 'Unauthorized access.');
     }
+}
 
     // view class method
     public function viewClass(Schedule $schedule)
