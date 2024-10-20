@@ -32,6 +32,8 @@
                     <div class="card h-100">
                         @livewire('lab-stats')
                     </div>
+                    @livewire('attendance-chart')
+
 
                 </div>
                 <!-- End Left side columns -->

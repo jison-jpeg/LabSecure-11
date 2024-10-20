@@ -31,7 +31,7 @@
                     <div class="row">
 
 
-                    @livewire('attendance-summary')
+                    @livewire('attendance-chart')
 
 
 
