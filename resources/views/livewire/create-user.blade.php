@@ -7,7 +7,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ $formTitle }}</h5>
-                    <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
@@ -23,7 +24,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="middle_name" class="form-label">Middle Name</label>
-                            <input wire:model="middle_name" type="text"
+                            <input wire:model.lazy="middle_name" type="text"
                                 class="form-control @error('middle_name') is-invalid @enderror" name="middle_name">
                             @error('middle_name')
                                 <span class="invalid-feedback">
@@ -31,11 +32,22 @@
                                 </span>
                             @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="last_name" class="form-label">Last Name</label>
                             <input wire:model.lazy="last_name" type="text"
                                 class="form-control @error('last_name') is-invalid @enderror" name="last_name">
                             @error('last_name')
+                                <span class="invalid-feedback">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        {{-- Suffix --}}
+                        <div class="col-md-1">
+                            <label for="suffix" class="form-label">Suffix</label>
+                            <input wire:model.lazy="suffix" type="text"
+                                class="form-control @error('suffix') is-invalid @enderror" name="suffix">
+                            @error('suffix')
                                 <span class="invalid-feedback">
                                     {{ $message }}
                                 </span>
@@ -71,16 +83,14 @@
                                 </span>
                             @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="{{ $this->isRoleStudent() ? 'col-md-2' : 'col-md-4' }}">
                             <label for="role_id" class="form-label">Role</label>
                             <select wire:model.lazy="role_id" class="form-select @error('role_id') is-invalid @enderror"
                                 name="role_id">
                                 <option value="">Select Role</option>
-                                <option value="1">Admin</option>
-                                <option value="2">Instructor</option>
-                                <option value="3">Student</option>
-                                <option value="4">Dean</option>
-                                <option value="5">Chairperson</option>
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                                @endforeach
                             </select>
                             @error('role_id')
                                 <span class="invalid-feedback">
@@ -88,16 +98,63 @@
                                 </span>
                             @enderror
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        @if ($editForm)
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <!-- College Field (Hide if Admin is selected) -->
+                        <div class="col-md-4" @if ($this->isRoleAdmin()) style="display: none;" @endif>
+                            <label for="college_id" class="form-label">College</label>
+                            <select wire:model.lazy="selectedCollege"
+                                class="form-select @error('selectedCollege') is-invalid @enderror" name="college_id">
+                                <option value="">Select College</option>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('selectedCollege')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- Department Field (Hide if Admin is selected) -->
+                        <div class="col-md-4" @if ($this->isRoleAdmin()) style="display: none;" @endif>
+                            <label for="department_id" class="form-label">Department</label>
+                            <select wire:model.lazy="selectedDepartment"
+                                class="form-select @error('selectedDepartment') is-invalid @enderror"
+                                name="department_id">
+                                <option value="">Select Department</option>
+                                @foreach ($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('selectedDepartment')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- Section Field (Visible Only for Student Role, Hide if Admin is selected) -->
+                        <div class="col-md-2" @if ($this->isRoleAdmin() || !$this->isRoleStudent()) style="display: none;" @endif>
+                            <label for="section_id" class="form-label">Section</label>
+                            <select wire:model.lazy="selectedSection"
+                                class="form-select @error('selectedSection') is-invalid @enderror" name="section_id">
+                                <option value="">Select Section</option>
+                                @foreach ($sections as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('selectedSection')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    @if ($editForm)
+                        <button wire:click="close" type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
                         <button wire:click="update" type="button" class="btn btn-primary">Save changes</button>
-                        @else
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    @else
+                        <button wire:click="close" type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
                         <button wire:click="save" type="button" class="btn btn-primary">Create user</button>
-                        @endif
-                    </div>
+                    @endif
+                </div>
                 </form>
             </div>
         </div>

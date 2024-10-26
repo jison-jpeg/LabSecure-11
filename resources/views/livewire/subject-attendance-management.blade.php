@@ -83,7 +83,7 @@
                         <th>Name</th>
                         <th>Time In</th>
                         <th>Time Out</th>
-                        <th>Status</th>
+                        <th class="text-center">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,7 +94,21 @@
                             <td>{{ $student->user->full_name }}</td>
                             <td>{{ $student->formatted_time_in }}</td>
                             <td>{{ $student->formatted_time_out }}</td>
-                            <td>{{ ucfirst($student->status) }}</td>
+                            <td class="text-center">
+                                <span
+                                    class="badge rounded-pill 
+                                    {{ $student->status == 'present'
+                                        ? 'bg-success'
+                                        : ($student->status == 'late'
+                                            ? 'bg-warning'
+                                            : ($student->status == 'absent'
+                                                ? 'bg-danger'
+                                                : ($student->status == 'incomplete'
+                                                    ? 'bg-secondary'
+                                                    : 'bg-secondary'))) }}">
+                                    {{ ucfirst($student->status) }}
+                                </span>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

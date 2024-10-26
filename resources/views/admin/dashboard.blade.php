@@ -32,7 +32,7 @@
                     <div class="card h-100">
                         @livewire('lab-stats')
                     </div>
-                    @livewire('attendance-chart')
+                    {{-- @livewire('attendance-rank') --}}
 
 
                 </div>

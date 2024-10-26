@@ -87,7 +87,7 @@
     
         @if (Auth::user()->role->name === 'admin')
             <div class="col-12 col-md-2">
-                <livewire:create-student />
+                @livewire('create-section')
             </div>
         @endif
     </div>

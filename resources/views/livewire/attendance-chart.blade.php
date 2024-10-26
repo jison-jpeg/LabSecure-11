@@ -32,7 +32,7 @@
                             height: 350,
                             type: 'area',
                             toolbar: {
-                                show: false
+                                show: true
                             },
                         },
                         markers: {

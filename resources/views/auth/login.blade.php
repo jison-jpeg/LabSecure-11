@@ -63,9 +63,9 @@
             </form>
 
             <!-- Line Separator -->
-            <div class="d-flex align-items-center my-3">
+            <div class="d-flex align-items-center my-1">
                 <hr class="flex-grow-1">
-                <span class="mx-2">or</span>
+                <span class="mx-2 text-muted">or</span>
                 <hr class="flex-grow-1">
             </div>
 
@@ -77,9 +77,9 @@
                 </a>
             </div>
 
-            <div class="col-12 text-center mt-3">
+            {{-- <div class="col-12 text-center mt-3">
                 <p class="small mb-0">Don't have an account? <a href="{{ route('register') }}">Create an account</a></p>
-            </div>
+            </div> --}}
         </div>
     </div>
 </x-guest-layout>

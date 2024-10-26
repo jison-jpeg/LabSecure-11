@@ -25,14 +25,33 @@ class CreateStudent extends Component
     public $college_id;
     public $department_id;
     public $section_id;
+    public $colleges = [];
+    public $departments = [];
+    public $sections = [];
 
-    public function render()
+    public function mount()
     {
-        return view('livewire.create-student', [
-            'colleges' => College::all(),
-            'departments' => Department::all(),
-            'sections' => Section::all(),
-        ]);
+        $this->loadInitialData();
+    }
+
+    public function loadInitialData()
+    {
+        $this->colleges = College::all();
+        $this->departments = [];
+        $this->sections = [];
+    }
+
+    public function updatedCollegeId($collegeId)
+    {
+        $this->departments = Department::where('college_id', $collegeId)->get();
+        $this->department_id = null;
+        $this->sections = [];
+    }
+
+    public function updatedDepartmentId($departmentId)
+    {
+        $this->sections = Section::where('department_id', $departmentId)->get();
+        $this->section_id = null;
     }
 
     public function updated($propertyName)
@@ -54,8 +73,8 @@ class CreateStudent extends Component
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'username' => 'required|unique:users,username,' . ($this->user->id ?? 'NULL'),
-            'email' => 'required|email|unique:users,email,' . ($this->user->id ?? 'NULL'),
+            'username' => 'required|unique:users',
+            'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'college_id' => 'required|exists:colleges,id',
             'department_id' => 'required|exists:departments,id',
@@ -80,14 +99,23 @@ class CreateStudent extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Student created successfully');
-        $this->reset();
+        $this->resetFields();
+    }
+
+    public function resetFields()
+    {
+        $this->reset([
+            'first_name', 'middle_name', 'last_name', 'username', 'email', 
+            'password', 'college_id', 'department_id', 'section_id'
+        ]);
+        $this->resetErrorBag();
     }
 
     #[On('reset-modal')]
     public function close()
     {
-        $this->resetErrorBag();
-        $this->reset();
+        $this->resetFields();
+        $this->loadInitialData();
     }
 
     #[On('edit-mode')]
@@ -104,6 +132,8 @@ class CreateStudent extends Component
         $this->college_id = $this->user->college_id;
         $this->department_id = $this->user->department_id;
         $this->section_id = $this->user->section_id;
+        $this->updatedCollegeId($this->college_id);
+        $this->updatedDepartmentId($this->department_id);
     }
 
     public function update()
@@ -134,6 +164,15 @@ class CreateStudent extends Component
             ->position('y', 'top')
             ->success('Student updated successfully');
         $this->dispatch('refresh-student-table');
-        $this->reset();
+        $this->resetFields();
+    }
+
+    public function render()
+    {
+        return view('livewire.create-student', [
+            'colleges' => $this->colleges,
+            'departments' => $this->departments,
+            'sections' => $this->sections,
+        ]);
     }
 }

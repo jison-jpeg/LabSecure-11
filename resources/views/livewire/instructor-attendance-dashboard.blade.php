@@ -93,7 +93,7 @@
                                         <th>Remarks</th>
                                     </tr>
                                 </thead>
-                                
+
                                 <tbody>
                                     @foreach ($attendances as $attendance)
                                         <tr onclick="window.location='{{ route('attendance.subject.view', ['schedule' => $attendance->schedule->id]) }}';"
@@ -102,7 +102,21 @@
                                             <td>{{ $attendance->formatted_date }}</td>
                                             <td>{{ $attendance->schedule->schedule_code }} -
                                                 {{ $attendance->schedule->subject->name }}</td>
-                                            <td>{{ ucfirst($attendance->status) }}</td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge rounded-pill 
+                                                        {{ $attendance->status == 'present'
+                                                            ? 'bg-success'
+                                                            : ($attendance->status == 'late'
+                                                                ? 'bg-warning'
+                                                                : ($attendance->status == 'absent'
+                                                                    ? 'bg-danger'
+                                                                    : ($attendance->status == 'incomplete'
+                                                                        ? 'bg-secondary'
+                                                                        : 'bg-secondary'))) }}">
+                                                    {{ ucfirst($attendance->status) }}
+                                                </span>
+                                            </td>
                                             <td>{{ $attendance->formatted_time_in }}</td>
                                             <td>{{ $attendance->formatted_time_out }}</td>
                                             <td class="text-center">

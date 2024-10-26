@@ -127,8 +127,8 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Instructor Name</th>
                                         <th>Section Code</th>
+                                        <th>Instructor Name</th>
                                         <th>Days of Week</th>
                                         <th>Start Time</th>
                                         <th>End Time</th>
@@ -139,8 +139,8 @@
                                     @foreach ($schedules as $key => $schedule)
                                         <tr>
                                             <th>{{ $key + 1 }}</th>
-                                            <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
                                             <td>{{ $schedule->schedule_code }}</td>
+                                            <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
                                             <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
                                             <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}
                                             </td>

@@ -120,64 +120,67 @@ class AttendanceTable extends Component
     }
 
     public function render()
-    {
-        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager load sessions
-            ->orderBy($this->sortBy, $this->sortDir);
+{
+    $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions']) // Eager load sessions
+        ->orderBy($this->sortBy, $this->sortDir);
 
-        // Check if the authenticated user is not an admin
-        if (!Auth::user()->isAdmin()) {
-            // Filter attendance records for the authenticated user only
-            $query->where('user_id', Auth::id());
-        }
+    // Check the authenticated user's role
+    $user = Auth::user();
 
-        // Apply search filters
-        $query->whereHas('user', function ($query) {
-            $query->where('first_name', 'like', '%' . $this->search . '%')
-                ->orWhere('middle_name', 'like', '%' . $this->search . '%')
-                ->orWhere('last_name', 'like', '%' . $this->search . '%')
-                ->orWhere('suffix', 'like', '%' . $this->search . '%')
-                ->orWhere('username', 'like', '%' . $this->search . '%')
-                ->orWhere('email', 'like', '%' . $this->search . '%');
-        });
-
-        // Apply status filter
-        if (!empty($this->status)) {
-            $query->where('status', $this->status);
-        }
-
-        // Apply subject filter
-        if (!empty($this->selectedSubject)) {
-            $query->whereHas('schedule.subject', function ($query) {
-                $query->where('id', $this->selectedSubject);
-            });
-        }
-
-        // Apply section filter
-        if (!empty($this->selectedSection)) {
-            $query->whereHas('schedule.section', function ($query) {
-                $query->where('id', $this->selectedSection);
-            });
-        }
-
-        // Apply month filter
-        if ($this->selectedMonth) {
-            $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
-                ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
-        }
-
-        // Paginate the results
-        $attendances = $query->paginate($this->perPage);
-
-        // Fetch all subjects and sections for the filter
-        $subjects = Subject::all();  // Fetch all subjects
-        $sections = Section::all();  // Fetch all sections
-
-        return view('livewire.attendance-table', [
-            'attendances' => $attendances,
-            'subjects' => $subjects,
-            'sections' => $sections,
-        ]);
+    // If the user is not an admin, dean, or chairperson, filter attendance records for the authenticated user only
+    if (!$user->isAdmin() && !$user->isDean() && !$user->isChairperson()) {
+        $query->where('user_id', $user->id);
     }
+
+    // Apply search filters
+    $query->whereHas('user', function ($query) {
+        $query->where('first_name', 'like', '%' . $this->search . '%')
+            ->orWhere('middle_name', 'like', '%' . $this->search . '%')
+            ->orWhere('last_name', 'like', '%' . $this->search . '%')
+            ->orWhere('suffix', 'like', '%' . $this->search . '%')
+            ->orWhere('username', 'like', '%' . $this->search . '%')
+            ->orWhere('email', 'like', '%' . $this->search . '%');
+    });
+
+    // Apply status filter
+    if (!empty($this->status)) {
+        $query->where('status', $this->status);
+    }
+
+    // Apply subject filter
+    if (!empty($this->selectedSubject)) {
+        $query->whereHas('schedule.subject', function ($query) {
+            $query->where('id', $this->selectedSubject);
+        });
+    }
+
+    // Apply section filter
+    if (!empty($this->selectedSection)) {
+        $query->whereHas('schedule.section', function ($query) {
+            $query->where('id', $this->selectedSection);
+        });
+    }
+
+    // Apply month filter
+    if ($this->selectedMonth) {
+        $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
+            ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
+    }
+
+    // Paginate the results
+    $attendances = $query->paginate($this->perPage);
+
+    // Fetch all subjects and sections for the filter
+    $subjects = Subject::all();  // Fetch all subjects
+    $sections = Section::all();  // Fetch all sections
+
+    return view('livewire.attendance-table', [
+        'attendances' => $attendances,
+        'subjects' => $subjects,
+        'sections' => $sections,
+    ]);
+}
+
 
     #[On('refresh-attendance-table')]
     public function refreshAttendanceTable()

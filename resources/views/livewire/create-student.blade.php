@@ -31,11 +31,21 @@
                                 </span>
                             @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="last_name" class="form-label">Last Name</label>
                             <input wire:model.lazy="last_name" type="text"
                                 class="form-control @error('last_name') is-invalid @enderror" name="last_name">
                             @error('last_name')
+                                <span class="invalid-feedback">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="col-md-1">
+                            <label for="suffix" class="form-label">Suffix</label>
+                            <input wire:model.lazy="suffix" type="text"
+                                class="form-control @error('suffix') is-invalid @enderror" name="suffix">
+                            @error('suffix')
                                 <span class="invalid-feedback">
                                     {{ $message }}
                                 </span>
@@ -72,21 +82,6 @@
                             @enderror
                         </div>
                         <div class="col-md-4">
-                            <label for="section_id" class="form-label">Section</label>
-                            <select wire:model.lazy="section_id" class="form-select @error('section_id') is-invalid @enderror" name="section_id">
-                                <option value="">Select Section</option>
-                                @foreach($sections as $section)
-                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('section_id')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-4">
                             <label for="college_id" class="form-label">College</label>
                             <select wire:model.lazy="college_id" class="form-select @error('college_id') is-invalid @enderror" name="college_id">
                                 <option value="">Select College</option>
@@ -109,6 +104,20 @@
                                 @endforeach
                             </select>
                             @error('department_id')
+                                <span class="invalid-feedback">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="section_id" class="form-label">Section</label>
+                            <select wire:model.lazy="section_id" class="form-select @error('section_id') is-invalid @enderror" name="section_id">
+                                <option value="">Select Section</option>
+                                @foreach($sections as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('section_id')
                                 <span class="invalid-feedback">
                                     {{ $message }}
                                 </span>
