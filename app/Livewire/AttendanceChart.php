@@ -33,22 +33,10 @@ class AttendanceChart extends Component
             $month = $now->copy()->subMonths($i);
             $this->months[] = $month->format('F Y');
 
-            // Filter attendance based on user role
-            $query = Attendance::query();
-            if ($user->isAdmin() || $user->isDean() || $user->isChairperson()) {
-                $query->whereHas('user', function ($query) {
-                    $query->where('role_id', 2); // Filter for instructors
-                });
-            } elseif ($user->isInstructor()) {
-                $query->whereHas('user', function ($query) use ($user) {
-                    $query->where('section_id', $user->section_id); // Filter for students in the instructor's section
-                });
-            } else {
-                $query->where('user_id', $user->id);
-            }
-
-            $query->whereMonth('date', $month->month)
-                  ->whereYear('date', $month->year);
+            // Query attendance records for the authenticated user for the specific month and year
+            $query = Attendance::where('user_id', $user->id)
+                               ->whereMonth('date', $month->month)
+                               ->whereYear('date', $month->year);
 
             // Count attendance statuses
             $presentCounts[] = $query->clone()->where('status', 'present')->count();
