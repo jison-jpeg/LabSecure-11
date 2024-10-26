@@ -3,10 +3,12 @@
 namespace App\Livewire;
 
 use App\Models\Laboratory;
+use App\Models\TransactionLog;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class LaboratoryTable extends Component
 {
@@ -40,7 +42,7 @@ class LaboratoryTable extends Component
     public function clear()
     {
         $this->search = '';
-        $this->type = '';        
+        $this->type = '';
     }
 
     public function setSortBy($sortByField)
@@ -56,53 +58,65 @@ class LaboratoryTable extends Component
 
     public function delete(Laboratory $laboratory)
     {
-        $this->dispatch('refresh-laboratory-table');
+        // Capture laboratory details before deletion for logging
+        $laboratoryName = $laboratory->name;
+        $laboratoryLocation = $laboratory->location;
+        $userFullName = Auth::user()->full_name;
+
+        // Delete the laboratory
         $laboratory->delete();
+
+        // Log the delete action
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+            'model' => 'Laboratory',
+            'model_id' => $laboratory->id,
+            'details' => json_encode([
+                'user' => $userFullName,
+                'laboratory_name' => $laboratoryName,
+                'location' => $laboratoryLocation,
+                'action' => 'Deleted',
+            ]),
+        ]);
+
+        // Dispatch refresh event and notify
+        $this->dispatch('refresh-laboratory-table');
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Laboratory deleted successfully');
     }
 
-    public function placeholder(){
-        return <<<'HTML'
-        <div class="placeholder-glow">
-            <div class="placeholder col-12">
-
-            </div>
-            </div>
-        HTML;
-    }
-
     public function render()
-{
-    // Fetch all laboratories with pagination
-    $laboratories = Laboratory::search($this->search)
-        ->when($this->type !== '', function ($query){
-            $query->where('type', $this->type);
-        })
-        ->orderBy($this->sortBy, $this->sortDir)
-        ->paginate($this->perPage); // Keep the pagination here
+    {
+        // Fetch all laboratories with pagination
+        $laboratories = Laboratory::search($this->search)
+            ->when($this->type !== '', function ($query) {
+                $query->where('type', $this->type);
+            })
+            ->orderBy($this->sortBy, $this->sortDir)
+            ->paginate($this->perPage); // Keep the pagination here
 
-    // For each laboratory, we can iterate to get the recent log without converting to collection
-    foreach ($laboratories as $laboratory) {
-        $recentLog = $laboratory->recentUserLog();
+        // For each laboratory, we can iterate to get the recent log without converting to collection
+        foreach ($laboratories as $laboratory) {
+            $recentLog = $laboratory->recentUserLog();
 
-        if ($recentLog && $recentLog->user) {
-            $laboratory->recent_user_name = $recentLog->user->full_name; // Assuming `full_name` is a user attribute
-            $laboratory->recent_user_action = $recentLog->action == 'in' ? 'CURRENT USER' : 'RECENT USER';
-            $laboratory->time_ago = $recentLog->created_at->diffForHumans();
-        } else {
-            $laboratory->recent_user_name = 'N/A';
-            $laboratory->recent_user_action = 'N/A';
-            $laboratory->time_ago = 'No Recent Activity';
+            if ($recentLog && $recentLog->user) {
+                $laboratory->recent_user_name = $recentLog->user->full_name; // Assuming `full_name` is a user attribute
+                $laboratory->recent_user_action = $recentLog->action == 'in' ? 'CURRENT USER' : 'RECENT USER';
+                $laboratory->time_ago = $recentLog->created_at->diffForHumans();
+            } else {
+                $laboratory->recent_user_name = 'N/A';
+                $laboratory->recent_user_action = 'N/A';
+                $laboratory->time_ago = 'No Recent Activity';
+            }
         }
-    }
 
-    return view('livewire.laboratory-table', [
-        'laboratories' => $laboratories, // Return the paginated results
-    ]);
-}
+        return view('livewire.laboratory-table', [
+            'laboratories' => $laboratories, // Return the paginated results
+        ]);
+    }
 
 
     #[On('refresh-laboratory-table')]

@@ -47,10 +47,10 @@ class CreateLaboratory extends Component
             'name' => $this->name,
             'location' => $this->location,
             'type' => $this->type,
-            'status' => $this->status,  // Status is now defaulted to 'Available' if not set
+            'status' => $this->status,
         ]);
 
-        // Log the transaction
+        // Log the transaction with user details
         TransactionLog::create([
             'user_id' => Auth::id(),
             'action' => 'create',
@@ -58,8 +58,11 @@ class CreateLaboratory extends Component
             'model_id' => $laboratory->id,
             'details' => json_encode([
                 'user' => Auth::user()->full_name,
-                'name' => $this->name, 
-                'location' => $this->location]),
+                'laboratory_name' => $this->name,
+                'location' => $this->location,
+                'type' => $this->type,
+                'status' => $this->status,
+            ]),
         ]);
 
         $this->dispatch('refresh-laboratory-table');
@@ -79,7 +82,7 @@ class CreateLaboratory extends Component
         $this->name = $this->laboratory->name;
         $this->location = $this->laboratory->location;
         $this->type = $this->laboratory->type;
-        $this->status = $this->laboratory->status ?? 'Available';  // Default status for existing records
+        $this->status = $this->laboratory->status ?? 'Available';
     }
 
     public function update()
@@ -91,20 +94,32 @@ class CreateLaboratory extends Component
             'status' => 'required',
         ]);
 
+        // Capture old values for logging
+        $original = $this->laboratory->only(['name', 'location', 'type', 'status']);
+        
+        // Update laboratory details
         $this->laboratory->update([
             'name' => $this->name,
             'location' => $this->location,
             'type' => $this->type,
-            'status' => $this->status ?? 'Available',  // Ensure the status is set to 'Available' if empty
+            'status' => $this->status ?? 'Available',
         ]);
 
-        // Log the transaction
+        // Log the update action, including changes
+        $changes = array_diff_assoc($this->laboratory->only(['name', 'location', 'type', 'status']), $original);
         TransactionLog::create([
             'user_id' => Auth::id(),
             'action' => 'update',
             'model' => 'Laboratory',
             'model_id' => $this->laboratory->id,
-            'details' => json_encode(['name' => $this->name, 'location' => $this->location]),
+            'details' => json_encode([
+                'user' => Auth::user()->full_name,
+                'laboratory_name' => $this->name,
+                'location' => $this->location,
+                'type' => $this->type,
+                'status' => $this->status,
+                'changes' => $changes,
+            ]),
         ]);
 
         notyf()

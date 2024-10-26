@@ -57,28 +57,32 @@ class ViewLaboratory extends Component
 
         // Toggle lock/unlock status based on the switch
         $this->isLocked = !$this->isLocked;
+        $action = $this->isLocked ? 'lock' : 'unlock';
+        $userFullName = Auth::user()->full_name;
 
         // Update the laboratory status based on the isLocked state
-        if ($this->isLocked) {
-            $this->laboratory->status = 'Locked'; // Lock the laboratory
-        } else {
-            $this->laboratory->status = 'Available'; // Unlock the laboratory
-        }
-
-        // Save the updated status in the database
+        $this->laboratory->status = $this->isLocked ? 'Locked' : 'Available';
         $this->laboratory->save();
+
+        // Notify the user
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success("Laboratory {$this->laboratory->name} has been " . ($this->isLocked ? 'locked' : 'unlocked') . '.');
 
-        // Log the lock/unlock action
+        // Log the lock/unlock action with detailed information
         TransactionLog::create([
             'user_id' => Auth::id(),
-            'action' => $this->isLocked ? 'lock' : 'unlock',
+            'action' => $action,
             'model' => 'Laboratory',
             'model_id' => $this->laboratory->id,
-            'details' => "Laboratory {$this->laboratory->name} was " . ($this->isLocked ? 'locked' : 'unlocked'),
+            'details' => json_encode([
+                'user' => $userFullName,
+                'laboratory_name' => $this->laboratory->name,
+                'location' => $this->laboratory->location,
+                'status' => $this->laboratory->status,
+                'action' => $this->isLocked ? 'Locked' : 'Unlocked',
+            ]),
         ]);
     }
 
@@ -94,23 +98,36 @@ class ViewLaboratory extends Component
             'name' => 'required|unique:laboratories,name,' . $this->laboratory->id,
             'location' => 'required',
             'type' => 'required',
-            'status' => 'required',
         ]);
 
+        // Capture old values for logging
+        $original = $this->laboratory->only(['name', 'location', 'type', 'status']);
+        $userFullName = Auth::user()->full_name;
+
+        // Only update laboratory details without modifying lock status
         $this->laboratory->update([
             'name' => $this->name,
             'location' => $this->location,
             'type' => $this->type,
-            'status' => $this->status ?? 'Available',  // Ensure the status is set to 'Available' if empty
+            // Keep `status` as it was unless changed in the form
+            'status' => $original['status'],
         ]);
 
-        // Log the update action
+        // Log the update action, including changes
+        $changes = array_diff_assoc($this->laboratory->only(['name', 'location', 'type', 'status']), $original);
         TransactionLog::create([
             'user_id' => Auth::id(),
             'action' => 'update',
             'model' => 'Laboratory',
             'model_id' => $this->laboratory->id,
-            'details' => json_encode(['name' => $this->name, 'location' => $this->location]),
+            'details' => json_encode([
+                'user' => $userFullName,
+                'laboratory_name' => $this->name,
+                'location' => $this->location,
+                'type' => $this->type,
+                'status' => $this->laboratory->status,
+                'changes' => $changes,
+            ]),
         ]);
 
         notyf()
