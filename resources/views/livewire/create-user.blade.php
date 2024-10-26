@@ -12,7 +12,7 @@
                 </div>
                 <div class="modal-body">
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="first_name" class="form-label">First Name</label>
                             <input wire:model.lazy="first_name" type="text"
                                 class="form-control @error('first_name') is-invalid @enderror" name="first_name">
@@ -22,7 +22,7 @@
                                 </span>
                             @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="middle_name" class="form-label">Middle Name</label>
                             <input wire:model.lazy="middle_name" type="text"
                                 class="form-control @error('middle_name') is-invalid @enderror" name="middle_name">
@@ -42,7 +42,6 @@
                                 </span>
                             @enderror
                         </div>
-                        {{-- Suffix --}}
                         <div class="col-md-1">
                             <label for="suffix" class="form-label">Suffix</label>
                             <input wire:model.lazy="suffix" type="text"
@@ -51,6 +50,16 @@
                                 <span class="invalid-feedback">
                                     {{ $message }}
                                 </span>
+                            @enderror
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Status</label>
+                            <select wire:model.lazy="status" class="form-select @error('status') is-invalid @enderror" name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            @error('status')
+                                <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
                         <div class="col-md-4">

@@ -29,6 +29,8 @@ class CreateUser extends Component
     public $role_id;
     public $email;
     public $password;
+    public $status = 'active';
+
     public $selectedCollege = null;
     public $selectedDepartment = null;
     public $selectedSection = null;
@@ -51,23 +53,18 @@ class CreateUser extends Component
     }
 
     public function updatedSelectedCollege($collegeId)
-{
-    // Load departments based on selected college
-    $this->departments = Department::where('college_id', $collegeId)->get();
+    {
+        $this->departments = Department::where('college_id', $collegeId)->get();
+        $this->selectedDepartment = null;
+        $this->sections = [];
+    }
 
-    // Reset selected department and section when the college changes
-    $this->selectedDepartment = null;
-    $this->sections = [];
-}
+    public function updatedSelectedDepartment($departmentId)
+    {
+        $this->sections = Section::where('department_id', $departmentId)->get();
+        $this->selectedSection = null;
+    }
 
-public function updatedSelectedDepartment($departmentId)
-{
-    // Load sections based on selected department
-    $this->sections = Section::where('department_id', $departmentId)->get();
-
-    // Reset the selected section when the department changes
-    $this->selectedSection = null;
-}
     public function updatedRoleId()
     {
         if ($this->isRoleAdmin()) {
@@ -86,6 +83,10 @@ public function updatedSelectedDepartment($departmentId)
             'role_id' => 'required',
             'email' => 'required|email|unique:users,email,' . ($this->user->id ?? 'NULL'),
             'password' => 'nullable|min:6',
+            'selectedCollege' => 'required|exists:colleges,id',
+            'selectedDepartment' => 'required|exists:departments,id',
+            'selectedSection' => 'required|exists:sections,id',
+            'status' => 'required|in:active,inactive',
         ]);
     }
 
@@ -98,6 +99,10 @@ public function updatedSelectedDepartment($departmentId)
             'role_id' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'nullable|min:6',
+            'selectedCollege' => 'required|exists:colleges,id',
+            'selectedDepartment' => 'required|exists:departments,id',
+            'selectedSection' => 'required|exists:sections,id',
+            'status' => 'required|in:active,inactive',
         ]);
 
         if (empty($this->password)) {
@@ -116,6 +121,7 @@ public function updatedSelectedDepartment($departmentId)
             'section_id' => $this->selectedSection,
             'email' => $this->email,
             'password' => Hash::make($this->password),
+            'status' => $this->status,
         ]);
 
         TransactionLog::create([
@@ -143,7 +149,7 @@ public function updatedSelectedDepartment($departmentId)
     {
         $this->reset([
             'first_name', 'middle_name', 'last_name', 'suffix', 'username', 'role_id', 'email', 
-            'password', 'selectedCollege', 'selectedDepartment', 'selectedSection'
+            'password', 'selectedCollege', 'selectedDepartment', 'selectedSection', 'status'
         ]);
         $this->resetErrorBag();
     }
@@ -156,31 +162,32 @@ public function updatedSelectedDepartment($departmentId)
     }
 
     #[On('edit-mode')]
-public function edit($id)
-{
-    $this->formTitle = 'Edit User';
-    $this->editForm = true;
-    $this->user = User::findOrFail($id);
+    public function edit($id)
+    {
+        $this->formTitle = 'Edit User';
+        $this->editForm = true;
+        $this->user = User::findOrFail($id);
 
-    $this->first_name = $this->user->first_name;
-    $this->middle_name = $this->user->middle_name;
-    $this->last_name = $this->user->last_name;
-    $this->suffix = $this->user->suffix;
-    $this->username = $this->user->username;
-    $this->role_id = $this->user->role_id;
-    $this->email = $this->user->email;
+        $this->first_name = $this->user->first_name;
+        $this->middle_name = $this->user->middle_name;
+        $this->last_name = $this->user->last_name;
+        $this->suffix = $this->user->suffix;
+        $this->username = $this->user->username;
+        $this->role_id = $this->user->role_id;
+        $this->email = $this->user->email;
+        $this->status = $this->user->status;
 
-    // Set and load the college
-    $this->selectedCollege = $this->user->college_id;
-    $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+        // Set and load the college
+        $this->selectedCollege = $this->user->college_id;
+        $this->departments = Department::where('college_id', $this->selectedCollege)->get();
 
-    // Set and load the department
-    $this->selectedDepartment = $this->user->department_id;
-    $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+        // Set and load the department
+        $this->selectedDepartment = $this->user->department_id;
+        $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
 
-    // Set the section
-    $this->selectedSection = $this->user->section_id;
-}
+        // Set the section
+        $this->selectedSection = $this->user->section_id;
+    }
 
     public function update()
     {
@@ -190,7 +197,10 @@ public function edit($id)
             'username' => 'required|unique:users,username,' . $this->user->id,
             'role_id' => 'required',
             'email' => 'required|email|unique:users,email,' . $this->user->id,
-            'password' => 'nullable|min:6',
+            'selectedCollege' => 'required|exists:colleges,id',
+            'selectedDepartment' => 'required|exists:departments,id',
+            'selectedSection' => 'required|exists:sections,id',
+            'status' => 'required|in:active,inactive',
         ]);
 
         $this->user->update([
@@ -205,6 +215,7 @@ public function edit($id)
             'section_id' => $this->selectedSection,
             'email' => $this->email,
             'password' => Hash::make($this->password),
+            'status' => $this->status,
         ]);
 
         TransactionLog::create([
