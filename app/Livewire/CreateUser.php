@@ -51,18 +51,23 @@ class CreateUser extends Component
     }
 
     public function updatedSelectedCollege($collegeId)
-    {
-        $this->departments = Department::where('college_id', $collegeId)->get();
-        $this->selectedDepartment = null;
-        $this->sections = [];
-    }
+{
+    // Load departments based on selected college
+    $this->departments = Department::where('college_id', $collegeId)->get();
 
-    public function updatedSelectedDepartment($departmentId)
-    {
-        $this->sections = Section::where('department_id', $departmentId)->get();
-        $this->selectedSection = null;
-    }
+    // Reset selected department and section when the college changes
+    $this->selectedDepartment = null;
+    $this->sections = [];
+}
 
+public function updatedSelectedDepartment($departmentId)
+{
+    // Load sections based on selected department
+    $this->sections = Section::where('department_id', $departmentId)->get();
+
+    // Reset the selected section when the department changes
+    $this->selectedSection = null;
+}
     public function updatedRoleId()
     {
         if ($this->isRoleAdmin()) {
@@ -151,24 +156,31 @@ class CreateUser extends Component
     }
 
     #[On('edit-mode')]
-    public function edit($id)
-    {
-        $this->formTitle = 'Edit User';
-        $this->editForm = true;
-        $this->user = User::findOrFail($id);
-        $this->first_name = $this->user->first_name;
-        $this->middle_name = $this->user->middle_name;
-        $this->last_name = $this->user->last_name;
-        $this->suffix = $this->user->suffix;
-        $this->username = $this->user->username;
-        $this->role_id = $this->user->role_id;
-        $this->email = $this->user->email;
-        $this->selectedCollege = $this->user->college_id;
-        $this->selectedDepartment = $this->user->department_id;
-        $this->selectedSection = $this->user->section_id;
-        $this->updatedSelectedCollege($this->selectedCollege);
-        $this->updatedSelectedDepartment($this->selectedDepartment);
-    }
+public function edit($id)
+{
+    $this->formTitle = 'Edit User';
+    $this->editForm = true;
+    $this->user = User::findOrFail($id);
+
+    $this->first_name = $this->user->first_name;
+    $this->middle_name = $this->user->middle_name;
+    $this->last_name = $this->user->last_name;
+    $this->suffix = $this->user->suffix;
+    $this->username = $this->user->username;
+    $this->role_id = $this->user->role_id;
+    $this->email = $this->user->email;
+
+    // Set and load the college
+    $this->selectedCollege = $this->user->college_id;
+    $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+
+    // Set and load the department
+    $this->selectedDepartment = $this->user->department_id;
+    $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+
+    // Set the section
+    $this->selectedSection = $this->user->section_id;
+}
 
     public function update()
     {

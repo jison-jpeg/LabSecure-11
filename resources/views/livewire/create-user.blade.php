@@ -105,7 +105,7 @@
                                 class="form-select @error('selectedCollege') is-invalid @enderror" name="college_id">
                                 <option value="">Select College</option>
                                 @foreach ($colleges as $college)
-                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                    <option value="{{ $college->id }}" @if ($selectedCollege == $college->id) selected @endif>{{ $college->name }}</option>
                                 @endforeach
                             </select>
                             @error('selectedCollege')
@@ -121,7 +121,7 @@
                                 name="department_id">
                                 <option value="">Select Department</option>
                                 @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                    <option value="{{ $department->id }}" @if ($selectedDepartment == $department->id) selected @endif>{{ $department->name }}</option>
                                 @endforeach
                             </select>
                             @error('selectedDepartment')
@@ -136,7 +136,7 @@
                                 class="form-select @error('selectedSection') is-invalid @enderror" name="section_id">
                                 <option value="">Select Section</option>
                                 @foreach ($sections as $section)
-                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                    <option value="{{ $section->id }}" @if ($selectedSection == $section->id) selected @endif>{{ $section->name }}</option>
                                 @endforeach
                             </select>
                             @error('selectedSection')
