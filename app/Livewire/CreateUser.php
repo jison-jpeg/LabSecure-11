@@ -57,6 +57,7 @@ class CreateUser extends Component
         $this->departments = Department::where('college_id', $collegeId)->get();
         $this->selectedDepartment = null;
         $this->sections = [];
+        $this->selectedSection = null;
     }
 
     public function updatedSelectedDepartment($departmentId)
@@ -68,64 +69,111 @@ class CreateUser extends Component
     public function updatedRoleId()
     {
         if ($this->isRoleAdmin()) {
+            // Reset College, Department, and Section for Admin
             $this->reset(['selectedCollege', 'selectedDepartment', 'selectedSection']);
+            $this->departments = [];
+            $this->sections = [];
         } else {
-            $this->loadInitialData();
+            // Reset Department and Section when changing to non-admin roles
+            $this->reset(['selectedDepartment', 'selectedSection']);
+            if ($this->selectedCollege) {
+                // Reload departments based on the current selectedCollege
+                $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+            } else {
+                $this->departments = [];
+            }
+            $this->sections = [];
         }
     }
 
+    /**
+     * Dynamically validate properties based on the selected role.
+     */
     public function updated($propertyName)
     {
-        $this->validateOnly($propertyName, [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'username' => 'required|unique:users,username,' . ($this->user->id ?? 'NULL'),
-            'role_id' => 'required',
-            'email' => 'required|email|unique:users,email,' . ($this->user->id ?? 'NULL'),
-            'password' => 'nullable|min:6',
-            'selectedCollege' => 'required|exists:colleges,id',
-            'selectedDepartment' => 'required|exists:departments,id',
-            'selectedSection' => 'required|exists:sections,id',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $rules = $this->getValidationRules();
+
+        // Validate only the updated property with current rules
+        $this->validateOnly($propertyName, $rules);
     }
 
-    public function save()
+    /**
+     * Retrieve validation rules based on the selected role.
+     *
+     * @return array
+     */
+    private function getValidationRules()
     {
-        $this->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'username' => 'required|unique:users',
-            'role_id' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'nullable|min:6',
-            'selectedCollege' => 'required|exists:colleges,id',
-            'selectedDepartment' => 'required|exists:departments,id',
-            'selectedSection' => 'required|exists:sections,id',
+        // Base validation rules
+        $rules = [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . ($this->user->id ?? 'NULL'),
+            'role_id' => 'required|exists:roles,id',
+            'email' => 'required|email|max:255|unique:users,email,' . ($this->user->id ?? 'NULL'),
+            'password' => 'nullable|string|min:6',
             'status' => 'required|in:active,inactive',
-        ]);
+        ];
 
-        if (empty($this->password)) {
-            $this->password = Str::random(10);
+        // Additional rules based on role
+        if (!$this->isRoleAdmin()) {
+            // College and Department are required for Chairperson, Dean, Instructor, and Student
+            $rules['selectedCollege'] = 'required|exists:colleges,id';
+            $rules['selectedDepartment'] = 'required|exists:departments,id';
+
+            if ($this->isRoleStudent()) {
+                // Section is required only for Student
+                $rules['selectedSection'] = 'required|exists:sections,id';
+            }
         }
 
-        $user = User::create([
+        return $rules;
+    }
+
+    /**
+     * Save a new user with conditional validation.
+     */
+    public function save()
+    {
+        $this->validate($this->getValidationRules());
+
+        // Generate a random password if none is provided
+        if (empty($this->password)) {
+            $generatedPassword = Str::random(10);
+        } else {
+            $generatedPassword = $this->password;
+        }
+
+        // Prepare data for user creation
+        $data = [
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
             'last_name' => $this->last_name,
             'suffix' => $this->suffix,
             'username' => $this->username,
             'role_id' => $this->role_id,
-            'college_id' => $this->selectedCollege,
-            'department_id' => $this->selectedDepartment,
-            'section_id' => $this->selectedSection,
             'email' => $this->email,
-            'password' => Hash::make($this->password),
+            'password' => Hash::make($generatedPassword),
             'status' => $this->status,
-        ]);
+        ];
 
+        // Conditionally add college and department
+        if (!$this->isRoleAdmin()) {
+            $data['college_id'] = $this->selectedCollege;
+            $data['department_id'] = $this->selectedDepartment;
+        }
+
+        // Conditionally add section for students
+        if ($this->isRoleStudent()) {
+            $data['section_id'] = $this->selectedSection;
+        }
+
+        // Create the user
+        $user = User::create($data);
+
+        // Log the transaction
         TransactionLog::create([
-            'user_id' => Auth::id(), 
+            'user_id' => Auth::id(),
             'action' => 'create',
             'model' => 'User',
             'model_id' => $user->id,
@@ -135,16 +183,25 @@ class CreateUser extends Component
             ]),
         ]);
 
-        Mail::to($user->email)->queue(new UserCredentials($user, $this->password));
-        
+        // Send credentials via email
+        Mail::to($user->email)->queue(new UserCredentials($user, $generatedPassword));
+
+        // Notify frontend to refresh the user table
         $this->dispatch('refresh-user-table');
+
+        // Show success notification
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('User created successfully');
+
+        // Reset form fields
         $this->resetFields();
     }
 
+    /**
+     * Reset all form fields and error messages.
+     */
     public function resetFields()
     {
         $this->reset([
@@ -152,6 +209,8 @@ class CreateUser extends Component
             'password', 'selectedCollege', 'selectedDepartment', 'selectedSection', 'status'
         ]);
         $this->resetErrorBag();
+        $this->departments = [];
+        $this->sections = [];
     }
 
     #[On('reset-modal')]
@@ -178,48 +237,71 @@ class CreateUser extends Component
         $this->status = $this->user->status;
 
         // Set and load the college
-        $this->selectedCollege = $this->user->college_id;
-        $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+        if ($this->user->college_id) {
+            $this->selectedCollege = $this->user->college_id;
+            $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+        }
 
         // Set and load the department
-        $this->selectedDepartment = $this->user->department_id;
-        $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+        if ($this->user->department_id) {
+            $this->selectedDepartment = $this->user->department_id;
+            $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+        }
 
         // Set the section
-        $this->selectedSection = $this->user->section_id;
+        if ($this->user->section_id) {
+            $this->selectedSection = $this->user->section_id;
+        }
     }
 
+    /**
+     * Update an existing user with conditional validation.
+     */
     public function update()
     {
-        $this->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'username' => 'required|unique:users,username,' . $this->user->id,
-            'role_id' => 'required',
-            'email' => 'required|email|unique:users,email,' . $this->user->id,
-            'selectedCollege' => 'required|exists:colleges,id',
-            'selectedDepartment' => 'required|exists:departments,id',
-            'selectedSection' => 'required|exists:sections,id',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $this->validate($this->getValidationRules());
 
-        $this->user->update([
+        // Prepare data for user update
+        $data = [
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
             'last_name' => $this->last_name,
             'suffix' => $this->suffix,
             'username' => $this->username,
             'role_id' => $this->role_id,
-            'college_id' => $this->selectedCollege,
-            'department_id' => $this->selectedDepartment,
-            'section_id' => $this->selectedSection,
             'email' => $this->email,
-            'password' => Hash::make($this->password),
             'status' => $this->status,
-        ]);
+        ];
 
+        // Update password if provided
+        if (!empty($this->password)) {
+            $data['password'] = Hash::make($this->password);
+        }
+
+        // Conditionally add or remove college and department
+        if (!$this->isRoleAdmin()) {
+            $data['college_id'] = $this->selectedCollege;
+            $data['department_id'] = $this->selectedDepartment;
+        } else {
+            // If admin, remove college, department, and section
+            $data['college_id'] = null;
+            $data['department_id'] = null;
+            $data['section_id'] = null;
+        }
+
+        // Conditionally add or remove section for students
+        if ($this->isRoleStudent()) {
+            $data['section_id'] = $this->selectedSection;
+        } else {
+            $data['section_id'] = null;
+        }
+
+        // Update the user
+        $this->user->update($data);
+
+        // Log the transaction
         TransactionLog::create([
-            'user_id' => Auth::id(), 
+            'user_id' => Auth::id(),
             'action' => 'update',
             'model' => 'User',
             'model_id' => $this->user->id,
@@ -229,22 +311,67 @@ class CreateUser extends Component
             ]),
         ]);
 
+        // Show success notification
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('User updated successfully');
+
+        // Notify frontend to refresh the user table
         $this->dispatch('refresh-user-table');
+
+        // Reset form fields
         $this->resetFields();
     }
 
+    /**
+     * Check if the selected role is Admin.
+     *
+     * @return bool
+     */
     public function isRoleAdmin()
     {
         return $this->role_id && $this->role_id == Role::where('name', 'admin')->value('id');
     }
 
+    /**
+     * Check if the selected role is Student.
+     *
+     * @return bool
+     */
     public function isRoleStudent()
     {
         return $this->role_id && $this->role_id == Role::where('name', 'student')->value('id');
+    }
+
+    /**
+     * Check if the selected role is Chairperson.
+     *
+     * @return bool
+     */
+    public function isRoleChairperson()
+    {
+        return $this->role_id && $this->role_id == Role::where('name', 'chairperson')->value('id');
+    }
+
+    /**
+     * Check if the selected role is Dean.
+     *
+     * @return bool
+     */
+    public function isRoleDean()
+    {
+        return $this->role_id && $this->role_id == Role::where('name', 'dean')->value('id');
+    }
+
+    /**
+     * Check if the selected role is Instructor.
+     *
+     * @return bool
+     */
+    public function isRoleInstructor()
+    {
+        return $this->role_id && $this->role_id == Role::where('name', 'instructor')->value('id');
     }
 
     public function render()
