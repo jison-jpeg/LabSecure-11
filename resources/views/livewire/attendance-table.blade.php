@@ -105,12 +105,12 @@
                         'displayName' => 'User',
                     ])
                     @include('livewire.includes.table-sortable-th', [
+                            'name' => 'schedule.schedule_code',
+                            'displayName' => 'Section Code',
+                        ])
+                    @include('livewire.includes.table-sortable-th', [
                         'name' => 'subject.name',
                         'displayName' => 'Subject',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'schedule.schedule_code',
-                        'displayName' => 'Schedule Code',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'schedule.section.name',
@@ -146,8 +146,8 @@
                         <td>{{ Carbon::parse($attendance->date)->format('m/d/Y') }}</td>
                         <td>{{ $attendance->user->username }}</td>
                         <td>{{ $attendance->user->full_name }}</td>
-                        <td>{{ $attendance->schedule->subject->name }}</td>
                         <td>{{ $attendance->schedule->schedule_code }}</td>
+                        <td>{{ $attendance->schedule->subject->name }}</td>
                         <td>{{ $attendance->schedule->section->name }}</td>
                         <td>{{ optional($attendance->sessions->first())->time_in ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A') : '-' }}
                         </td>

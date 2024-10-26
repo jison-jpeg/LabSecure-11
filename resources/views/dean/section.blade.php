@@ -1,7 +1,6 @@
-@section('pageTitle', 'Dashboard')
+@section('pageTitle', 'Users')
 <x-app-layout>
     <main id="main" class="main">
-
         {{-- Dynamic Page Breadcrumbs --}}
         <div class="pagetitle">
             <h1>Hello, {{ Auth::user()->first_name }}! 👋</h1>
@@ -25,17 +24,23 @@
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    @livewire('upcoming-class')
-
-                    @livewire('attendance-stats')
                     <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-body">
 
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Class {{$section->name}}</h5>
+                                    </div>
 
-                    @livewire('attendance-chart')
+                                    {{-- Student Table Livewire --}}
+                                    <livewire:student-per-section-table :section="$section->id" />
+                                    <!-- End Student Table Livewire -->
 
-
-
+                            </div>
+                        </div>
                     </div>
+
                 </div>
                 <!-- End Left side columns -->
 

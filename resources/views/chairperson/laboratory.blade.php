@@ -1,7 +1,6 @@
-@section('pageTitle', 'Dashboard')
+@section('pageTitle', 'Laboratory')
 <x-app-layout>
     <main id="main" class="main">
-
         {{-- Dynamic Page Breadcrumbs --}}
         <div class="pagetitle">
             <h1>Hello, {{ Auth::user()->first_name }}! 👋</h1>
@@ -16,7 +15,6 @@
 
         <section class="section dashboard">
             <div class="row">
-
                 <!-- Left side columns -->
                 <div class="col-lg-12">
                     {{-- Alert Logged-in as what auth role --}}
@@ -25,22 +23,16 @@
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    @livewire('upcoming-class')
 
-                    @livewire('attendance-stats')
-                    <div class="row">
-
-
-                    @livewire('attendance-chart')
-
-
-
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Computer Laboratories</h5>
+                            <livewire:laboratory-table />
+                        </div>
                     </div>
                 </div>
                 <!-- End Left side columns -->
-
             </div>
         </section>
-
     </main>
 </x-app-layout>
