@@ -3,13 +3,12 @@
 namespace App\Livewire;
 
 use App\Models\Attendance;
-use App\Models\Schedule;
-use App\Models\TransactionLog;  // Added TransactionLog model
-use App\Models\Subject;          // Added Subject model
-use App\Models\Section;          // Added Section model
+use App\Models\College;
+use App\Models\Department;
+use App\Models\Section;
+use App\Models\Subject;
+use App\Models\TransactionLog;
 use Livewire\Component;
-use Livewire\Attributes\Url;
-use Livewire\Attributes\On;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -22,33 +21,20 @@ class AttendanceTable extends Component
 
     protected $paginationTheme = 'bootstrap';
 
-    public $attendance;
-    public $title = 'Attendance Records';
-    public $event = 'create-attendance';
-
-    #[Url(history: true)]
+    // Filter Properties
     public $search = '';
-
-    #[Url(history: true)]
     public $status = '';
-
-    #[Url(history: true)]
     public $sortBy = 'date';
-
-    #[Url(history: true)]
     public $sortDir = 'DESC';
-
-    #[Url()]
     public $perPage = 10;
-
-    #[Url(history: true)]
     public $selectedMonth;
+    public $selectedCollege = '';      // For Admin
+    public $selectedDepartment = '';   // For Admin & Dean
+    public $selectedSection = '';      // For Admin, Dean, Chairperson, Instructor
+    public $selectedSubject = '';      // For Admin, Dean, Chairperson, Instructor, Student
 
-    #[Url(history: true)]
-    public $selectedSubject = ''; // Add subject filter
-
-    #[Url(history: true)]
-    public $selectedSection = ''; // Add section filter
+    // Listener for Refresh Event
+    protected $listeners = ['refreshAttendanceTable'];
 
     public function mount()
     {
@@ -56,33 +42,85 @@ class AttendanceTable extends Component
         $this->selectedMonth = Carbon::now()->format('Y-m');
     }
 
+    // Reset Pagination on Search Update
     public function updatedSearch()
     {
         $this->resetPage();
     }
 
+    // Reset Pagination and Dependent Filters on Parent Filter Updates
+    public function updatedSelectedCollege()
+    {
+        $this->resetPage();
+        $this->selectedDepartment = '';
+        $this->selectedSection = '';
+        $this->selectedSubject = '';
+    }
+
+    public function updatedSelectedDepartment()
+    {
+        $this->resetPage();
+        $this->selectedSection = '';
+        $this->selectedSubject = '';
+    }
+
+    public function updatedSelectedSection()
+    {
+        $this->resetPage();
+        $this->selectedSubject = '';
+    }
+
+    public function updatedSelectedSubject()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSelectedMonth()
+    {
+        $this->resetPage();
+    }
+
+    // Clear All Filters
     public function clear()
     {
-        $this->search = '';
-        $this->status = '';
-        $this->selectedMonth = Carbon::now()->format('Y-m'); // Reset to current month
-        $this->selectedSubject = ''; // Reset the subject filter
-        $this->selectedSection = ''; // Reset the section filter
+        $this->reset([
+            'search',
+            'status',
+            'selectedMonth',
+            'selectedCollege',
+            'selectedDepartment',
+            'selectedSection',
+            'selectedSubject',
+        ]);
+
+        // Reset to current month after clearing
+        $this->selectedMonth = Carbon::now()->format('Y-m');
     }
 
-    public function setSortBy($sortByField)
+    // Toggle Sorting
+    public function setSortBy($field)
     {
-        if ($this->sortBy === $sortByField) {
-            $this->sortDir = ($this->sortDir == "ASC") ? 'DESC' : "ASC";
-            return;
+        if ($this->sortBy === $field) {
+            $this->sortDir = $this->sortDir === 'ASC' ? 'DESC' : 'ASC';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDir = 'DESC';
         }
-
-        $this->sortBy = $sortByField;
-        $this->sortDir = 'DESC';
     }
 
+    // Delete Attendance Record
     public function delete(Attendance $attendance)
     {
+        // Authorization Check
+        if (!Auth::user()->can('delete', $attendance)) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // Log the deletion
         TransactionLog::create([
             'user_id' => Auth::id(),
@@ -96,38 +134,53 @@ class AttendanceTable extends Component
             ]),
         ]);
 
+        // Delete the record
         $attendance->delete();
 
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Attendance record deleted successfully');
+        // Success Notification
+        session()->flash('message', 'Attendance record deleted successfully.');
     }
 
+    // Export Attendance Records
     public function exportAs($format)
     {
-        $export = new AttendanceExport($this->selectedMonth, $this->selectedSubject, $this->selectedSection);
+        // Determine export format
+        $export = new AttendanceExport(
+            $this->selectedMonth,
+            $this->selectedCollege,
+            $this->selectedDepartment,
+            $this->selectedSection,
+            $this->selectedSubject,
+            $this->status,
+            $this->search,
+            Auth::user()
+        );
+
+        $fileName = 'attendance_' . now()->format('Y_m_d_H_i_s');
 
         switch ($format) {
             case 'csv':
-                return Excel::download($export, 'attendance.csv', \Maatwebsite\Excel\Excel::CSV);
+                return Excel::download($export, $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
             case 'excel':
-                return Excel::download($export, 'attendance.xlsx');
+                return Excel::download($export, $fileName . '.xlsx');
             case 'pdf':
                 // Implement PDF export if needed
                 break;
+            default:
+                return redirect()->back()->with('error', 'Invalid export format.');
         }
     }
 
+    // Render Method
     public function render()
     {
-        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
+        $query = Attendance::with(['user.college', 'user.department', 'schedule.subject', 'schedule.section'])
             ->orderBy($this->sortBy, $this->sortDir);
 
         // Fetch the authenticated user
         $user = Auth::user();
 
-        // Apply role-based filters
+        // Apply role-based filters to attendance records
         if ($user->isAdmin()) {
             // Admin can view all attendance records
             // No additional filtering needed
@@ -168,7 +221,7 @@ class AttendanceTable extends Component
 
         // Apply status filter
         if (!empty($this->status)) {
-            $query->where('status', $this->status);
+            $query->where('status', strtolower($this->status));
         }
 
         // Apply subject filter
@@ -195,59 +248,104 @@ class AttendanceTable extends Component
         // Paginate the results
         $attendances = $query->paginate($this->perPage);
 
-        // Fetch subjects and sections based on user role for filters
+        // Fetch filter options based on user role
         if ($user->isAdmin()) {
-            // Admin: All subjects and sections
-            $subjects = Subject::all();
-            $sections = Section::all();
-        } elseif ($user->isDean()) {
-            // Dean: Subjects and sections within their college
-            $subjects = Subject::whereHas('schedules', function ($q) use ($user) {
-                $q->where('college_id', $user->college_id);
-            })->distinct()->get();
+            // Admin: All Colleges, Departments based on selectedCollege, Sections based on selectedDepartment, Subjects based on selectedCollege or selectedDepartment
+            $colleges = College::all();
 
-            $sections = Section::where('college_id', $user->college_id)->get();
+            // Departments based on selectedCollege
+            $departments = $this->selectedCollege
+                ? Department::where('college_id', $this->selectedCollege)->get()
+                : Department::all();
+
+            // Sections based on selectedDepartment
+            $sections = $this->selectedDepartment
+                ? Section::where('department_id', $this->selectedDepartment)->get()
+                : Section::all();
+
+            // Subjects based on selectedCollege or selectedDepartment
+            $subjects = Subject::where(function ($q) {
+                    if ($this->selectedCollege) {
+                        $q->where('college_id', $this->selectedCollege);
+                    }
+                })
+                ->orWhere(function ($q) {
+                    if ($this->selectedDepartment) {
+                        $q->where('department_id', $this->selectedDepartment);
+                    }
+                })
+                ->distinct()
+                ->get();
+        } elseif ($user->isDean()) {
+            // Dean: Departments within their college, Sections based on selectedDepartment, Subjects based on selectedDepartment
+            $colleges = null; // Not applicable for Dean
+
+            $departments = Department::where('college_id', $user->college_id)->get();
+
+            $sections = $this->selectedDepartment
+                ? Section::where('department_id', $this->selectedDepartment)->get()
+                : Section::where('college_id', $user->college_id)->get();
+
+            // Subject filter based on selectedDepartment
+            if ($this->selectedDepartment) {
+                $subjects = Subject::where('department_id', $this->selectedDepartment)->get();
+            } else {
+                // If no department is selected, show all subjects within the dean's college
+                $subjects = Subject::where('college_id', $user->college_id)->get();
+            }
         } elseif ($user->isChairperson()) {
-            // Chairperson: Subjects and sections within their department
+            // Chairperson: Sections within their department, Subjects based on their department's college
+            $colleges = null; // Not applicable for Chairperson
+            $departments = null; // Not applicable for Chairperson
+
+            $sections = Section::where('department_id', $user->department_id)->get();
+
+            // Assuming Subject is linked to Department via schedules
             $subjects = Subject::whereHas('schedules', function ($q) use ($user) {
                 $q->where('department_id', $user->department_id);
             })->distinct()->get();
-
-            $sections = Section::where('department_id', $user->department_id)->get();
         } elseif ($user->isInstructor()) {
-            // Instructor: Subjects and sections they handle
-            $subjects = Subject::whereHas('schedules', function ($q) use ($user) {
-                $q->where('instructor_id', $user->id);
-            })->distinct()->get();
+            // Instructor: Sections and Subjects based on their assigned schedules
+            $colleges = null; // Not applicable for Instructor
+            $departments = null; // Not applicable for Instructor
 
             $sections = Section::whereHas('schedules', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             })->distinct()->get();
-        } elseif ($user->isStudent()) {
-            // Student: Subjects and sections they are enrolled in (based on their attendances)
-            $subjects = Subject::whereHas('schedules.attendances', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })->distinct()->get();
 
-            $sections = Section::whereHas('schedules.attendances', function ($q) use ($user) {
+            $subjects = Subject::whereHas('schedules', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            })->distinct()->get();
+        } elseif ($user->isStudent()) {
+            // Student: Only their Subjects
+            $colleges = null;
+            $departments = null;
+            $sections = null; // Not applicable for Student
+
+            $subjects = Subject::whereHas('schedules.attendances', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->distinct()->get();
         } else {
             // Any other roles: Default to all subjects and sections or restrict as needed
-            $subjects = Subject::all();
+            $colleges = College::all();
+            $departments = Department::all();
             $sections = Section::all();
+            $subjects = Subject::all();
         }
 
         return view('livewire.attendance-table', [
             'attendances' => $attendances,
-            'subjects' => $subjects,
-            'sections' => $sections,
+            'colleges' => $colleges ?? null,
+            'departments' => $departments ?? null,
+            'sections' => $sections ?? null,
+            'subjects' => $subjects ?? null,
+            'user' => $user,
         ]);
     }
 
-    #[On('refresh-attendance-table')]
+    // Listener Method to Refresh Attendance Table
     public function refreshAttendanceTable()
     {
-        $this->attendance = Attendance::all();
+        $this->resetPage();
     }
 }
