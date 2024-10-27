@@ -245,7 +245,7 @@
 </div>
 
 
-<script>
+{{-- <script>
     document.addEventListener('livewire:initialized', () => {
         @this.on('refresh-attendance-table', (event) => {
             var myModalEl = document.querySelector('#verticalycentered')
@@ -278,4 +278,4 @@
             });
         });
     });
-</script>
+</script> --}}
