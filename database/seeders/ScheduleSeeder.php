@@ -13,9 +13,23 @@ use App\Models\Section;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class ScheduleSeeder extends Seeder
 {
+    /**
+     * Predefined non-overlapping time slots.
+     *
+     * Each time slot is an associative array with 'start' and 'end' keys.
+     */
+    protected $timeSlots = [
+        ['start' => '07:30:00', 'end' => '10:00:00'],
+        ['start' => '10:00:00', 'end' => '11:30:00'],
+        ['start' => '11:30:00', 'end' => '13:00:00'],
+        ['start' => '13:00:00', 'end' => '15:30:00'],
+        ['start' => '15:30:00', 'end' => '17:00:00'],
+    ];
+
     /**
      * Run the database seeds.
      *
@@ -44,13 +58,11 @@ class ScheduleSeeder extends Seeder
             return;
         }
 
-        // Fetch all necessary records
-        $subjects = Subject::all();
+        // Fetch all necessary records with relationships to minimize queries
+        $subjects = Subject::with('department')->get(); // Assuming Subject belongs to Department
         $instructors = User::where('role_id', $instructorRole->id)->get();
         $laboratories = Laboratory::all();
-        $colleges = College::all();
-        $departments = Department::all();
-        $sections = Section::all();
+        $sections = Section::with(['department.college'])->get(); // Ensure sections have department and college
 
         // Define fixed day pairs (only pairs of two days)
         $daysOptions = [
@@ -60,11 +72,12 @@ class ScheduleSeeder extends Seeder
             ['Sunday', 'Tuesday'], // Add more pairs as needed
         ];
 
-        $startTimes = ['07:30:00', '09:00:00', '10:30:00', '13:00:00', '14:30:00'];
-        $endTimes = ['10:00:00', '11:30:00', '13:00:00', '15:30:00', '17:00:00'];
-
         // Initialize tracking for assigned days per section
         $sectionDayAssignments = [];
+
+        // Initialize tracking for instructor availability
+        // Format: [instructor_id][day] => array of assigned time slots
+        $instructorAvailability = [];
 
         // Define how many schedules you want to create
         // Adjust based on number of sections and day pairs
@@ -92,6 +105,12 @@ class ScheduleSeeder extends Seeder
         $shuffledDaysOptions = collect($daysOptions)->shuffle();
 
         foreach ($shuffledSections as $section) {
+            // Validate that the section has an associated department and college
+            if (!$section->department || !$section->department->college) {
+                $this->command->warn("Section ID {$section->id} does not have an associated department or college. Skipping.");
+                continue;
+            }
+
             // Initialize assigned days for the section
             if (!isset($sectionDayAssignments[$section->id])) {
                 $sectionDayAssignments[$section->id] = [];
@@ -112,42 +131,45 @@ class ScheduleSeeder extends Seeder
                     continue;
                 }
 
-                // Select a subject that hasn't been assigned to this section yet
+                // Select a subject that hasn't been assigned to this section yet and belongs to the department
                 $availableSubjects = $subjects->filter(function ($subject) use ($section) {
-                    return !Schedule::where('section_id', $section->id)
+                    return $subject->department_id === $section->department_id &&
+                           !Schedule::where('section_id', $section->id)
                                    ->where('subject_id', $subject->id)
                                    ->exists();
                 });
 
                 if ($availableSubjects->isEmpty()) {
-                    // No available subjects left for this section
+                    // No available subjects left for this section in this department
                     continue;
                 }
 
                 $subject = $availableSubjects->random();
 
-                // Select an instructor, laboratory, college, department randomly
+                // Select an instructor and laboratory randomly
                 $instructor = $instructors->random();
                 $laboratory = $laboratories->random();
-                $college = $colleges->random();
-                $department = $departments->random();
 
-                // Assign a sequential schedule code
-                $scheduleCode = 'T' . $currentNumber++;
+                // Derive department and college from the section's relationships
+                $department = $section->department;
+                $college = $department->college;
 
-                // Randomly select start and end times
-                $startTime = $startTimes[array_rand($startTimes)];
-                $endTime = $endTimes[array_rand($endTimes)];
+                // Attempt to assign a non-conflicting time slot
+                $assignedTimeSlot = $this->assignTimeSlot($instructor->id, $dayPair, $this->timeSlots, $instructorAvailability);
 
-                // Ensure that end time is after start time
-                if ($endTime <= $startTime) {
-                    // Swap times if end time is not after start time
-                    [$startTime, $endTime] = [$endTime, $startTime];
+                if (!$assignedTimeSlot) {
+                    // Could not find a non-conflicting time slot for this instructor on these days
+                    $this->command->warn("Could not assign a non-conflicting time slot for Instructor ID {$instructor->id} on days " . implode(', ', $dayPair) . ". Skipping this schedule.");
+                    continue;
                 }
+
+                // Assign the selected time slot
+                $startTime = $assignedTimeSlot['start'];
+                $endTime = $assignedTimeSlot['end'];
 
                 // Create the schedule
                 Schedule::create([
-                    'schedule_code'   => $scheduleCode,
+                    'schedule_code'   => 'T' . $currentNumber++,
                     'subject_id'      => $subject->id,
                     'instructor_id'   => $instructor->id,
                     'laboratory_id'   => $laboratory->id,
@@ -166,6 +188,11 @@ class ScheduleSeeder extends Seeder
                     $sectionDayAssignments[$section->id][] = $day;
                 }
 
+                // Mark the time slot as assigned for the instructor on these days
+                foreach ($dayPair as $day) {
+                    $instructorAvailability[$instructor->id][$day][] = $assignedTimeSlot;
+                }
+
                 // Increment the schedule count
                 $numberOfSchedules--;
 
@@ -177,5 +204,60 @@ class ScheduleSeeder extends Seeder
         }
 
         $this->command->info("Successfully seeded schedules starting from T{$startNumber}.");
+    }
+
+    /**
+     * Assign a non-conflicting time slot for an instructor on specified days.
+     *
+     * @param int $instructorId
+     * @param array $days
+     * @param array $timeSlots
+     * @param array &$instructorAvailability
+     * @param int $maxAttempts
+     * @return array|null
+     */
+    protected function assignTimeSlot(int $instructorId, array $days, array $timeSlots, array &$instructorAvailability, int $maxAttempts = 10): ?array
+    {
+        // Shuffle time slots to randomize assignment
+        $shuffledTimeSlots = collect($timeSlots)->shuffle()->all();
+
+        foreach ($shuffledTimeSlots as $timeSlot) {
+            $conflict = false;
+
+            foreach ($days as $day) {
+                if (isset($instructorAvailability[$instructorId][$day])) {
+                    foreach ($instructorAvailability[$instructorId][$day] as $assignedSlot) {
+                        if ($this->timeSlotsOverlap($timeSlot, $assignedSlot)) {
+                            $conflict = true;
+                            break 2; // Conflict found, no need to check further
+                        }
+                    }
+                }
+            }
+
+            if (!$conflict) {
+                return $timeSlot; // Found a non-conflicting time slot
+            }
+        }
+
+        // If no non-conflicting time slot is found after checking all, return null
+        return null;
+    }
+
+    /**
+     * Determine if two time slots overlap.
+     *
+     * @param array $slot1 ['start' => 'HH:MM:SS', 'end' => 'HH:MM:SS']
+     * @param array $slot2 ['start' => 'HH:MM:SS', 'end' => 'HH:MM:SS']
+     * @return bool
+     */
+    protected function timeSlotsOverlap(array $slot1, array $slot2): bool
+    {
+        $start1 = Carbon::createFromFormat('H:i:s', $slot1['start']);
+        $end1 = Carbon::createFromFormat('H:i:s', $slot1['end']);
+        $start2 = Carbon::createFromFormat('H:i:s', $slot2['start']);
+        $end2 = Carbon::createFromFormat('H:i:s', $slot2['end']);
+
+        return $start1 < $end2 && $start2 < $end1;
     }
 }
