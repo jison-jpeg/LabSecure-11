@@ -1,4 +1,4 @@
-@section('pageTitle', 'View Attendance')
+@section('pageTitle', 'View Section')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -8,13 +8,13 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ url()->previous() }}">@yield('pageTitle')</a></li>
-                    <li class="breadcrumb-item active">Attendance Records</li>
+                    <li class="breadcrumb-item active">{{$section->name}}</li>
                 </ol>
             </nav>
         </div>
         <!-- End Page Title -->
 
-        @livewire('view-attendance', ['user' => $user])
+        @livewire('view-section', ['section' => $section])
 
     </main>
 </x-app-layout>

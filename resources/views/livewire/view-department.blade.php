@@ -71,7 +71,7 @@
                         <h5 class="card-title">{{ $department->name }}</h5>
                         <p class="mb-0"><strong>College:</strong> {{ $department->name ?? 'N/A' }}</p>
                         <p><strong>Description:</strong> {{ $department->description }}</p>
-                        <p class="mb-0"><strong>Chairperson:</strong> {{ $department->chairperson ?? 'N/A' }}</p>
+                        <p class="mb-0"><strong>Chairperson:</strong> {{ $department->chairperson->full_name ?? 'N/A' }}</p>
 
                     </div>
                 </div>

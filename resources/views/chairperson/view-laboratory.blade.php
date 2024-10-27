@@ -1,4 +1,4 @@
-@section('pageTitle', 'View Schedule')
+@section('pageTitle', 'Laboratory')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -8,13 +8,13 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ url()->previous() }}">@yield('pageTitle')</a></li>
-                    <li class="breadcrumb-item active">{{ $schedule->schedule_code }}</li>
+                    <li class="breadcrumb-item active">{{$laboratory->name}}</li>
                 </ol>
             </nav>
         </div>
         <!-- End Page Title -->
 
-        @livewire('view-schedule', ['schedule' => $schedule])
+        @livewire('view-laboratory', ['laboratory' => $laboratory])
 
     </main>
 </x-app-layout>

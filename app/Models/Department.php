@@ -34,6 +34,14 @@ class Department extends Model
         return $this->hasMany(User::class);
     }
 
+    public function chairperson()
+{
+    return $this->hasOne(User::class)->whereHas('role', function($query){
+        $query->where('name', 'chairperson');
+    });
+}
+
+
     // Scope Search
     public function scopeSearch($query, $value)
     {

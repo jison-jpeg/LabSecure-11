@@ -1,4 +1,4 @@
-@section('pageTitle', 'Dashboard')
+@section('pageTitle', 'Logs')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -17,37 +17,31 @@
             <div class="row">
 
                 <!-- Left side columns -->
-                <div class="col-lg-8 d-flex flex-column">
+                <div class="col-lg-12">
                     {{-- Alert Logged-in as what auth role --}}
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <strong>Logged-in as {{ Auth::user()->role->name }}!</strong>
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-body">
 
-                    {{-- User Stats --}}
-                    @livewire('user-stats')
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Logs</h5>
+                                    </div>
 
-                    {{-- Lab Stats --}}
-                    <div class="card h-100">
-                        @livewire('lab-stats')
+                                    {{-- Transaction Log Table Livewire --}}
+                                    @livewire('transaction-log-table')
+                                    <!-- End Transaction Log Table Livewire -->
+                            </div>
+                        </div>
                     </div>
-                    {{-- @livewire('attendance-rank') --}}
-
 
                 </div>
                 <!-- End Left side columns -->
-
-                <!-- Right side columns -->
-                <div class="col-lg-4 d-flex flex-column">
-                    <!-- Recent Activity -->
-                    <div class="card h-100">
-                        @livewire('logs-widget')
-                    </div>
-                    <!-- End Recent Activity -->
-                </div>
-                <!-- End Right side columns -->
-
 
             </div>
         </section>

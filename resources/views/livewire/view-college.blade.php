@@ -67,7 +67,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ $college->name }}</h5>
                         <p><strong>Description:</strong> {{ $college->description }}</p>
-                        <p class="mb-0"><strong>College Dean:</strong> N/A</p>
+                        <p class="mb-0"><strong>Dean:</strong> {{ $college->dean->full_name ?? 'N/A' }}</p>
 
                     </div>
                 </div>

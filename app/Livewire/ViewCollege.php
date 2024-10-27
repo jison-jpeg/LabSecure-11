@@ -11,9 +11,10 @@ class ViewCollege extends Component
     public $college;
 
     public function mount(College $college)
-    {
-        $this->college = $college;
-    }
+{
+    $this->college = $college->load('dean');
+}
+
 
     public function render()
     {

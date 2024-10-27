@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // User Management
-Route::middleware(['auth', 'verified', 'role:admin'])
+Route::middleware(['auth', 'verified'])
     ->prefix('users')
     ->group(function () {
         Route::get('/', [UserController::class, 'viewUsers'])->name('users');
@@ -59,7 +59,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Faculty Management
-Route::middleware(['auth', 'verified', 'role:admin'])
+Route::middleware(['auth', 'verified'])
     ->prefix('faculties')
     ->group(function () {
         Route::get('/', [FacultyController::class, 'viewFaculties'])->name('faculties');
@@ -83,7 +83,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Courses Management
-Route::middleware(['auth', 'verified', 'role:admin'])
+Route::middleware(['auth', 'verified'])
     ->prefix('courses')
     ->group(function () {
         Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
@@ -92,7 +92,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     });
 
 // Schedule
-Route::middleware(['auth', 'verified', 'role:admin'])
+Route::middleware(['auth', 'verified'])
     ->prefix('schedules')
     ->group(function () {
         Route::get('/', [ScheduleController::class, 'viewSchedules'])->name('schedule');
@@ -110,7 +110,7 @@ Route::middleware('auth')
 
 
 // Section
-Route::middleware(['auth', 'verified', 'role:admin'])
+Route::middleware(['auth', 'verified'])
     ->prefix('sections')
     ->group(function () {
         Route::get('/', [SectionController::class, 'viewSections'])->name('sections');

@@ -24,6 +24,14 @@ class College extends Model
         return $this->hasMany(User::class);
     }
 
+    public function dean()
+{
+    return $this->hasOne(User::class)->whereHas('role', function ($query) {
+        $query->where('name', 'dean');
+    });
+}
+
+
     public function scopeSearch($query, $search)
     {
         return $query->where('name', 'like', '%' . $search . '%');

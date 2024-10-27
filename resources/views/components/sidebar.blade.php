@@ -48,7 +48,7 @@
             @if (!Auth::user()->isStudent())
             <li class="nav-heading">INSTITUTION</li>
 
-            @if (Auth::user()->isAdmin())
+            @if (Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('courses*') ? '' : 'collapsed' }}" href="{{ url('/courses') }}">
                     <i class="bi bi-bank"></i>
@@ -80,7 +80,7 @@
                 </a>
             </li>
 
-            @if (Auth::user()->isAdmin())
+            @if (Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('schedules*') ? '' : 'collapsed' }}"
                     href="{{ url('/schedules') }}">
@@ -100,7 +100,7 @@
             </li>
             @endif
 
-            @if (Auth::user()->isAdmin())
+            @if (Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('sections*') ? '' : 'collapsed' }}"
                     href="{{ url('/sections') }}">

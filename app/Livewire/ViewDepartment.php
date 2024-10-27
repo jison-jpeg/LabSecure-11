@@ -12,7 +12,7 @@ class ViewDepartment extends Component
     public function mount(Department $department)
     {
         // Load the department with its related college to access the college name
-        $this->department = $department->load('college');
+        $this->department = $department->load('college', 'chairperson');
     }
 
     public function render()
