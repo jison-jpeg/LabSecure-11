@@ -73,8 +73,12 @@ class CreateUser extends Component
             $this->reset(['selectedCollege', 'selectedDepartment', 'selectedSection']);
             $this->departments = [];
             $this->sections = [];
+        } elseif ($this->isRoleDean()) {
+            // Reset Department and Section for Dean
+            $this->reset(['selectedDepartment', 'selectedSection']);
+            $this->sections = [];
         } else {
-            // Reset Department and Section when changing to non-admin roles
+            // Reset Department and Section for other roles
             $this->reset(['selectedDepartment', 'selectedSection']);
             if ($this->selectedCollege) {
                 // Reload departments based on the current selectedCollege
@@ -117,9 +121,13 @@ class CreateUser extends Component
 
         // Additional rules based on role
         if (!$this->isRoleAdmin()) {
-            // College and Department are required for Chairperson, Dean, Instructor, and Student
+            // College is required for Chairperson, Dean, Instructor, and Student
             $rules['selectedCollege'] = 'required|exists:colleges,id';
-            $rules['selectedDepartment'] = 'required|exists:departments,id';
+
+            if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
+                // Department is required for Chairperson, Instructor, and Student
+                $rules['selectedDepartment'] = 'required|exists:departments,id';
+            }
 
             if ($this->isRoleStudent()) {
                 // Section is required only for Student
@@ -157,9 +165,13 @@ class CreateUser extends Component
             'status' => $this->status,
         ];
 
-        // Conditionally add college and department
+        // Conditionally add college
         if (!$this->isRoleAdmin()) {
             $data['college_id'] = $this->selectedCollege;
+        }
+
+        // Conditionally add department
+        if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
             $data['department_id'] = $this->selectedDepartment;
         }
 
@@ -242,15 +254,19 @@ class CreateUser extends Component
             $this->departments = Department::where('college_id', $this->selectedCollege)->get();
         }
 
-        // Set and load the department
-        if ($this->user->department_id) {
-            $this->selectedDepartment = $this->user->department_id;
-            $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+        // Set and load the department if applicable
+        if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
+            if ($this->user->department_id) {
+                $this->selectedDepartment = $this->user->department_id;
+                $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+            }
         }
 
-        // Set the section
-        if ($this->user->section_id) {
-            $this->selectedSection = $this->user->section_id;
+        // Set the section if applicable
+        if ($this->isRoleStudent()) {
+            if ($this->user->section_id) {
+                $this->selectedSection = $this->user->section_id;
+            }
         }
     }
 
@@ -278,15 +294,20 @@ class CreateUser extends Component
             $data['password'] = Hash::make($this->password);
         }
 
-        // Conditionally add or remove college and department
+        // Conditionally add or remove college
         if (!$this->isRoleAdmin()) {
             $data['college_id'] = $this->selectedCollege;
-            $data['department_id'] = $this->selectedDepartment;
         } else {
             // If admin, remove college, department, and section
             $data['college_id'] = null;
+        }
+
+        // Conditionally add or remove department
+        if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
+            $data['department_id'] = $this->selectedDepartment;
+        } else {
+            // For roles that don't require department (e.g., Dean and Admin)
             $data['department_id'] = null;
-            $data['section_id'] = null;
         }
 
         // Conditionally add or remove section for students

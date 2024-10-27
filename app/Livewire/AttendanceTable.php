@@ -33,7 +33,7 @@ class AttendanceTable extends Component
     public $status = '';
 
     #[Url(history: true)]
-    public $sortBy = 'updated_at';
+    public $sortBy = 'date';
 
     #[Url(history: true)]
     public $sortDir = 'DESC';

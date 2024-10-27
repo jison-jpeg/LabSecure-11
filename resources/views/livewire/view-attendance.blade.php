@@ -115,7 +115,7 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">
-                        {{ Auth::user()->isAdmin() ? 'Attendance Records' : 'My Attendance Records' }}
+                        {{ Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean() ? 'Attendance Records' : 'My Attendance Records' }}
                     </h5>
                     <div class="row mb-4">
                         <div class="col-md-10">

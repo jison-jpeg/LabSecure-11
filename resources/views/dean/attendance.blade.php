@@ -31,7 +31,7 @@
                                 <div class="card-body">
                                     
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title">My Attendances</h5>
+                                        <h5 class="card-title">User Attendances</h5>
                                     </div>
                                     @livewire('attendance-table')
 

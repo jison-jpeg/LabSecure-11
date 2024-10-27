@@ -54,7 +54,8 @@
                         </div>
                         <div class="col-md-2">
                             <label for="status" class="form-label">Status</label>
-                            <select wire:model.lazy="status" class="form-select @error('status') is-invalid @enderror" name="status">
+                            <select wire:model.lazy="status" class="form-select @error('status') is-invalid @enderror"
+                                name="status">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
@@ -92,66 +93,84 @@
                                 </span>
                             @enderror
                         </div>
-                        <div class="{{ $this->isRoleStudent() ? 'col-md-2' : 'col-md-4' }}">
-                            <label for="role_id" class="form-label">Role</label>
-                            <select wire:model.lazy="role_id" class="form-select @error('role_id') is-invalid @enderror"
-                                name="role_id">
+                        <div @class([
+                            'col-md-2' => $this->isRoleStudent(),
+                            'col-md-6' => $this->isRoleDean(),
+                            'col-md-4' => !$this->isRoleStudent() && !$this->isRoleDean(),
+                        ])>
+                            <label for="role" class="form-label">Role</label>
+                            <select wire:model.lazy="role_id" id="role" class="form-select @error('role_id') is-invalid @enderror" required>
                                 <option value="">Select Role</option>
                                 @foreach ($roles as $role)
                                     <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
                                 @endforeach
                             </select>
                             @error('role_id')
-                                <span class="invalid-feedback">
+                                <div class="invalid-feedback">
                                     {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        <!-- College Field (Hide if Admin is selected) -->
-                        <div class="col-md-4" @if ($this->isRoleAdmin()) style="display: none;" @endif>
-                            <label for="college_id" class="form-label">College</label>
-                            <select wire:model.lazy="selectedCollege"
-                                class="form-select @error('selectedCollege') is-invalid @enderror" name="college_id">
-                                <option value="">Select College</option>
-                                @foreach ($colleges as $college)
-                                    <option value="{{ $college->id }}" @if ($selectedCollege == $college->id) selected @endif>{{ $college->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('selectedCollege')
-                                <span class="invalid-feedback">{{ $message }}</span>
+                                </div>
                             @enderror
                         </div>
 
-                        <!-- Department Field (Hide if Admin is selected) -->
-                        <div class="col-md-4" @if ($this->isRoleAdmin()) style="display: none;" @endif>
-                            <label for="department_id" class="form-label">Department</label>
-                            <select wire:model.lazy="selectedDepartment"
-                                class="form-select @error('selectedDepartment') is-invalid @enderror"
-                                name="department_id">
-                                <option value="">Select Department</option>
-                                @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}" @if ($selectedDepartment == $department->id) selected @endif>{{ $department->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('selectedDepartment')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <!-- College Field with Dynamic Column Size for Dean -->
+                        @if (!$this->isRoleAdmin())
+                            <div @class([
+                                'col-md-6' => $this->isRoleDean(),
+                                'col-md-4' => !$this->isRoleDean(),
+                            ])>
+                                <label for="college" class="form-label">College</label>
+                                <select wire:model.lazy="selectedCollege" id="college" class="form-select @error('selectedCollege') is-invalid @enderror" required>
+                                    <option value="">Select College</option>
+                                    @foreach ($colleges as $college)
+                                        <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('selectedCollege')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                        @endif
 
-                        <!-- Section Field (Visible Only for Student Role, Hide if Admin is selected) -->
-                        <div class="col-md-2" @if ($this->isRoleAdmin() || !$this->isRoleStudent()) style="display: none;" @endif>
-                            <label for="section_id" class="form-label">Section</label>
-                            <select wire:model.lazy="selectedSection"
-                                class="form-select @error('selectedSection') is-invalid @enderror" name="section_id">
-                                <option value="">Select Section</option>
-                                @foreach ($sections as $section)
-                                    <option value="{{ $section->id }}" @if ($selectedSection == $section->id) selected @endif>{{ $section->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('selectedSection')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <!-- Department Field -->
+                        @if (!$this->isRoleAdmin() && ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()))
+                            <div class="col-md-4">
+                                <label for="department" class="form-label">Department</label>
+                                <select wire:model.lazy="selectedDepartment" id="department" class="form-select @error('selectedDepartment') is-invalid @enderror" required>
+                                    <option value="">Select Department</option>
+                                    @foreach ($departments as $department)
+                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('selectedDepartment')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                        @endif
+
+                        <!-- Section Field (Only for Students) with Dynamic Column Size -->
+                        @if ($this->isRoleStudent())
+                            <div @class([
+                                'col-md-2' => $this->isRoleStudent(),
+                                'col-md-4' => !$this->isRoleStudent(),
+                            ])>
+                                <label for="section" class="form-label">Section</label>
+                                <select wire:model.lazy="selectedSection" id="section" class="form-select @error('selectedSection') is-invalid @enderror" required>
+                                    <option value="">Select Section</option>
+                                    @foreach ($sections as $section)
+                                        <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('selectedSection')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                        @endif
                 </div>
                 <div class="modal-footer">
                     @if ($editForm)

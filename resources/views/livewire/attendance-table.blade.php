@@ -4,7 +4,6 @@
 
 <div>
     <div class="row mb-4">
-        <!-- Filter options and controls remain unchanged -->
         <div class="col-md-10">
             <div class="filter">
                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -27,8 +26,6 @@
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
-
-            <!-- Per Page and Filter Controls -->
             <div class="row g-1">
                 <div class="col-md-1 col-sm-2">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -40,8 +37,6 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-
-                <!-- Search and Filter Controls -->
                 <div class="col-12 col-md-3 col-sm-10">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search users...">
