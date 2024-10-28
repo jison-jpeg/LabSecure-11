@@ -29,9 +29,9 @@
                     @livewire('user-stats')
 
                     {{-- Lab Stats --}}
-                    <div class="card h-100">
+                    {{-- <div class="card h-100">
                         @livewire('lab-stats')
-                    </div>
+                    </div> --}}
                     {{-- @livewire('attendance-rank') --}}
 
 

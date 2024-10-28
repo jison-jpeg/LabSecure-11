@@ -177,7 +177,7 @@
             <!-- End Right side columns -->
 
             <!-- Recent User Activity -->
-            @if (Auth::user()->isAdmin() || Auth::user()->isDean())
+            @if (Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson())
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">

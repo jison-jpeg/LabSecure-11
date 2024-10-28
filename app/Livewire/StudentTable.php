@@ -9,10 +9,12 @@ use App\Models\Schedule;
 use App\Models\Section;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
 class StudentTable extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     public $user;
@@ -29,15 +31,28 @@ class StudentTable extends Component
     public $scheduleCode = '';
     public $section = '';
 
+    // To store the filtered departments dynamically
+    public $filteredDepartments = [];
+
     public function mount()
     {
         // Initialize the component with the authenticated user
         $this->user = auth()->user();
+
+        // Initialize filteredDepartments based on user role
+        $this->initializeFilteredDepartments();
     }
 
     public function updatedSearch()
     {
         $this->resetPage();
+    }
+
+    public function updatedCollege()
+    {
+        $this->resetPage();
+        $this->department = ''; // Reset department when college changes
+        $this->initializeFilteredDepartments();
     }
 
     public function clear()
@@ -47,6 +62,8 @@ class StudentTable extends Component
         $this->department = '';
         $this->scheduleCode = '';
         $this->section = '';
+        $this->resetPage();
+        $this->initializeFilteredDepartments();
     }
 
     public function setSortBy($sortByField)
@@ -60,39 +77,100 @@ class StudentTable extends Component
         $this->sortDir = 'DESC';
     }
 
+    public function delete(User $student)
+    {
+        $student->delete();
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Student deleted successfully');
+    }
+
+    public function import()
+    {
+        // Implement import functionality
+    }
+
+    /**
+     * Initialize filteredDepartments based on user role and selected college
+     */
+    private function initializeFilteredDepartments()
+    {
+        if ($this->user->isAdmin()) {
+            if ($this->college !== '') {
+                $this->filteredDepartments = Department::where('college_id', $this->college)->get();
+            } else {
+                $this->filteredDepartments = Department::all();
+            }
+        } elseif ($this->user->isDean()) {
+            // For Dean, departments are within their college
+            $this->filteredDepartments = Department::where('college_id', $this->user->college_id)->get();
+        } else {
+            // For Chairperson and other roles, no department filter is needed
+            $this->filteredDepartments = collect();
+        }
+    }
+
     public function render()
     {
-        $query = User::query()->with(['college', 'department', 'section']);
+        $user = $this->user;
 
-        // Apply role-based filters
-        if ($this->user->isAdmin()) {
+        // Initialize the query
+        $query = User::query()->with(['college', 'department', 'section', 'role']);
+
+        // Apply role-based filters using isStudent() method
+        if ($user->isAdmin()) {
             // Admin sees all students
-            $query->where('role_id', 3);
-        } elseif ($this->user->isInstructor()) {
-            // Instructor sees only students in their schedules
-            $query->whereHas('section.schedules', function ($q) {
-                $q->where('instructor_id', $this->user->id);
+            $query->whereHas('role', function ($q) {
+                $q->where('name', 'student');
             });
-        } elseif ($this->user->isDean()) {
-            // Dean sees students in their college and department
-            $query->where('college_id', $this->user->college_id)
-                ->where('department_id', $this->user->department_id);
-        } elseif ($this->user->isChairperson()) {
-            // Chairperson sees students in their department
-            $query->where('department_id', $this->user->department_id);
+
+            // Apply College filter if selected
+            if ($this->college !== '') {
+                $query->where('college_id', $this->college);
+            }
+
+            // Apply Department filter if selected
+            if ($this->department !== '') {
+                $query->where('department_id', $this->department);
+            }
+        } elseif ($user->isDean()) {
+            // Dean sees all students in their college
+            $query->whereHas('role', function ($q) {
+                $q->where('name', 'student');
+            })->where('college_id', $user->college_id);
+
+            // Apply Department filter if selected
+            if ($this->department !== '') {
+                $query->where('department_id', $this->department);
+            }
+        } elseif ($user->isChairperson()) {
+            // Chairperson sees students in their department only
+            $query->whereHas('role', function ($q) {
+                $q->where('name', 'student');
+            })->where('department_id', $user->department_id);
+        } elseif ($user->isInstructor()) {
+            // Instructor sees only students in their schedules
+            $query->whereHas('role', function ($q) {
+                $q->where('name', 'student');
+            })->whereHas('section.schedules', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
         }
 
         // Apply search filter
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('first_name', 'like', '%' . $this->search . '%')
+                    ->orWhere('middle_name', 'like', '%' . $this->search . '%')
                     ->orWhere('last_name', 'like', '%' . $this->search . '%')
+                    ->orWhere('suffix', 'like', '%' . $this->search . '%')
                     ->orWhere('username', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%');
             });
         }
 
-        // Apply additional filters based on user role
+        // Apply additional filters
         if ($this->scheduleCode) {
             $query->whereHas('section.schedules', function ($q) {
                 $q->where('schedule_code', $this->scheduleCode);
@@ -103,24 +181,17 @@ class StudentTable extends Component
             $query->where('section_id', $this->section);
         }
 
-        if ($this->college && $this->user->isAdmin()) {
-            $query->where('college_id', $this->college);
-        }
+        $students = $query->orderBy($this->sortBy, $this->sortDir)
+            ->paginate($this->perPage);
 
-        if ($this->department && ($this->user->isAdmin() || $this->user->isDean())) {
-            $query->where('department_id', $this->department);
-        }
-
-        $users = $query->orderBy($this->sortBy, $this->sortDir)->paginate($this->perPage);
-
-        // Always fetch all available options for filtering
-        $colleges = $this->user->isAdmin() ? College::all() : [];
-        $departments = $this->user->isAdmin() || $this->user->isDean() ? Department::all() : [];
-        $schedules = $this->user->isInstructor() ? Schedule::where('instructor_id', $this->user->id)->get() : Schedule::all();
+        // Determine which filters to show based on role
+        $colleges = $user->isAdmin() ? College::all() : collect([]);
+        $departments = ($user->isAdmin() || $user->isDean()) ? $this->filteredDepartments : collect([]);
+        $schedules = $user->isInstructor() ? Schedule::where('instructor_id', $user->id)->get() : Schedule::all();
         $sections = Section::all();  // Fetch all sections regardless of the filters
 
         return view('livewire.student-table', [
-            'users' => $users,
+            'users' => $students,
             'colleges' => $colleges,
             'departments' => $departments,
             'schedules' => $schedules,

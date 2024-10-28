@@ -11,12 +11,9 @@
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
-                            </li>
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
                         </ul>
                     </li>
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
@@ -34,33 +31,40 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-
+    
                 <div class="col-12 col-md-3">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search faculty...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search faculty...">
                 </div>
-
+    
+                {{-- Conditionally Display College Filter --}}
+                @if(auth()->user()->isAdmin())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="college" name="college" class="form-select">
+                            <option value="">Select College</option>
+                            @foreach ($colleges as $college)
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @elseif(auth()->user()->isDean())
+                    {{-- For Dean, the college is fixed and hidden, so no select is needed --}}
+                    <input type="hidden" wire:model="college" value="{{ auth()->user()->college_id }}">
+                @endif
+    
+                {{-- Conditionally Display Department Filter --}}
+                @if(auth()->user()->isAdmin() || auth()->user()->isDean())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="department" name="department" class="form-select">
+                            <option value="">Select Department</option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+    
                 <div class="col-12 col-md-2">
-                    <select wire:model.live="college" name="college" class="form-select">
-                        <option value="">Select College</option>
-                        @foreach ($colleges as $college)
-                            <option value="{{ $college->id }}">{{ $college->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="department" name="department" class="form-select">
-                        <option value="">Select Department</option>
-                        @foreach ($departments as $department)
-                            <option value="{{ $department->id }}">{{ $department->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
-                        Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
                 </div>
             </div>
         </div>
@@ -68,6 +72,7 @@
             <livewire:create-faculty />
         </div>
     </div>
+    
 
     <div class="overflow-auto">
         <table class="table table-hover">

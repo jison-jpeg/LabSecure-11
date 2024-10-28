@@ -53,7 +53,8 @@
                                             aria-labelledby="profile-tab">
                                             @livewire('department-table')
                                         </div>
-                                    </div><!-- End Bordered Tabs Justified -->
+                                    </div>
+                                    <!-- End Bordered Tabs Justified -->
 
                                 </div>
                             </div>

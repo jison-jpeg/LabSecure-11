@@ -5,20 +5,13 @@
                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                     <li class="dropdown-header text-start">
-                        <h6>Option</h6>
+                        <h6>Options</h6>
                     </li>
                     <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li class="dropdown-submenu position-relative">
-                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
-                        <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
-                        </ul>
-                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
-    
+            {{-- Per Page --}}
             <div class="row g-1">
                 <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -32,12 +25,11 @@
                 </div>
     
                 <div class="col-12 col-md-3">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search students...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search students...">
                 </div>
     
-                {{-- Admin only filters --}}
-                @if (Auth::user()->isAdmin())
+                {{-- Conditionally Display College Filter --}}
+                @if(auth()->user()->isAdmin())
                     <div class="col-12 col-md-2">
                         <select wire:model.live="college" name="college" class="form-select">
                             <option value="">Select College</option>
@@ -46,82 +38,57 @@
                             @endforeach
                         </select>
                     </div>
+                @elseif(auth()->user()->isDean())
+                    {{-- For Dean, the college is fixed and hidden, so no select is needed --}}
+                    <input type="hidden" wire:model="college" value="{{ auth()->user()->college_id }}">
+                @endif
     
+                {{-- Conditionally Display Department Filter --}}
+                @if(auth()->user()->isAdmin() || auth()->user()->isDean())
                     <div class="col-12 col-md-2">
-                        <select wire:model.live="department" name="department" class="form-select">
+                        <select wire:model.live="department" name="department" class="form-select" @if(auth()->user()->isAdmin() && !$college) disabled @endif>
                             <option value="">Select Department</option>
-                            @foreach ($departments as $department)
+                            @forelse ($departments as $department)
                                 <option value="{{ $department->id }}">{{ $department->name }}</option>
-                            @endforeach
+                            @empty
+                                <option value="" disabled>No departments available</option>
+                            @endforelse
                         </select>
                     </div>
                 @endif
     
-                {{-- Instructor-specific filters --}}
-                @if (Auth::user()->isInstructor())
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="scheduleCode" name="schedule_code" class="form-select">
-                            <option value="">Select Schedule Code</option>
-                            @foreach ($schedules as $schedule)
-                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                {{-- Additional Filters: Schedule Code --}}
+                <div class="col-12 col-md-2">
+                    <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
+                        <option value="">Select Schedule Code</option>
+                        @foreach ($schedules as $schedule)
+                            <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
+                        @endforeach
+                    </select>
+                </div>
     
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="section" name="section" class="form-select">
-                            <option value="">Select Section</option>
-                            @foreach ($sections as $section)
-                                <option value="{{ $section->id }}">{{ $section->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
+                {{-- Additional Filters: Section --}}
+                <div class="col-12 col-md-2">
+                    <select wire:model.live="section" name="section" class="form-select">
+                        <option value="">Select Section</option>
+                        @foreach ($sections as $section)
+                            <option value="{{ $section->id }}">{{ $section->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
     
-                {{-- Dean filters (college, department, section) --}}
-                @if (Auth::user()->isDean())
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
-                            <option value="">Select Schedule Code</option>
-                            @foreach ($schedules as $schedule)
-                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-    
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="section" name="section" class="form-select">
-                            <option value="">Select Section</option>
-                            @foreach ($sections as $section)
-                                <option value="{{ $section->id }}">{{ $section->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-    
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="department" name="department" class="form-select">
-                            <option value="">Select Department</option>
-                            @foreach ($departments as $department)
-                                <option value="{{ $department->id }}">{{ $department->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-    
+                {{-- Clear Filters Button --}}
                 <div class="col-12 col-md-2">
                     <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
                 </div>
             </div>
         </div>
-    
-        @if (Auth::user()->isAdmin())
-            <div class="col-12 col-md-2">
-                <livewire:create-student />
-            </div>
-        @endif
+        <div class="col-12 col-md-2">
+            <livewire:create-student />
+        </div>
     </div>
     
-
+    {{-- Student Table --}}
     <div class="overflow-auto">
         <table class="table table-hover">
             <thead>
@@ -164,43 +131,55 @@
                         'displayName' => 'Department',
                     ])
                     <th scope="col" class="text-center">Status</th>
-                    @if (Auth::user()->role->name === 'admin')
+                    @if (Auth::user()->isAdmin())
                         <th scope="col" class="text-center">Action</th>
                     @endif
                 </tr>
             </thead>
             <tbody>
-                @foreach ($users as $key => $user)
-                    <tr wire:key="{{ $user->id }}" onclick="window.location='{{ route('student.view', ['student' => $user->id]) }}';" style="cursor: pointer;">
-                        <th scope="row">{{ $key + 1 }}</th>
-                        <td>{{ $user->username }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->section->name ?? 'N/A' }}</td>
-                        <td>{{ $user->first_name }}</td>
-                        <td>{{ $user->middle_name }}</td>
-                        <td>{{ $user->last_name }}</td>
-                        <td>{{ $user->suffix }}</td>
-                        <td>{{ $user->college->name ?? 'N/A' }}</td>
-                        <td>{{ $user->department->name ?? 'N/A' }}</td>
+                @foreach ($users as $key => $student)
+                    <tr wire:key="{{ $student->id }}" onclick="window.location='{{ route('student.view', ['student' => $student->id]) }}';" style="cursor: pointer;">
+                        <th scope="row">{{ ($users->currentPage() - 1) * $users->perPage() + $key + 1 }}</th>
+                        <td>{{ $student->username }}</td>
+                        <td>{{ $student->email }}</td>
+                        <td>{{ $student->section->name ?? 'N/A' }}</td>
+                        <td>{{ $student->first_name }}</td>
+                        <td>{{ $student->middle_name }}</td>
+                        <td>{{ $student->last_name }}</td>
+                        <td>{{ $student->suffix }}</td>
+                        <td>{{ $student->college->name ?? 'N/A' }}</td>
+                        <td>{{ $student->department->name ?? 'N/A' }}</td>
                         <td class="text-center">
-                            <span class="badge rounded-pill bg-{{ $user->status === 'active' ? 'success' : 'danger' }}">{{ ucfirst($user->status) }}</span>
+                            <span class="badge rounded-pill bg-{{ $student->status === 'active' ? 'success' : 'danger' }}">{{ ucfirst($student->status) }}</span>
                         </td>
-                        @if (Auth::user()->role->name === 'admin')
+                        @if (Auth::user()->isAdmin())
                             <td class="text-center">
                                 <div class="btn-group dropstart">
                                     <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="bi bi-three-dots"></i>
                                     </a>
                                     <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
-                                        <li><button type="button" class="dropdown-item" href="#">View</button>
+                                        <li><button type="button" class="dropdown-item" href="#">View</button></li>
+                                        <li>
+                                            <button 
+                                                @click="$dispatch('edit-mode',{id:{{ $student->id }}})"
+                                                type="button" 
+                                                class="dropdown-item" 
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#verticalycentered">
+                                                Edit
+                                            </button>
                                         </li>
-                                        <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})"
-                                                type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#verticalycentered">Edit</button></li>
-                                        <li><button wire:click="delete({{ $user->id }})"
-                                                wire:confirm="Are you sure you want to delete '{{ $user->first_name }} {{ $user->last_name }}'"
-                                                type="button" class="dropdown-item text-danger" href="#">Delete
-                                                {{ $user->username }}</button>
+                                        <li>
+                                            <button 
+                                                wire:click="delete({{ $student->id }})"
+                                                wire:confirm="Are you sure you want to delete '{{ $student->first_name }} {{ $student->last_name }}'"
+                                                type="button" 
+                                                class="dropdown-item text-danger" 
+                                                href="#">
+                                                Delete {{ $student->username }}
+                                            </button>
+                                        </li>
                                     </ul>
                                 </div>
                             </td>
@@ -213,7 +192,7 @@
     <div class="mt-4">
         {{ $users->links() }}
     </div>
-
+    
     <script>
         document.addEventListener('livewire:initialized', () => {
             @this.on('refresh-student-table', (event) => {
