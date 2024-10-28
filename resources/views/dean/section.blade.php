@@ -1,4 +1,4 @@
-@section('pageTitle', 'Users')
+@section('pageTitle', 'Sections')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -28,14 +28,14 @@
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-body">
-
+                                    
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title">Class {{$section->name}}</h5>
+                                        <h5 class="card-title">Section Management</h5>
                                     </div>
 
-                                    {{-- Student Table Livewire --}}
-                                    <livewire:student-per-section-table :section="$section->id" />
-                                    <!-- End Student Table Livewire -->
+                                    {{-- User Table Livewire --}}
+                                    @livewire('section-table')
+                                    <!-- End User Table Livewire -->
 
                             </div>
                         </div>

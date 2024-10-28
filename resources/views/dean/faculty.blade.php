@@ -1,4 +1,4 @@
-@section('pageTitle', 'Users')
+@section('pageTitle', 'Faculties')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -24,20 +24,17 @@
                         You can now access the {{ Auth::user()->role->name }} dashboard.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-
-                    @livewire('upcoming-class')
-
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-body">
-
+                                 
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title">My Classes</h5>
+                                        <h5 class="card-title">Faculty Management</h5>
                                     </div>
 
                                     {{-- User Table Livewire --}}
-                                    @livewire('schedule-table')
+                                    @livewire('faculty-table')
                                     <!-- End User Table Livewire -->
 
                             </div>

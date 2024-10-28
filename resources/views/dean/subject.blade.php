@@ -28,9 +28,9 @@
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-body">
-                                   
+
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title">My Subjects</h5>
+                                        <h5 class="card-title">Subject Management</h5>
                                     </div>
 
                                     {{-- User Table Livewire --}}
