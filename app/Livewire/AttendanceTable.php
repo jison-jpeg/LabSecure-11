@@ -100,6 +100,14 @@ class AttendanceTable extends Component
                 $q->where('instructor_id', $user->id);
             })->get();
             return; // No need to load further filters for Instructors
+        } elseif ($user->isStudent()) {
+            // **Initialize Filters for Students:**
+            $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
+                $q->where('section_id', $user->section_id);
+            })->distinct()->get();
+            $this->sections = Section::where('id', $user->section_id)->get();
+            // Departments and Colleges can be derived from the section if needed
+            return; // No need to load further filters for Students
         }
 
         // For Admins and Deans, load sections and subjects based on selected department
@@ -212,12 +220,20 @@ class AttendanceTable extends Component
                 })->get();
             } elseif ($user->isDean()) {
                 $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
-                    // **Key Fix: Use selectedDepartment instead of user's department_id**
+                    // **Use selectedDepartment instead of user's department_id**
                     $q->where('department_id', $this->selectedDepartment);
                     if ($this->selectedSection) {
                         $q->where('section_id', $this->selectedSection);
                     }
                 })->get();
+            } elseif ($user->isStudent()) {
+                // **For Students:**
+                $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
+                    $q->where('section_id', $user->section_id);
+                    if ($this->selectedSection) {
+                        $q->where('section_id', $this->selectedSection);
+                    }
+                })->distinct()->get();
             }
         } else {
             // If no section is selected, reset subjects based on department only
@@ -240,9 +256,14 @@ class AttendanceTable extends Component
                 })->get();
             } elseif ($user->isDean()) {
                 $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
-                    // **Key Fix: Use selectedDepartment instead of user's department_id**
+                    // **Use selectedDepartment instead of user's department_id**
                     $q->where('department_id', $this->selectedDepartment);
                 })->get();
+            } elseif ($user->isStudent()) {
+                // **For Students:**
+                $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
+                    $q->where('section_id', $user->section_id);
+                })->distinct()->get();
             }
         }
     }
@@ -272,6 +293,13 @@ class AttendanceTable extends Component
                 'search',
                 'status',
                 'selectedSection',
+                'selectedSubject',
+            ]);
+        } elseif ($user->isStudent()) {
+            // **For Students:**
+            $this->reset([
+                'search',
+                'status',
                 'selectedSubject',
             ]);
         } else {
@@ -526,7 +554,7 @@ class AttendanceTable extends Component
                 ? Section::where('department_id', $this->selectedDepartment)->get()
                 : Section::whereIn('department_id', $filterData['departments']->pluck('id'))->get();
 
-            // **Key Fix: Use selectedDepartment instead of user's department_id**
+            // **Use selectedDepartment instead of user's department_id**
             $filterData['subjects'] = $this->selectedDepartment
                 ? Subject::whereHas('schedules', function ($q) use ($user) {
                     $q->where('department_id', $this->selectedDepartment);
@@ -556,10 +584,10 @@ class AttendanceTable extends Component
                 }
             })->get();
         } elseif ($user->isStudent()) {
-            // Students can filter by their subjects only
-            $filterData['subjects'] = Subject::whereHas('schedules.attendances', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })->get();
+            // **For Students: Fetch subjects based on section_id**
+            $filterData['subjects'] = Subject::whereHas('schedules', function ($q) use ($user) {
+                $q->where('section_id', $user->section_id);
+            })->distinct()->get();
         }
 
         return $filterData;

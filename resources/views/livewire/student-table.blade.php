@@ -57,15 +57,17 @@
                     </div>
                 @endif
     
-                {{-- Additional Filters: Schedule Code --}}
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
-                        <option value="">Select Schedule Code</option>
-                        @foreach ($schedules as $schedule)
-                            <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- Conditionally Display Schedule Code Filter --}}
+                @if(auth()->user()->isInstructor())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
+                            <option value="">Select Schedule Code</option>
+                            @foreach ($schedules as $schedule)
+                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
     
                 {{-- Additional Filters: Section --}}
                 <div class="col-12 col-md-2">

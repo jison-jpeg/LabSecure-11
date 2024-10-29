@@ -37,7 +37,7 @@ class StudentTable extends Component
     public function mount()
     {
         // Initialize the component with the authenticated user
-        $this->user = auth()->user();
+        $this->user = Auth::user();
 
         // Initialize filteredDepartments based on user role
         $this->initializeFilteredDepartments();
@@ -115,15 +115,15 @@ class StudentTable extends Component
     {
         $user = $this->user;
 
-        // Initialize the query
-        $query = User::query()->with(['college', 'department', 'section', 'role']);
-
-        // Apply role-based filters using isStudent() method
-        if ($user->isAdmin()) {
-            // Admin sees all students
-            $query->whereHas('role', function ($q) {
+        // Initialize the query with only students
+        $query = User::query()->with(['college', 'department', 'section'])
+            ->whereHas('role', function ($q) {
                 $q->where('name', 'student');
             });
+
+        // Apply role-based filters
+        if ($user->isAdmin()) {
+            // Admin sees all students
 
             // Apply College filter if selected
             if ($this->college !== '') {
@@ -136,9 +136,7 @@ class StudentTable extends Component
             }
         } elseif ($user->isDean()) {
             // Dean sees all students in their college
-            $query->whereHas('role', function ($q) {
-                $q->where('name', 'student');
-            })->where('college_id', $user->college_id);
+            $query->where('college_id', $user->college_id);
 
             // Apply Department filter if selected
             if ($this->department !== '') {
@@ -146,14 +144,10 @@ class StudentTable extends Component
             }
         } elseif ($user->isChairperson()) {
             // Chairperson sees students in their department only
-            $query->whereHas('role', function ($q) {
-                $q->where('name', 'student');
-            })->where('department_id', $user->department_id);
+            $query->where('department_id', $user->department_id);
         } elseif ($user->isInstructor()) {
             // Instructor sees only students in their schedules
-            $query->whereHas('role', function ($q) {
-                $q->where('name', 'student');
-            })->whereHas('section.schedules', function ($q) use ($user) {
+            $query->whereHas('section.schedules', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
         }
@@ -170,7 +164,7 @@ class StudentTable extends Component
             });
         }
 
-        // Apply additional filters
+        // Apply additional filters based on user role
         if ($this->scheduleCode) {
             $query->whereHas('section.schedules', function ($q) {
                 $q->where('schedule_code', $this->scheduleCode);
