@@ -8,7 +8,12 @@
                         <h6>Options</h6>
                     </li>
                     <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li><a class="dropdown-item text-danger" href="#" wire:click.prevent="deleteSelected">Delete Selected</a></li>
+                    {{-- Add more options as needed --}}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">Export as CSV</a></li>
+                    <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Export as Excel</a></li>
+                    {{-- Add PDF export if implemented --}}
                 </ul>
             </div>
             {{-- Per Page --}}
@@ -29,7 +34,7 @@
                 </div>
     
                 {{-- Conditionally Display College Filter --}}
-                @if(auth()->user()->isAdmin())
+                @if(Auth::user()->isAdmin())
                     <div class="col-12 col-md-2">
                         <select wire:model.live="college" name="college" class="form-select">
                             <option value="">Select College</option>
@@ -38,15 +43,15 @@
                             @endforeach
                         </select>
                     </div>
-                @elseif(auth()->user()->isDean())
+                @elseif(Auth::user()->isDean())
                     {{-- For Dean, the college is fixed and hidden, so no select is needed --}}
-                    <input type="hidden" wire:model="college" value="{{ auth()->user()->college_id }}">
+                    <input type="hidden" wire:model="college" value="{{ Auth::user()->college_id }}">
                 @endif
     
                 {{-- Conditionally Display Department Filter --}}
-                @if(auth()->user()->isAdmin() || auth()->user()->isDean())
+                @if(Auth::user()->isAdmin() || Auth::user()->isDean())
                     <div class="col-12 col-md-2">
-                        <select wire:model.live="department" name="department" class="form-select" @if(auth()->user()->isAdmin() && !$college) disabled @endif>
+                        <select wire:model.live="department" name="department" class="form-select" @if(Auth::user()->isAdmin() && !$college) disabled @endif>
                             <option value="">Select Department</option>
                             @forelse ($departments as $department)
                                 <option value="{{ $department->id }}">{{ $department->name }}</option>
@@ -58,26 +63,32 @@
                 @endif
     
                 {{-- Conditionally Display Schedule Code Filter --}}
-                @if(auth()->user()->isInstructor())
+                @if(Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
                     <div class="col-12 col-md-2">
                         <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
                             <option value="">Select Schedule Code</option>
-                            @foreach ($schedules as $schedule)
+                            @forelse ($schedules as $schedule)
                                 <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
-                            @endforeach
+                            @empty
+                                <option value="" disabled>No schedules available</option>
+                            @endforelse
                         </select>
                     </div>
                 @endif
     
-                {{-- Additional Filters: Section --}}
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="section" name="section" class="form-select">
-                        <option value="">Select Section</option>
-                        @foreach ($sections as $section)
-                            <option value="{{ $section->id }}">{{ $section->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- Conditionally Display Section Filter --}}
+                @if(Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="section" name="section" class="form-select">
+                            <option value="">Select Section</option>
+                            @forelse ($sections as $section)
+                                <option value="{{ $section->id }}">{{ $section->name }}</option>
+                            @empty
+                                <option value="" disabled>No sections available</option>
+                            @endforelse
+                        </select>
+                    </div>
+                @endif
     
                 {{-- Clear Filters Button --}}
                 <div class="col-12 col-md-2">

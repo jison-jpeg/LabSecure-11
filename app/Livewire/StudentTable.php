@@ -17,10 +17,10 @@ class StudentTable extends Component
 
     protected $paginationTheme = 'bootstrap';
 
-    public $user;
-    public $title = 'Create Student';
+    public $title = 'Manage Students';
     public $event = 'create-student';
 
+    // Filter Properties
     public $search = '';
     public $sortBy = 'created_at';
     public $sortDir = 'DESC';
@@ -34,13 +34,16 @@ class StudentTable extends Component
     // To store the filtered departments dynamically
     public $filteredDepartments = [];
 
+    // To store available sections based on department selection
+    public $availableSections = [];
+
     public function mount()
     {
-        // Initialize the component with the authenticated user
-        $this->user = Auth::user();
-
         // Initialize filteredDepartments based on user role
         $this->initializeFilteredDepartments();
+
+        // Initialize availableSections based on current filters and role
+        $this->updateAvailableSections();
     }
 
     public function updatedSearch()
@@ -52,7 +55,14 @@ class StudentTable extends Component
     {
         $this->resetPage();
         $this->department = ''; // Reset department when college changes
-        $this->initializeFilteredDepartments();
+        $this->updateAvailableSections(); // Update Sections based on new Department
+    }
+
+    public function updatedDepartment()
+    {
+        $this->resetPage();
+        $this->section = ''; // Reset Section when Department changes
+        $this->updateAvailableSections(); // Update Sections based on new Department
     }
 
     public function clear()
@@ -64,12 +74,13 @@ class StudentTable extends Component
         $this->section = '';
         $this->resetPage();
         $this->initializeFilteredDepartments();
+        $this->updateAvailableSections();
     }
 
     public function setSortBy($sortByField)
     {
         if ($this->sortBy === $sortByField) {
-            $this->sortDir = ($this->sortDir == "ASC") ? 'DESC' : "ASC";
+            $this->sortDir = ($this->sortDir === "ASC") ? 'DESC' : "ASC";
             return;
         }
 
@@ -96,24 +107,102 @@ class StudentTable extends Component
      */
     private function initializeFilteredDepartments()
     {
-        if ($this->user->isAdmin()) {
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
             if ($this->college !== '') {
                 $this->filteredDepartments = Department::where('college_id', $this->college)->get();
             } else {
                 $this->filteredDepartments = Department::all();
             }
-        } elseif ($this->user->isDean()) {
+        } elseif ($user->isDean()) {
             // For Dean, departments are within their college
-            $this->filteredDepartments = Department::where('college_id', $this->user->college_id)->get();
+            $this->filteredDepartments = Department::where('college_id', $user->college_id)->get();
         } else {
-            // For Chairperson and other roles, no department filter is needed
+            // For Chairperson, Instructor, and other roles, no department filter is needed
             $this->filteredDepartments = collect();
+        }
+    }
+
+    /**
+     * Get the sections managed by the instructor
+     */
+    private function getInstructorSections()
+    {
+        $user = Auth::user();
+
+        if ($user->isInstructor()) {
+            return Section::whereHas('schedules', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            })->pluck('id')->toArray();
+        }
+
+        return [];
+    }
+
+    /**
+     * Update the availableSections based on the selected department and user role
+     */
+    private function updateAvailableSections()
+    {
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            if ($this->department !== '') {
+                // Admin: Filter Sections by selected Department
+                $this->availableSections = Section::where('department_id', $this->department)->get();
+            } else {
+                // Admin: Show all Sections
+                $this->availableSections = Section::all();
+            }
+        } elseif ($user->isDean()) {
+            if ($this->department !== '') {
+                // Dean: Filter Sections by selected Department within their College
+                $this->availableSections = Section::where('department_id', $this->department)
+                    ->whereHas('department', function ($q) use ($user) {
+                        $q->where('college_id', $user->college_id);
+                    })
+                    ->get();
+            } else {
+                // Dean: Show all Sections within their College
+                $this->availableSections = Section::whereHas('department', function ($q) use ($user) {
+                    $q->where('college_id', $user->college_id);
+                })->get();
+            }
+        } elseif ($user->isChairperson()) {
+            if ($this->department !== '') {
+                // Chairperson: Ensure selected Department matches their own
+                if ($this->department == $user->department_id) {
+                    $this->availableSections = Section::where('department_id', $this->department)->get();
+                } else {
+                    // If Department does not match, return empty collection
+                    $this->availableSections = collect();
+                }
+            } else {
+                // Chairperson: Show Sections within their Department
+                $this->availableSections = Section::where('department_id', $user->department_id)->get();
+            }
+        } elseif ($user->isInstructor()) {
+            if ($this->department !== '') {
+                // Instructor: Show Sections they manage within the selected Department
+                $instructorSections = $this->getInstructorSections();
+                $this->availableSections = Section::whereIn('id', $instructorSections)
+                    ->where('department_id', $this->department)
+                    ->get();
+            } else {
+                // Instructor: Show all Sections they manage
+                $instructorSections = $this->getInstructorSections();
+                $this->availableSections = Section::whereIn('id', $instructorSections)->get();
+            }
+        } else {
+            // For other roles or unauthenticated users, show no Sections
+            $this->availableSections = collect();
         }
     }
 
     public function render()
     {
-        $user = $this->user;
+        $user = Auth::user();
 
         // Initialize the query with only students
         $query = User::query()->with(['college', 'department', 'section'])
@@ -146,10 +235,9 @@ class StudentTable extends Component
             // Chairperson sees students in their department only
             $query->where('department_id', $user->department_id);
         } elseif ($user->isInstructor()) {
-            // Instructor sees only students in their schedules
-            $query->whereHas('section.schedules', function ($q) use ($user) {
-                $q->where('instructor_id', $user->id);
-            });
+            // Instructor sees only students in their managed sections
+            $instructorSections = $this->getInstructorSections();
+            $query->whereIn('section_id', $instructorSections);
         }
 
         // Apply search filter
@@ -175,21 +263,24 @@ class StudentTable extends Component
             $query->where('section_id', $this->section);
         }
 
+        // Get paginated students
         $students = $query->orderBy($this->sortBy, $this->sortDir)
             ->paginate($this->perPage);
 
         // Determine which filters to show based on role
         $colleges = $user->isAdmin() ? College::all() : collect([]);
         $departments = ($user->isAdmin() || $user->isDean()) ? $this->filteredDepartments : collect([]);
-        $schedules = $user->isInstructor() ? Schedule::where('instructor_id', $user->id)->get() : Schedule::all();
-        $sections = Section::all();  // Fetch all sections regardless of the filters
+        $schedules = ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor()) 
+            ? ($user->isInstructor() ? Schedule::where('instructor_id', $user->id)->get() : Schedule::all()) 
+            : collect([]);
+        $sections = $this->availableSections; // Use the dynamically updated availableSections
 
         return view('livewire.student-table', [
             'users' => $students,
             'colleges' => $colleges,
             'departments' => $departments,
             'schedules' => $schedules,
-            'sections' => $sections,
+            'sections' => $sections, // Pass availableSections as 'sections'
         ]);
     }
 }
