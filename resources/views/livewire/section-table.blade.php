@@ -5,21 +5,18 @@
                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                     <li class="dropdown-header text-start">
-                        <h6>Option</h6>
+                        <h6>Options</h6>
                     </li>
                     <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li class="dropdown-submenu position-relative">
-                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
-                        <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
-                        </ul>
-                    </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li><a class="dropdown-item text-danger" href="#" wire:click.prevent="deleteSelected">Delete Selected</a></li>
+                    {{-- Add more options as needed --}}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">Export as CSV</a></li>
+                    <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Export as Excel</a></li>
+                    {{-- Add PDF export if implemented --}}
                 </ul>
             </div>
-    
+            {{-- Per Page --}}
             <div class="row g-1">
                 <div class="col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
@@ -33,12 +30,11 @@
                 </div>
     
                 <div class="col-12 col-md-3">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search students...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search sections...">
                 </div>
     
-                {{-- Admin only filters --}}
-                @if (Auth::user()->isAdmin())
+                {{-- Conditionally Display College Filter for Admin --}}
+                @if(Auth::user()->isAdmin())
                     <div class="col-12 col-md-2">
                         <select wire:model.live="college" name="college" class="form-select">
                             <option value="">Select College</option>
@@ -47,51 +43,35 @@
                             @endforeach
                         </select>
                     </div>
+                @elseif(Auth::user()->isDean())
+                    {{-- For Dean, the college is fixed and hidden --}}
+                    <input type="hidden" wire:model="college" value="{{ Auth::user()->college_id }}">
+                @endif
     
+                {{-- Conditionally Display Department Filter for Admin and Dean --}}
+                @if(Auth::user()->isAdmin() || Auth::user()->isDean())
                     <div class="col-12 col-md-2">
-                        <select wire:model.live="department" name="department" class="form-select">
+                        <select wire:model.live="department" name="department" class="form-select" @if(Auth::user()->isAdmin() && !$college) disabled @endif>
                             <option value="">Select Department</option>
-                            @foreach ($departments as $department)
+                            @forelse ($departments as $department)
                                 <option value="{{ $department->id }}">{{ $department->name }}</option>
-                            @endforeach
+                            @empty
+                                <option value="" disabled>No departments available</option>
+                            @endforelse
                         </select>
                     </div>
                 @endif
     
-                {{-- Instructor-specific filters --}}
-                @if (Auth::user()->isInstructor() || Auth::user()->isDean() || Auth::user()->isChairperson())
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
-                            <option value="">Select Schedule Code</option>
-                            @foreach ($schedules as $schedule)
-                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-    
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="section" name="section" class="form-select">
-                            <option value="">Select Section</option>
-                            @foreach ($sections as $section)
-                                <option value="{{ $section->id }}">{{ $section->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-    
+                {{-- Clear Filters Button --}}
                 <div class="col-12 col-md-2">
                     <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
                 </div>
             </div>
         </div>
-    
-        @if (Auth::user()->role->name === 'admin')
-            <div class="col-12 col-md-2">
-                @livewire('create-section')
-            </div>
-        @endif
+        <div class="col-12 col-md-2">
+            <livewire:create-section />
+        </div>
     </div>
-    
 
     <div class="overflow-auto">
         <table class="table table-hover">
