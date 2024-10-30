@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,7 +18,7 @@ class ViewSchedule extends Component
     public $schedule;
     public $perPage = 10;
     public $search = '';
-    public $status = '';
+    public $status = ''; // 'present', 'absent'
     public $selectedDate;
 
     public function mount(Schedule $schedule)
@@ -31,46 +32,53 @@ class ViewSchedule extends Component
         $this->search = '';
         $this->status = '';
         $this->selectedDate = Carbon::now()->format('Y-m-d'); // Reset to today's date
+        $this->resetPage();
     }
 
     public function render()
     {
-        // Get all students from the section
-        $query = User::whereHas('section', function ($q) {
-            $q->where('id', $this->schedule->section_id);
-        });
+        // Base query: select students in the schedule's section
+        $query = User::select('users.*', DB::raw('COALESCE(attendances.status, "absent") as attendance_status'))
+            ->leftJoin('attendances', function ($join) {
+                $join->on('users.id', '=', 'attendances.user_id')
+                     ->where('attendances.schedule_id', '=', $this->schedule->id)
+                     ->whereDate('attendances.date', '=', $this->selectedDate);
+            })
+            ->where('users.section_id', $this->schedule->section_id)
+            ->whereHas('role', function($q){
+                $q->where('name', 'student');
+            });
 
         // Apply search filter
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('first_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('last_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('username', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%');
+                $q->where('users.first_name', 'like', '%' . $this->search . '%')
+                  ->orWhere('users.last_name', 'like', '%' . $this->search . '%')
+                  ->orWhere('users.username', 'like', '%' . $this->search . '%')
+                  ->orWhere('users.email', 'like', '%' . $this->search . '%');
             });
         }
 
-        // Get attendances for the selected date and filter by status if provided
-        $attendancesQuery = Attendance::where('schedule_id', $this->schedule->id)
-            ->whereDate('date', $this->selectedDate);
-
+        // Apply status filter
         if (!empty($this->status)) {
-            $attendancesQuery->where('status', $this->status);
+            if ($this->status === 'absent') {
+                // Include students with 'absent' status or no attendance record
+                $query->where(function ($q) {
+                    $q->where('attendances.status', 'absent')
+                      ->orWhereNull('attendances.status');
+                });
+            } else {
+                // For other statuses like 'present', filter accordingly
+                $query->where('attendances.status', $this->status);
+            }
         }
 
-        $attendances = $attendancesQuery->get()->keyBy('user_id'); // Key attendance by user_id for easy lookup
-
-        // Apply status filter by ensuring only users with matching attendance are displayed
-        if (!empty($this->status)) {
-            $query->whereIn('id', $attendances->keys()); // Filter users based on attendance status
-        }
-
-        // Get paginated users (students)
-        $students = $query->paginate($this->perPage);
+        // Get paginated students with attendance status
+        $students = $query->orderBy('users.last_name', 'asc')
+                          ->paginate($this->perPage);
 
         return view('livewire.view-schedule', [
             'students' => $students,
-            'attendances' => $attendances,
             'schedule' => $this->schedule,
         ]);
     }
