@@ -6,6 +6,7 @@ use App\Exports\ScheduleExport;
 use App\Models\Schedule;
 use App\Models\College;
 use App\Models\Department;
+use App\Models\Section;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +30,17 @@ class ScheduleTable extends Component
 
     public $college = '';
     public $department = '';
+    public $yearLevel = ''; // New Filter Property
+    public $section = ''; // Section filter
 
     // To store the filtered departments dynamically
     public $filteredDepartments = [];
+
+    // To store available sections based on department and year level selection
+    public $availableSections = [];
+
+    // To store available year levels
+    public $availableYearLevels = [];
 
     public function mount()
     {
@@ -40,6 +49,12 @@ class ScheduleTable extends Component
 
         // Initialize filteredDepartments based on user role
         $this->initializeFilteredDepartments();
+
+        // Populate availableYearLevels based on the selected department
+        $this->updateAvailableYearLevels();
+
+        // Initialize availableSections based on current filters and role
+        $this->updateAvailableSections();
     }
 
     public function updatedSearch()
@@ -51,7 +66,25 @@ class ScheduleTable extends Component
     {
         $this->resetPage();
         $this->department = ''; // Reset department when college changes
-        $this->initializeFilteredDepartments();
+        $this->updateFilteredDepartments();
+        $this->updateAvailableYearLevels(); // Update Year Levels based on new Department
+        $this->updateAvailableSections(); // Update Sections based on new Department and Year Level
+    }
+
+    public function updatedDepartment()
+    {
+        $this->resetPage();
+        $this->yearLevel = ''; // Reset Year Level when Department changes
+        $this->section = ''; // Reset Section when Department changes
+        $this->updateAvailableYearLevels(); // Update Year Levels based on new Department
+        $this->updateAvailableSections(); // Update Sections based on new Department and Year Level
+    }
+
+    public function updatedYearLevel()
+    {
+        $this->resetPage();
+        $this->section = ''; // Reset Section when Year Level changes
+        $this->updateAvailableSections(); // Update Sections based on new Year Level
     }
 
     public function clear()
@@ -59,15 +92,39 @@ class ScheduleTable extends Component
         $this->search = '';
         $this->college = '';
         $this->department = '';
+        $this->yearLevel = ''; // Reset Year Level
+        $this->section = ''; // Reset Section
         $this->sortBy = 'created_at';
         $this->sortDir = 'DESC';
         $this->perPage = 10;
         $this->resetPage();
         $this->initializeFilteredDepartments();
+        $this->updateAvailableYearLevels(); // Update Year Levels based on reset Department
+        $this->updateAvailableSections(); // Update Sections based on reset Department and Year Level
     }
 
     public function setSortBy($sortByField)
     {
+        $sortableFields = [
+            'schedule_code',
+            'section.name',
+            'section.year_level', // Added Year Level as sortable field
+            'subject.code',
+            'subject.name',
+            'instructor.full_name',
+            'college.name',
+            'department.name',
+            'laboratory.name',
+            'days_of_week',
+            'start_time',
+            'end_time',
+            'created_at',
+        ]; // Add other sortable fields as needed
+
+        if (!in_array($sortByField, $sortableFields)) {
+            return;
+        }
+
         if ($this->sortBy === $sortByField) {
             $this->sortDir = ($this->sortDir == "ASC") ? 'DESC' : "ASC";
             return;
@@ -113,6 +170,8 @@ class ScheduleTable extends Component
             'search' => $this->search,
             'college' => $this->college,
             'department' => $this->department,
+            'yearLevel' => $this->yearLevel,
+            'section' => $this->section,
             'sortBy' => $this->sortBy,
             'sortDir' => $this->sortDir,
         ];
@@ -123,19 +182,142 @@ class ScheduleTable extends Component
      */
     private function initializeFilteredDepartments()
     {
-        if ($this->user->isAdmin()) {
+        $user = $this->user;
+
+        if ($user->isAdmin()) {
             if ($this->college !== '') {
-                $this->filteredDepartments = Department::where('college_id', $this->college)->get();
+                $this->filteredDepartments = Department::where('college_id', $this->college)
+                    ->orderBy('name')
+                    ->get();
             } else {
-                $this->filteredDepartments = Department::all();
+                $this->filteredDepartments = Department::orderBy('name')->get();
             }
-        } elseif ($this->user->isDean()) {
+        } elseif ($user->isDean()) {
             // For Dean, departments are within their college
-            $this->filteredDepartments = Department::where('college_id', $this->user->college_id)->get();
+            $this->filteredDepartments = Department::where('college_id', $user->college_id)
+                ->orderBy('name')
+                ->get();
         } else {
             // For Chairperson and other roles, no department filter is needed
             $this->filteredDepartments = collect();
         }
+    }
+
+    /**
+     * Update filteredDepartments when college changes
+     */
+    private function updateFilteredDepartments()
+    {
+        $user = $this->user;
+
+        if ($user->isAdmin()) {
+            if ($this->college !== '') {
+                $this->filteredDepartments = Department::where('college_id', $this->college)
+                    ->orderBy('name')
+                    ->get();
+            } else {
+                $this->filteredDepartments = Department::orderBy('name')->get();
+            }
+        } elseif ($user->isDean()) {
+            // For Dean, departments are within their college
+            $this->filteredDepartments = Department::where('college_id', $user->college_id)
+                ->orderBy('name')
+                ->get();
+        } else {
+            // For Chairperson and other roles, no department filter is needed
+            $this->filteredDepartments = collect();
+        }
+    }
+
+    /**
+     * Update availableYearLevels based on the selected department
+     */
+    private function updateAvailableYearLevels()
+    {
+        if ($this->department !== '') {
+            // Fetch distinct Year Levels for the selected Department
+            $this->availableYearLevels = Section::where('department_id', $this->department)
+                ->select('year_level')
+                ->distinct()
+                ->orderBy('year_level')
+                ->pluck('year_level');
+        } else {
+            // Fetch all distinct Year Levels across all Departments
+            $this->availableYearLevels = Section::select('year_level')
+                ->distinct()
+                ->orderBy('year_level')
+                ->pluck('year_level');
+        }
+    }
+
+    /**
+     * Update the availableSections based on the selected department, year level, and user role
+     */
+    private function updateAvailableSections()
+    {
+        $user = $this->user;
+
+        $query = Section::query();
+
+        if ($user->isAdmin()) {
+            if ($this->department !== '') {
+                $query->where('department_id', $this->department);
+            }
+        } elseif ($user->isDean()) {
+            $query->whereHas('department', function ($q) use ($user) {
+                $q->where('college_id', $user->college_id);
+            });
+
+            if ($this->department !== '') {
+                $query->where('department_id', $this->department);
+            }
+        } elseif ($user->isChairperson()) {
+            if ($this->department !== '') {
+                if ($this->department == $user->department_id) {
+                    $query->where('department_id', $this->department);
+                } else {
+                    // If Department does not match, return no sections
+                    $query->whereRaw('1 = 0');
+                }
+            } else {
+                $query->where('department_id', $user->department_id);
+            }
+        } elseif ($user->isInstructor()) {
+            $instructorSections = $this->getInstructorSections();
+
+            if ($this->department !== '') {
+                $query->whereIn('id', $instructorSections)
+                      ->where('department_id', $this->department);
+            } else {
+                $query->whereIn('id', $instructorSections);
+            }
+        } else {
+            // For other roles or unauthenticated users, show no Sections
+            $query->whereRaw('1 = 0');
+        }
+
+        // Apply Year Level filter if selected
+        if ($this->yearLevel !== '') {
+            $query->where('year_level', $this->yearLevel);
+        }
+
+        $this->availableSections = $query->orderBy('name')->get();
+    }
+
+    /**
+     * Get the sections managed by the instructor
+     */
+    private function getInstructorSections()
+    {
+        $user = $this->user;
+
+        if ($user->isInstructor()) {
+            return Section::whereHas('schedules', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            })->pluck('id')->toArray();
+        }
+
+        return [];
     }
 
     public function render()
@@ -143,7 +325,7 @@ class ScheduleTable extends Component
         $user = $this->user;
 
         // Initialize the query
-        $query = Schedule::query()->with(['college', 'department', 'section', 'instructor']);
+        $query = Schedule::query()->with(['college', 'department', 'section', 'instructor', 'subject', 'laboratory']);
 
         // Apply role-based filters
         if ($user->isAdmin()) {
@@ -188,28 +370,47 @@ class ScheduleTable extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('schedule_code', 'like', '%' . $this->search . '%')
-                  // Removed the 'title' field to prevent SQL errors
+                  ->orWhereHas('subject', function ($q2) {
+                      $q2->where('name', 'like', '%' . $this->search . '%')
+                         ->orWhere('code', 'like', '%' . $this->search . '%');
+                  })
                   ->orWhereHas('instructor', function ($q2) {
                       $q2->where('first_name', 'like', '%' . $this->search . '%')
                          ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                  })
+                  ->orWhereHas('section', function ($q2) {
+                      $q2->where('name', 'like', '%' . $this->search . '%')
+                         ->orWhere('year_level', 'like', '%' . $this->search . '%');
                   });
                 // Add more searchable fields as needed
             });
         }
 
-        $schedules = $query->sort($this->sortBy, $this->sortDir)
-                           ->paginate($this->perPage);
+        // Apply sorting
+        if ($this->sortBy === 'section.year_level') {
+            $query->join('sections', 'schedules.section_id', '=', 'sections.id')
+                  ->orderBy('sections.year_level', $this->sortDir)
+                  ->select('schedules.*'); // Ensure you select schedules.* to avoid column conflicts
+        } else {
+            // Handle sorting for related fields if necessary
+            // For example, 'instructor.full_name', 'subject.name', etc.
+            // Implement similar logic as needed
+            $query->orderBy($this->sortBy, $this->sortDir);
+        }
+
+        // Get paginated schedules
+        $schedules = $query->paginate($this->perPage);
 
         // Determine which filters to show based on role
-        $colleges = $user->isAdmin() ? College::all() : collect([]);
+        $colleges = $user->isAdmin() ? College::orderBy('name')->get() : collect([]);
         $departments = ($user->isAdmin() || $user->isDean()) ? $this->filteredDepartments : collect([]);
-        // Schedules for export can include all or be filtered as needed
-        // Sections can be filtered similarly if needed
 
         return view('livewire.schedule-table', [
             'schedules' => $schedules,
             'colleges' => $colleges,
             'departments' => $departments,
+            'availableYearLevels' => $this->availableYearLevels, // Pass availableYearLevels
+            'sections' => $this->availableSections, // Pass availableSections
         ]);
     }
 }

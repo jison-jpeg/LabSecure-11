@@ -70,6 +70,7 @@
                     </select>
                 </div>
             @endif
+            
 
             @if($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                 <!-- Section Filter -->

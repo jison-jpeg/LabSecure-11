@@ -12,7 +12,7 @@
                         <h6>Options</h6>
                     </li>
                     <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li><a class="dropdown-item text-danger" href="#" wire:click.prevent="deleteSelected">Delete Selected</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">Export as CSV</a></li>
                     <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Export as Excel</a></li>
@@ -31,11 +31,11 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-    
+
                 <div class="col-12 col-md-3">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search schedules...">
                 </div>
-    
+
                 {{-- Conditionally Display College Filter --}}
                 @if(auth()->user()->isAdmin())
                     <div class="col-12 col-md-2">
@@ -50,7 +50,7 @@
                     {{-- For Dean, the college is fixed and hidden, so no select is needed --}}
                     <input type="hidden" wire:model="college" value="{{ auth()->user()->college_id }}">
                 @endif
-    
+
                 {{-- Conditionally Display Department Filter --}}
                 @if(auth()->user()->isAdmin() || auth()->user()->isDean())
                     <div class="col-12 col-md-2">
@@ -64,20 +64,31 @@
                         </select>
                     </div>
                 @endif
-    
-                {{-- Additional Filters: Section (Optional) --}}
-                {{-- Uncomment and adjust if section filtering is needed --}}
-                {{-- 
+
+                {{-- New Year Level Filter --}}
                 <div class="col-12 col-md-2">
-                    <select wire:model.live="section" name="section" class="form-select">
-                        <option value="">Select Section</option>
-                        @foreach ($sections as $section)
-                            <option value="{{ $section->id }}">{{ $section->name }}</option>
+                    <select wire:model.live="yearLevel" name="yearLevel" class="form-select">
+                        <option value="">All Year Levels</option>
+                        @foreach ($availableYearLevels as $level)
+                            <option value="{{ $level }}">{{ $level }}</option>
                         @endforeach
                     </select>
                 </div>
-                --}}
-    
+
+                {{-- Conditionally Display Section Filter --}}
+                @if(auth()->user()->isAdmin() || auth()->user()->isDean() || auth()->user()->isChairperson() || auth()->user()->isInstructor())
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="section" name="section" class="form-select" @if(!$yearLevel) disabled @endif>
+                            <option value="">Select Section</option>
+                            @forelse ($sections as $section)
+                                <option value="{{ $section->id }}">{{ $section->name }}</option>
+                            @empty
+                                <option value="" disabled>No sections available</option>
+                            @endforelse
+                        </select>
+                    </div>
+                @endif
+
                 {{-- Clear Filters Button --}}
                 <div class="col-12 col-md-2">
                     <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
@@ -95,7 +106,7 @@
                 <tr>
                     <th scope="col">#</th>
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'schedule.schedule_code',
+                        'name' => 'schedule_code',
                         'displayName' => 'Code',
                     ])
                     @include('livewire.includes.table-sortable-th', [
@@ -103,7 +114,11 @@
                         'displayName' => 'Section',
                     ])
                     @include('livewire.includes.table-sortable-th', [
-                        'name' => 'subject.name',
+                        'name' => 'section.year_level', // New Year Level Header (optional)
+                        'displayName' => 'Year Level',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'subject.code',
                         'displayName' => 'Subject Code',
                     ])
                     @include('livewire.includes.table-sortable-th', [
@@ -148,9 +163,10 @@
                     <tr wire:key="{{ $schedule->id }}"
                         onclick="window.location='{{ Auth::user()->isAdmin() ? route('schedule.view', $schedule->id) : route('class.view', $schedule->id) }}';"
                         style="cursor: pointer;">
-                        <th scope="row">{{ $key + 1 }}</th>
+                        <th scope="row">{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $key + 1 }}</th>
                         <td>{{ $schedule->schedule_code }}</td>
                         <td>{{ $schedule->section->name }}</td>
+                        <td>{{ $schedule->section->year_level ?? 'N/A' }}</td> <!-- New Year Level Data Column (optional) -->
                         <td>{{ $schedule->subject->code }}</td>
                         <td>{{ $schedule->subject->name }}</td>
                         <td>{{ $schedule->instructor->full_name }}</td>
@@ -169,15 +185,14 @@
                                     </a>
                                     <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
                                         onclick="event.stopPropagation()">
-                                        <li><button type="button" class="dropdown-item" href="#">View</button>
-                                        </li>
+                                        <li><button type="button" class="dropdown-item" href="#">View</button></li>
                                         <li><button @click="$dispatch('edit-mode',{id:{{ $schedule->id }}})"
                                                 type="button" class="dropdown-item" data-bs-toggle="modal"
                                                 data-bs-target="#verticalycentered">Edit</button></li>
                                         <li><button wire:click="delete({{ $schedule->id }})"
                                                 wire:confirm="Are you sure you want to delete this schedule?"
                                                 type="button" class="dropdown-item text-danger"
-                                                href="#">Delete</button>
+                                                href="#">Delete</button></li>
                                     </ul>
                                 </div>
                             </td>
