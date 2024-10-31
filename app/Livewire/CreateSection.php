@@ -7,6 +7,7 @@ use App\Models\College;
 use App\Models\Department;
 use App\Models\TransactionLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -36,44 +37,54 @@ class CreateSection extends Component
     }
 
     public function rules()
-    {
-        return [
-            'name' => 'required',
-            'college_id' => 'required',
-            'department_id' => 'required',
-            'year_level' => 'required',
-            'semester' => 'required',
-            'school_year' => [
-                'required',
-                'regex:/^\d{4}-\d{4}$/',
-                function ($attribute, $value, $fail) {
-                    $years = explode('-', $value);
-                    $currentYear = (int)date('Y');
-                    $minYear = $currentYear - 3;
-                    $maxYear = $currentYear + 3;
+{
+    return [
+        'name' => [
+            'required',
+            Rule::unique('sections', 'name')
+                ->where(function ($query) {
+                    return $query->where('year_level', $this->year_level)
+                                 ->where('department_id', $this->department_id);
+                })
+                ->ignore($this->section ? $this->section->id : null),
+        ],
+        'college_id' => 'required|exists:colleges,id',
+        'department_id' => 'required|exists:departments,id',
+        'year_level' => [
+            'required',
+            'string', // Now accepts any string including "1, 2, 3, 4, 5, 6, irregular"
+            Rule::in(['1', '2', '3', '4', '5', '6', 'irregular']),
+        ],
+        'semester' => 'required',
+        'school_year' => [
+            'required',
+            'regex:/^\d{4}-\d{4}$/',
+            function ($attribute, $value, $fail) {
+                $years = explode('-', $value);
+                $currentYear = (int)date('Y');
+                $minYear = $currentYear - 3;
+                $maxYear = $currentYear + 3;
 
-                    if (count($years) !== 2) {
-                        $fail('The school year must be in the format YYYY-YYYY.');
-                    } elseif ((int)$years[0] >= (int)$years[1]) {
-                        $fail('The first year must be less than the second year.');
-                    } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
-                        $fail("The school year must be between $minYear and $maxYear.");
-                    }
+                if (count($years) !== 2) {
+                    $fail('The school year must be in the format YYYY-YYYY.');
+                } elseif ((int)$years[0] >= (int)$years[1]) {
+                    $fail('The first year must be less than the second year.');
+                } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
+                    $fail("The school year must be between $minYear and $maxYear.");
                 }
-            ],
-        ];
-    }
+            }
+        ],
+    ];
+}
+
 
     public function save()
     {
         $this->validate($this->rules());
 
-        // Combine the year level and section name
-        $combinedName = $this->year_level . $this->name;
-
-        // Create the section
+        // Create the section without combining year_level and name
         $section = Section::create([
-            'name' => $combinedName,
+            'name' => $this->name,
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'year_level' => $this->year_level,
@@ -88,7 +99,7 @@ class CreateSection extends Component
             'model' => 'Section',
             'model_id' => $section->id,
             'details' => json_encode([
-                'section_name' => $combinedName,
+                'section_name' => $this->name, // Use name directly
                 'college' => College::find($this->college_id)->name,
                 'department' => Department::find($this->department_id)->name,
                 'year_level' => $this->year_level,
@@ -109,12 +120,9 @@ class CreateSection extends Component
     {
         $this->validate($this->rules());
 
-        // Combine the year level and section name when updating
-        $combinedName = $this->year_level . $this->name;
-
-        // Update the section
+        // Update the section without combining year_level and name
         $this->section->update([
-            'name' => $combinedName,
+            'name' => $this->name,
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
             'year_level' => $this->year_level,
@@ -129,7 +137,7 @@ class CreateSection extends Component
             'model' => 'Section',
             'model_id' => $this->section->id,
             'details' => json_encode([
-                'section_name' => $combinedName,
+                'section_name' => $this->name, // Use name directly
                 'college' => College::find($this->college_id)->name,
                 'department' => Department::find($this->department_id)->name,
                 'year_level' => $this->year_level,
@@ -159,7 +167,7 @@ class CreateSection extends Component
         $this->formTitle = 'Edit Section';
         $this->editForm = true;
         $this->section = Section::findOrFail($id);
-        $this->name = $this->section->name;
+        $this->name = $this->section->name; // Use name directly
         $this->college_id = $this->section->college_id;
         $this->department_id = $this->section->department_id;
         $this->year_level = $this->section->year_level;

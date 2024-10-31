@@ -28,11 +28,11 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-    
+
                 <div class="col-12 col-md-3">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search students...">
                 </div>
-    
+
                 {{-- Conditionally Display College Filter --}}
                 @if(Auth::user()->isAdmin())
                     <div class="col-12 col-md-2">
@@ -47,7 +47,7 @@
                     {{-- For Dean, the college is fixed and hidden, so no select is needed --}}
                     <input type="hidden" wire:model="college" value="{{ Auth::user()->college_id }}">
                 @endif
-    
+
                 {{-- Conditionally Display Department Filter --}}
                 @if(Auth::user()->isAdmin() || Auth::user()->isDean())
                     <div class="col-12 col-md-2">
@@ -61,7 +61,7 @@
                         </select>
                     </div>
                 @endif
-    
+
                 {{-- Conditionally Display Schedule Code Filter --}}
                 @if(Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
                     <div class="col-12 col-md-2">
@@ -75,21 +75,29 @@
                         </select>
                     </div>
                 @endif
-    
+
+                {{-- New Year Level Filter --}}
+                <div class="col-12 col-md-2">
+                    <select wire:model.live="yearLevel" name="yearLevel" class="form-select">
+                        <option value="">All Year Levels</option>
+                        @foreach ($availableYearLevels as $level)
+                            <option value="{{ $level }}">{{ $level }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 {{-- Conditionally Display Section Filter --}}
                 @if(Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
                     <div class="col-12 col-md-2">
                         <select wire:model.live="section" name="section" class="form-select">
                             <option value="">Select Section</option>
-                            @forelse ($sections as $section)
+                            @foreach ($sections as $section)
                                 <option value="{{ $section->id }}">{{ $section->name }}</option>
-                            @empty
-                                <option value="" disabled>No sections available</option>
-                            @endforelse
+                            @endforeach
                         </select>
                     </div>
                 @endif
-    
+
                 {{-- Clear Filters Button --}}
                 <div class="col-12 col-md-2">
                     <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
@@ -118,6 +126,10 @@
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'section.name',
                         'displayName' => 'Section',
+                    ])
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'year_level',
+                        'displayName' => 'Year Level',
                     ])
                     @include('livewire.includes.table-sortable-th', [
                         'name' => 'first_name',
@@ -156,6 +168,7 @@
                         <td>{{ $student->username }}</td>
                         <td>{{ $student->email }}</td>
                         <td>{{ $student->section->name ?? 'N/A' }}</td>
+                        <td>{{ $student->section->year_level ?? 'N/A' }}</td> <!-- New Year Level Data Column -->
                         <td>{{ $student->first_name }}</td>
                         <td>{{ $student->middle_name }}</td>
                         <td>{{ $student->last_name }}</td>
