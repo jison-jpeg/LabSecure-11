@@ -45,6 +45,9 @@ class AttendanceTable extends Component
     public $selectedSubject = '';
     public $subjects = [];
 
+    public $selectedYearLevel = ''; // New Property
+    public $yearLevels = []; // New Property
+
     // Define query string bindings
     protected $queryString = [
         'search' => ['except' => ''],
@@ -53,6 +56,7 @@ class AttendanceTable extends Component
         'sortDir' => ['except' => 'DESC'],
         'perPage' => ['except' => 10],
         'selectedMonth' => ['except' => null],
+        'selectedYearLevel' => ['except' => ''], // Optional: Include in query string
     ];
 
     // Define event listeners
@@ -90,6 +94,14 @@ class AttendanceTable extends Component
             $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
                 $q->where('department_id', $user->department_id);
             })->get();
+
+            // Initialize Year Levels
+            $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                ->distinct()
+                ->pluck('year_level')
+                ->sort()
+                ->values()
+                ->toArray();
             return; // No need to load further filters for Chairpersons
         } elseif ($user->isInstructor()) {
             // Instructors have their department set internally
@@ -99,6 +111,14 @@ class AttendanceTable extends Component
             $this->subjects = Subject::whereHas('schedules', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             })->get();
+
+            // Initialize Year Levels
+            $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                ->distinct()
+                ->pluck('year_level')
+                ->sort()
+                ->values()
+                ->toArray();
             return; // No need to load further filters for Instructors
         } elseif ($user->isStudent()) {
             // **Initialize Filters for Students:**
@@ -106,7 +126,14 @@ class AttendanceTable extends Component
                 $q->where('section_id', $user->section_id);
             })->distinct()->get();
             $this->sections = Section::where('id', $user->section_id)->get();
-            // Departments and Colleges can be derived from the section if needed
+
+            // Initialize Year Levels
+            $this->yearLevels = Section::where('id', $user->section_id)
+                ->pluck('year_level')
+                ->unique()
+                ->sort()
+                ->values()
+                ->toArray();
             return; // No need to load further filters for Students
         }
 
@@ -122,9 +149,20 @@ class AttendanceTable extends Component
                         $q->where('section_id', $this->selectedSection);
                     }
                 })->get();
+
+                // Initialize Year Levels based on selected department
+                $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                    ->distinct()
+                    ->pluck('year_level')
+                    ->sort()
+                    ->values()
+                    ->toArray();
             } else {
                 $this->sections = collect();
                 $this->subjects = collect();
+
+                // If no department is selected, load all distinct year levels
+                $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
             }
         }
     }
@@ -142,7 +180,7 @@ class AttendanceTable extends Component
         }
 
         // Reset dependent filters
-        $this->reset(['selectedDepartment', 'selectedSection', 'selectedSubject']);
+        $this->reset(['selectedDepartment', 'selectedSection', 'selectedSubject', 'selectedYearLevel']);
 
         // Load departments based on selected college
         $this->departments = $this->selectedCollege
@@ -152,6 +190,19 @@ class AttendanceTable extends Component
         // Reset sections and subjects
         $this->sections = collect();
         $this->subjects = collect();
+
+        // Update Year Levels based on the new college selection
+        if ($this->selectedCollege) {
+            $this->yearLevels = Section::where('college_id', $this->selectedCollege)
+                ->distinct()
+                ->pluck('year_level')
+                ->sort()
+                ->values()
+                ->toArray();
+        } else {
+            // If no college is selected, show all year levels
+            $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
+        }
     }
 
     public function updatedSelectedDepartment()
@@ -164,7 +215,7 @@ class AttendanceTable extends Component
         }
 
         // Reset dependent filters
-        $this->reset(['selectedSection', 'selectedSubject']);
+        $this->reset(['selectedSection', 'selectedSubject', 'selectedYearLevel']);
 
         // Load sections based on selected department
         $this->sections = $this->selectedDepartment
@@ -182,12 +233,25 @@ class AttendanceTable extends Component
                 }
             })->get()
             : collect();
+
+        // Update Year Levels based on the new department selection
+        if ($this->selectedDepartment) {
+            $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                ->distinct()
+                ->pluck('year_level')
+                ->sort()
+                ->values()
+                ->toArray();
+        } else {
+            // If no department is selected, show all year levels
+            $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
+        }
     }
 
     public function updatedSelectedSection()
     {
         // Reset the selected subject whenever the section changes
-        $this->reset(['selectedSubject']);
+        $this->reset(['selectedSubject', 'selectedYearLevel']);
 
         $user = Auth::user();
 
@@ -235,6 +299,20 @@ class AttendanceTable extends Component
                     }
                 })->distinct()->get();
             }
+
+            // Update Year Levels based on selected department and section
+            if ($this->selectedDepartment) {
+                $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                    ->where('id', $this->selectedSection)
+                    ->distinct()
+                    ->pluck('year_level')
+                    ->sort()
+                    ->values()
+                    ->toArray();
+            } else {
+                // If no department is selected, show all year levels
+                $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
+            }
         } else {
             // If no section is selected, reset subjects based on department only
             if ($user->isAdmin()) {
@@ -265,6 +343,19 @@ class AttendanceTable extends Component
                     $q->where('section_id', $user->section_id);
                 })->distinct()->get();
             }
+
+            // Update Year Levels based on selected department
+            if ($this->selectedDepartment) {
+                $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                    ->distinct()
+                    ->pluck('year_level')
+                    ->sort()
+                    ->values()
+                    ->toArray();
+            } else {
+                // If no department is selected, show all year levels
+                $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
+            }
         }
     }
 
@@ -294,6 +385,7 @@ class AttendanceTable extends Component
                 'status',
                 'selectedSection',
                 'selectedSubject',
+                'selectedYearLevel', // Reset Year Level
             ]);
         } elseif ($user->isStudent()) {
             // **For Students:**
@@ -301,6 +393,7 @@ class AttendanceTable extends Component
                 'search',
                 'status',
                 'selectedSubject',
+                'selectedYearLevel', // Reset Year Level
             ]);
         } else {
             // Reset all filters for Admins and Deans
@@ -311,6 +404,7 @@ class AttendanceTable extends Component
                 'selectedDepartment',
                 'selectedSection',
                 'selectedSubject',
+                'selectedYearLevel', // Reset Year Level
             ]);
         }
 
@@ -372,7 +466,7 @@ class AttendanceTable extends Component
      */
     public function exportAs($format)
     {
-        $export = new AttendanceExport($this->selectedMonth, $this->selectedSubject, $this->selectedSection);
+        $export = new AttendanceExport($this->selectedMonth, $this->selectedSubject, $this->selectedSection, $this->selectedYearLevel);
 
         switch ($format) {
             case 'csv':
@@ -459,14 +553,14 @@ class AttendanceTable extends Component
                         ->orWhere('username', 'like', '%' . $this->search . '%')
                         ->orWhere('email', 'like', '%' . $this->search . '%');
                 })
-                ->orWhereHas('schedule.subject', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('schedule', function ($q) {
-                    $q->where('schedule_code', 'like', '%' . $this->search . '%');
-                })
-                ->orWhere('date', 'like', '%' . $this->search . '%')
-                ->orWhere('status', 'like', '%' . $this->search . '%');
+                    ->orWhereHas('schedule.subject', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('schedule', function ($q) {
+                        $q->where('schedule_code', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhere('date', 'like', '%' . $this->search . '%')
+                    ->orWhere('status', 'like', '%' . $this->search . '%');
             });
         }
 
@@ -489,12 +583,19 @@ class AttendanceTable extends Component
             });
         }
 
+        // **Apply Year Level Filter**
+        if (!empty($this->selectedYearLevel)) {
+            $query->whereHas('schedule.section', function ($q) {
+                $q->where('year_level', $this->selectedYearLevel);
+            });
+        }
+
         // Apply month filter
         if ($this->selectedMonth) {
             try {
                 $parsedMonth = Carbon::parse($this->selectedMonth);
                 $query->whereMonth('date', $parsedMonth->month)
-                      ->whereYear('date', $parsedMonth->year);
+                    ->whereYear('date', $parsedMonth->year);
             } catch (\Exception $e) {
                 // Handle invalid date format if necessary
             }
@@ -512,6 +613,7 @@ class AttendanceTable extends Component
             'sections' => $filterData['sections'],
             'departments' => $filterData['departments'],
             'colleges' => $filterData['colleges'],
+            'yearLevels' => $this->yearLevels, // Pass yearLevels to the view
         ]);
     }
 
