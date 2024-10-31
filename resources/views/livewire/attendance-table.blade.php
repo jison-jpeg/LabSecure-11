@@ -75,17 +75,6 @@
                 @endif
 
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
-                    <div class="col-12 col-md-2 col-sm-4">
-                        <select wire:model.live="selectedYearLevel" name="selectedYearLevel" class="form-select">
-                            <option value="">All Year Levels</option>
-                            @foreach ($yearLevels as $yearLevel)
-                                <option value="{{ $yearLevel }}">{{ $yearLevel }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-
-                @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Section Filter -->
                     <div class="col-12 col-md-2 col-sm-4">
                         <select wire:model.live="selectedSection" name="selectedSection" class="form-select">
