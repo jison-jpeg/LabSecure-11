@@ -30,11 +30,11 @@ Route::get('/', function () {
 });
 
 // General Dashboard
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson,instructor,student'])
     ->get('/dashboard', [DashboardController::class, 'redirectToDashboard'])->name('dashboard');
 
 // Laboratory Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson,instructor'])
     ->prefix('laboratories')
     ->group(function () {
         Route::get('/', [LaboratoryController::class, 'viewLaboratories'])->name('laboratories');
@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // User Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('users')
     ->group(function () {
         Route::get('/', [UserController::class, 'viewUsers'])->name('users');
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Attendance Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson,instructor,student'])
     ->prefix('attendances')
     ->group(function () {
         Route::get('/', [AttendanceController::class, 'viewAttendance'])->name('attendance');
@@ -59,7 +59,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Faculty Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
     ->prefix('faculties')
     ->group(function () {
         Route::get('/', [FacultyController::class, 'viewFaculties'])->name('faculties');
@@ -67,7 +67,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Student Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson,instructor'])
     ->prefix('students')
     ->group(function () {
         Route::get('/', [StudentController::class, 'viewStudents'])->name('students');
@@ -75,7 +75,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Subject Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson,instructor,student'])
     ->prefix('subjects')
     ->group(function () {
         Route::get('/', [SubjectController::class, 'viewSubjects'])->name('subjects');
@@ -83,7 +83,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Courses Management
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
     ->prefix('courses')
     ->group(function () {
         Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
@@ -92,7 +92,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Schedule
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
     ->prefix('schedules')
     ->group(function () {
         Route::get('/', [ScheduleController::class, 'viewSchedules'])->name('schedule');
@@ -101,7 +101,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Classes
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:instructor,student'])
     ->prefix('classes')
     ->group(function () {
         Route::get('/', [ClassController::class, 'viewClasses'])->name('classes');
@@ -110,7 +110,7 @@ Route::middleware(['auth', 'verified'])
 
 
 // Section
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
     ->prefix('sections')
     ->group(function () {
         Route::get('/', [SectionController::class, 'viewSections'])->name('sections');
@@ -128,7 +128,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Transaction Logs
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'role:admin'])
     ->get('/logs', [TransactionLogController::class, 'viewTransactionLog'])->name('transaction-logs');
 
 require __DIR__ . '/auth.php';
