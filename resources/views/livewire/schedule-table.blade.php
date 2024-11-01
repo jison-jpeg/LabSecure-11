@@ -161,7 +161,7 @@
             <tbody>
                 @foreach ($schedules as $key => $schedule)
                     <tr wire:key="{{ $schedule->id }}"
-                        onclick="window.location='{{ Auth::user()->isAdmin() ? route('schedule.view', $schedule->id) : route('class.view', $schedule->id) }}';"
+                        onclick="window.location='{{ Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean() ? route('schedule.view', $schedule->id) : route('class.view', $schedule->id) }}';"
                         style="cursor: pointer;">
                         <th scope="row">{{ ($schedules->currentPage() - 1) * $schedules->perPage() + $key + 1 }}</th>
                         <td>{{ $schedule->schedule_code }}</td>
