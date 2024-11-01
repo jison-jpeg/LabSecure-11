@@ -101,7 +101,7 @@ Route::middleware(['auth', 'verified'])
     });
 
 // Classes
-Route::middleware('auth')
+Route::middleware(['auth', 'verified'])
     ->prefix('classes')
     ->group(function () {
         Route::get('/', [ClassController::class, 'viewClasses'])->name('classes');

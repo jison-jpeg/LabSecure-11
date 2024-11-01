@@ -13,16 +13,10 @@ class ClassController extends Controller
 {
     $user = Auth::user();
 
-    if ($user->isAdmin()) {
-        return view('admin.class');
-    } elseif ($user->isInstructor()) {
+    if ($user->isInstructor()) {
         return view('instructor.class');
     } elseif ($user->isStudent()) {
         return view('student.class');
-    } elseif ($user->isDean()) {
-        return view('dean.class');
-    } elseif ($user->isChairperson()) {
-        return view('chairperson.class');
     } else {
         abort(401, 'Unauthorized access.');
     }
@@ -33,11 +27,9 @@ class ClassController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role->name === 'admin') {
-            return view('admin.view-class', ['schedule' => $schedule]);
-        } elseif ($user->role->name === 'instructor') {
+        if ($user->isInstructor()) {
             return view('instructor.view-class', ['schedule' => $schedule]);
-        } elseif ($user->role->name === 'student') {
+        } elseif ($user->isStudent()) {
             return view('student.view-class', ['schedule' => $schedule]);
         } else {
             return redirect()->route('unauthorized');
