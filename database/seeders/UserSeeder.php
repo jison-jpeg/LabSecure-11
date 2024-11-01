@@ -14,6 +14,8 @@ class UserSeeder extends Seeder
         $adminRole = Role::where('name', 'admin')->first();
         $studentRole = Role::where('name', 'student')->first();
         $instructorRole = Role::where('name', 'instructor')->first();
+        $deanRole = Role::where('name', 'dean')->first();
+        $chairpersonRole = Role::where('name', 'chairperson')->first();
 
         // Admin User
         User::create([
@@ -35,6 +37,31 @@ class UserSeeder extends Seeder
             'email' => 'exhan.bandas@example.com',
             'password' => Hash::make('password'),
             'role_id' => $adminRole->id,
+        ]);
+
+        // Dean User
+        User::create([
+            'rfid_number' => 'RFID1001',
+            'first_name' => 'Dean',
+            'last_name' => 'User',
+            'username' => 'D-1000',
+            'email' => 'dean@buksu.edu.ph',
+            'password' => Hash::make('password'),
+            'role_id' => $deanRole->id,
+            'college_id' => 1,
+        ]);
+
+        // Chairperson User
+        User::create([
+            'rfid_number' => 'RFID1003',
+            'first_name' => 'Chairperson',
+            'last_name' => 'User',
+            'username' => 'C-1000',
+            'email' => 'chairperson@buksu.edu.ph',
+            'password' => Hash::make('password'),
+            'role_id' => $chairpersonRole->id,
+            'department_id' => 1,
+            'college_id' => 1,
         ]);
 
         // Student User
@@ -156,6 +183,6 @@ class UserSeeder extends Seeder
             'college_id' => 1,
         ]);
 
-        // User::factory(count: 30)->create();
+        // User::factory(count: 50)->create();
     }
 }

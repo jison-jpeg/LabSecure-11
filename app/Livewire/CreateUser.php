@@ -15,6 +15,7 @@ use Livewire\Attributes\On;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class CreateUser extends Component
 {
@@ -112,9 +113,19 @@ class CreateUser extends Component
         $rules = [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,' . ($this->user->id ?? 'NULL'),
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'username')->ignore($this->user->id ?? null),
+            ],
             'role_id' => 'required|exists:roles,id',
-            'email' => 'required|email|max:255|unique:users,email,' . ($this->user->id ?? 'NULL'),
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($this->user->id ?? null),
+            ],
             'password' => 'nullable|string|min:6',
             'status' => 'required|in:active,inactive',
         ];
@@ -122,7 +133,10 @@ class CreateUser extends Component
         // Additional rules based on role
         if (!$this->isRoleAdmin()) {
             // College is required for Chairperson, Dean, Instructor, and Student
-            $rules['selectedCollege'] = 'required|exists:colleges,id';
+            $rules['selectedCollege'] = [
+                'required',
+                'exists:colleges,id',
+            ];
 
             if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
                 // Department is required for Chairperson, Instructor, and Student
@@ -132,6 +146,24 @@ class CreateUser extends Component
             if ($this->isRoleStudent()) {
                 // Section is required only for Student
                 $rules['selectedSection'] = 'required|exists:sections,id';
+            }
+
+            // Additional validation for Dean role
+            if ($this->isRoleDean()) {
+                $rules['selectedCollege'][] = function ($attribute, $value, $fail) {
+                    $deanRoleId = Role::where('name', 'dean')->value('id');
+                    $query = User::where('role_id', $deanRoleId)
+                                 ->where('college_id', $value);
+
+                    // If editing, exclude the current user from the check
+                    if ($this->editForm && $this->user) {
+                        $query->where('id', '!=', $this->user->id);
+                    }
+
+                    if ($query->exists()) {
+                        $fail('A dean has already been assigned to this college.');
+                    }
+                };
             }
         }
 
