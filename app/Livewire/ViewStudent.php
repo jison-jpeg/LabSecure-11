@@ -15,16 +15,17 @@ class ViewStudent extends Component
 
     public function mount(User $student)
     {
-        $this->student = $student;
+        // Eager load the 'section' relationship
+        $this->student = $student->load('section');
 
-        // Load attendance records
+        // Load attendance records with related subjects
         $this->attendanceRecords = Attendance::where('user_id', $student->id)
             ->with('schedule.subject')
             ->get();
 
-        // Load student's schedules
+        // Load student's schedules with related subjects and instructors
         $this->schedules = Schedule::whereHas('section', function($query) {
-            $query->where('section_id', $this->student->section_id);
+            $query->where('id', $this->student->section_id);
         })->with('subject', 'instructor')
           ->get();
     }

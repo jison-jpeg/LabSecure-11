@@ -42,10 +42,16 @@
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <h6>Section</h6>
-                                <p>{{ $student->section ? ($student->schedules->first() ? $student->schedules->first()->schedule_code . ' ' . $student->section->name : $student->section->name) : 'N/A' }}
+                                <h6>Year and Section</h6>
+                                <p>
+                                    @if($student->section)
+                                        {{ $student->section->year_level }} - {{ $student->section->name }}
+                                    @else
+                                        N/A
+                                    @endif
                                 </p>
                             </div>
+                            
                         </div>
                     </div>
                 </div>
