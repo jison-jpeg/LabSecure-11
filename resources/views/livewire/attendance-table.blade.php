@@ -126,7 +126,7 @@
             </div>
         </div>
         <div class="col-md-1">
-            <button class="btn btn-outline-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
+            <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
         </div>
         
     </div>

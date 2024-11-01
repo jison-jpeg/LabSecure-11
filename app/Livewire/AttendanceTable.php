@@ -114,11 +114,11 @@ class AttendanceTable extends Component
         // Load Year Levels based on selected Department
         if ($this->selectedDepartment) {
             $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
-                ->distinct()
-                ->pluck('year_level')
-                ->sort()
-                ->values()
-                ->toArray();
+                                       ->distinct()
+                                       ->pluck('year_level')
+                                       ->sort()
+                                       ->values()
+                                       ->toArray();
         } else {
             // If no Department is selected, load all Year Levels
             $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
@@ -136,16 +136,17 @@ class AttendanceTable extends Component
      */
     protected function updateSections()
     {
-        if ($this->selectedDepartment) {
-            $sectionsQuery = Section::where('department_id', $this->selectedDepartment);
-
-            if ($this->selectedYearLevel) {
-                $sectionsQuery->where('year_level', $this->selectedYearLevel);
-            }
-
-            $this->sections = $sectionsQuery->get();
+        if ($this->selectedDepartment && $this->selectedYearLevel) {
+            $this->sections = Section::where('department_id', $this->selectedDepartment)
+                                     ->where('year_level', $this->selectedYearLevel)
+                                     ->get();
+        } elseif ($this->selectedDepartment) {
+            // If only Department is selected without Year Level
+            $this->sections = Section::where('department_id', $this->selectedDepartment)
+                                     ->get();
         } else {
-            $this->sections = Section::all();
+            // If no Department is selected, reset Sections
+            $this->sections = collect();
         }
     }
 
@@ -205,6 +206,13 @@ class AttendanceTable extends Component
      */
     public function updatedSelectedCollege($value)
     {
+        $user = Auth::user();
+
+        // Only Admins can update selectedCollege
+        if (!$user->isAdmin()) {
+            return;
+        }
+
         // Reset Department, Year Level, Section, and Subject
         $this->reset(['selectedDepartment', 'selectedYearLevel', 'selectedSection', 'selectedSubject']);
 
@@ -217,11 +225,11 @@ class AttendanceTable extends Component
 
         // Update Year Levels
         $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
-            ->distinct()
-            ->pluck('year_level')
-            ->sort()
-            ->values()
-            ->toArray();
+                                   ->distinct()
+                                   ->pluck('year_level')
+                                   ->sort()
+                                   ->values()
+                                   ->toArray();
 
         // Update Sections and Subjects
         $this->updateSections();
@@ -233,17 +241,24 @@ class AttendanceTable extends Component
      */
     public function updatedSelectedDepartment($value)
     {
+        $user = Auth::user();
+
+        // Prevent resetting for Instructors and Chairpersons since selectedDepartment is set internally
+        if ($user->isInstructor() || $user->isChairperson()) {
+            return;
+        }
+
         // Reset Year Level, Section, and Subject
         $this->reset(['selectedYearLevel', 'selectedSection', 'selectedSubject']);
 
         // Update Year Levels based on selected Department
         if ($value) {
             $this->yearLevels = Section::where('department_id', $value)
-                ->distinct()
-                ->pluck('year_level')
-                ->sort()
-                ->values()
-                ->toArray();
+                                       ->distinct()
+                                       ->pluck('year_level')
+                                       ->sort()
+                                       ->values()
+                                       ->toArray();
         } else {
             $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
         }
@@ -258,13 +273,15 @@ class AttendanceTable extends Component
      */
     public function updatedSelectedYearLevel($value)
     {
-        // Reset Section and Subject
+        $user = Auth::user();
+
+        // Reset Section and Subject when Year Level changes
         $this->reset(['selectedSection', 'selectedSubject']);
 
         // Update Sections based on selected Department and Year Level
         $this->updateSections();
 
-        // Update Subjects
+        // Update Subjects based on new filters
         $this->updateSubjects();
     }
 
