@@ -30,10 +30,10 @@ class SectionTable extends Component
     public $department = '';
 
     #[Url(history: true)]
-    public $sortBy = 'created_at';
+    public $sortBy = 'name';
 
     #[Url(history: true)]
-    public $sortDir = 'DESC';
+    public $sortDir = 'ASC';
 
     #[Url()]
     public $perPage = 10;
