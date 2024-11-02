@@ -31,7 +31,7 @@ class UserTable extends Component
     public $role = '';
 
     #[Url(history: true)]
-    public $sortBy = 'username';
+    public $sortBy = 'updated_at';
 
     #[Url(history: true)]
     public $sortDir = 'DESC';

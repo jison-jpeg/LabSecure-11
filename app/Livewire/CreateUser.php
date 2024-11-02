@@ -78,6 +78,10 @@ class CreateUser extends Component
             // Reset Department and Section for Dean
             $this->reset(['selectedDepartment', 'selectedSection']);
             $this->sections = [];
+        } elseif ($this->isRoleChairperson()) {
+            // Reset Section for Chairperson
+            $this->reset(['selectedSection']);
+            $this->sections = [];
         } else {
             // Reset Department and Section for other roles
             $this->reset(['selectedDepartment', 'selectedSection']);
@@ -112,22 +116,22 @@ class CreateUser extends Component
         // Base validation rules
         $rules = [
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'username' => [
+            'last_name'  => 'required|string|max:255',
+            'username'   => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('users', 'username')->ignore($this->user->id ?? null),
             ],
-            'role_id' => 'required|exists:roles,id',
-            'email' => [
+            'role_id'    => 'required|exists:roles,id',
+            'email'      => [
                 'required',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($this->user->id ?? null),
             ],
-            'password' => 'nullable|string|min:6',
-            'status' => 'required|in:active,inactive',
+            'password'   => 'nullable|string|min:6',
+            'status'     => 'required|in:active,inactive',
         ];
 
         // Additional rules based on role
@@ -137,16 +141,6 @@ class CreateUser extends Component
                 'required',
                 'exists:colleges,id',
             ];
-
-            if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
-                // Department is required for Chairperson, Instructor, and Student
-                $rules['selectedDepartment'] = 'required|exists:departments,id';
-            }
-
-            if ($this->isRoleStudent()) {
-                // Section is required only for Student
-                $rules['selectedSection'] = 'required|exists:sections,id';
-            }
 
             // Additional validation for Dean role
             if ($this->isRoleDean()) {
@@ -164,6 +158,37 @@ class CreateUser extends Component
                         $fail('A dean has already been assigned to this college.');
                     }
                 };
+            }
+
+            if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
+                // Department is required for Chairperson, Instructor, and Student
+                $rules['selectedDepartment'] = [
+                    'required',
+                    'exists:departments,id',
+                ];
+
+                // Additional validation for Chairperson role
+                if ($this->isRoleChairperson()) {
+                    $rules['selectedDepartment'][] = function ($attribute, $value, $fail) {
+                        $chairRoleId = Role::where('name', 'chairperson')->value('id');
+                        $query = User::where('role_id', $chairRoleId)
+                                     ->where('department_id', $value);
+
+                        // If editing, exclude the current user from the check
+                        if ($this->editForm && $this->user) {
+                            $query->where('id', '!=', $this->user->id);
+                        }
+
+                        if ($query->exists()) {
+                            $fail('A chairperson has already been assigned to this department.');
+                        }
+                    };
+                }
+            }
+
+            if ($this->isRoleStudent()) {
+                // Section is required only for Student
+                $rules['selectedSection'] = 'required|exists:sections,id';
             }
         }
 
@@ -186,15 +211,15 @@ class CreateUser extends Component
 
         // Prepare data for user creation
         $data = [
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name,
-            'last_name' => $this->last_name,
-            'suffix' => $this->suffix,
-            'username' => $this->username,
-            'role_id' => $this->role_id,
-            'email' => $this->email,
-            'password' => Hash::make($generatedPassword),
-            'status' => $this->status,
+            'first_name'    => $this->first_name,
+            'middle_name'   => $this->middle_name,
+            'last_name'     => $this->last_name,
+            'suffix'        => $this->suffix,
+            'username'      => $this->username,
+            'role_id'       => $this->role_id,
+            'email'         => $this->email,
+            'password'      => Hash::make($generatedPassword),
+            'status'        => $this->status,
         ];
 
         // Conditionally add college
@@ -218,11 +243,11 @@ class CreateUser extends Component
         // Log the transaction
         TransactionLog::create([
             'user_id' => Auth::id(),
-            'action' => 'create',
-            'model' => 'User',
-            'model_id' => $user->id,
+            'action'  => 'create',
+            'model'   => 'User',
+            'model_id'=> $user->id,
             'details' => json_encode([
-                'user' => $user->full_name,
+                'user'     => $user->full_name,
                 'username' => $user->username,
             ]),
         ]);
@@ -271,14 +296,14 @@ class CreateUser extends Component
         $this->editForm = true;
         $this->user = User::findOrFail($id);
 
-        $this->first_name = $this->user->first_name;
-        $this->middle_name = $this->user->middle_name;
-        $this->last_name = $this->user->last_name;
-        $this->suffix = $this->user->suffix;
-        $this->username = $this->user->username;
-        $this->role_id = $this->user->role_id;
-        $this->email = $this->user->email;
-        $this->status = $this->user->status;
+        $this->first_name    = $this->user->first_name;
+        $this->middle_name   = $this->user->middle_name;
+        $this->last_name     = $this->user->last_name;
+        $this->suffix        = $this->user->suffix;
+        $this->username      = $this->user->username;
+        $this->role_id       = $this->user->role_id;
+        $this->email         = $this->user->email;
+        $this->status        = $this->user->status;
 
         // Set and load the college
         if ($this->user->college_id) {
@@ -311,14 +336,14 @@ class CreateUser extends Component
 
         // Prepare data for user update
         $data = [
-            'first_name' => $this->first_name,
-            'middle_name' => $this->middle_name,
-            'last_name' => $this->last_name,
-            'suffix' => $this->suffix,
-            'username' => $this->username,
-            'role_id' => $this->role_id,
-            'email' => $this->email,
-            'status' => $this->status,
+            'first_name'    => $this->first_name,
+            'middle_name'   => $this->middle_name,
+            'last_name'     => $this->last_name,
+            'suffix'        => $this->suffix,
+            'username'      => $this->username,
+            'role_id'       => $this->role_id,
+            'email'         => $this->email,
+            'status'        => $this->status,
         ];
 
         // Update password if provided
@@ -355,11 +380,11 @@ class CreateUser extends Component
         // Log the transaction
         TransactionLog::create([
             'user_id' => Auth::id(),
-            'action' => 'update',
-            'model' => 'User',
-            'model_id' => $this->user->id,
+            'action'  => 'update',
+            'model'   => 'User',
+            'model_id'=> $this->user->id,
             'details' => json_encode([
-                'user' => $this->user->full_name,
+                'user'     => $this->user->full_name,
                 'username' => $this->user->username,
             ]),
         ]);
@@ -430,10 +455,10 @@ class CreateUser extends Component
     public function render()
     {
         return view('livewire.create-user', [
-            'roles' => $this->roles,
-            'colleges' => $this->colleges,
-            'departments' => $this->departments,
-            'sections' => $this->sections,
+            'roles'        => $this->roles,
+            'colleges'     => $this->colleges,
+            'departments'  => $this->departments,
+            'sections'     => $this->sections,
         ]);
     }
 }
