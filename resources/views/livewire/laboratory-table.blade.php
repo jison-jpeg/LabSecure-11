@@ -18,17 +18,18 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <select wire:model.live="type" name="type" class="form-select">
-                        <option value="">Laboratory Type</option>
-                        <option value="Computer Laboratory">Computer</option>
-                        <option value="EMC Laboratory">EMC</option>
+                        <option value="">All Laboratory Types</option>
+                        @foreach($types as $type)
+                            <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-12 col-md-2">
-                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear
-                        Filters</button>
+                    <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
                 </div>
             </div>
         </div>
+        
         <div class="col-12 col-md-2">
             @if (Auth::user()->isAdmin())
             <livewire:create-laboratory />
