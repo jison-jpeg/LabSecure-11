@@ -10,7 +10,7 @@
                     <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
+                    <form wire:submit.prevent="{{ $editForm ? 'update' : 'save' }}" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-6">
                             <label for="name" class="form-label">Name</label>
                             <input wire:model.lazy="name" type="text"
@@ -35,17 +35,26 @@
                                 </span>
                             @enderror
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        @if ($editForm)
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button wire:click="update" type="button" class="btn btn-primary">Save changes</button>
-                        @else
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button wire:click="save" type="button" class="btn btn-primary">Create Department</button>
-                        @endif
-                    </div>
-                </form>
+                        <div class="col-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea wire:model.lazy="description" class="form-control @error('description') is-invalid @enderror"
+                                name="description" rows="3"></textarea>
+                            @error('description')
+                                <span class="invalid-feedback">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="modal-footer">
+                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            @if ($editForm)
+                                <button type="button" class="btn btn-primary" wire:click="update">Save changes</button>
+                            @else
+                                <button type="button" class="btn btn-primary" wire:click="save">Create Department</button>
+                            @endif
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

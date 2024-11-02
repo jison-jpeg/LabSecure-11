@@ -11,6 +11,7 @@ class Department extends Model
 
     protected $fillable = [
         'name',
+        'description',
         'college_id',
     ];
 
@@ -46,6 +47,7 @@ class Department extends Model
     public function scopeSearch($query, $value)
     {
         return $query->where('name', 'like', '%' . $value . '%')
+                     ->orWhere('description', 'like', '%' . $value . '%')
                      ->orWhereHas('college', function($q) use ($value) {
                          $q->where('name', 'like', '%' . $value . '%');
                      });

@@ -16,6 +16,7 @@ class CreateDepartment extends Component
     public $formTitle = 'Create Department';
     public $editForm = false;
     public $department;
+    public $description;
     public $name;
     public $college_id;
 
@@ -31,6 +32,7 @@ class CreateDepartment extends Component
         $this->validateOnly($propertyName, [
             'name' => 'required|unique:departments,name,' . ($this->department->id ?? 'NULL'),
             'college_id' => 'required|exists:colleges,id',
+            'description' => 'nullable|string|max:1000',
         ]);
     }
 
@@ -39,11 +41,13 @@ class CreateDepartment extends Component
         $this->validate([
             'name' => 'required|unique:departments,name,' . ($this->department->id ?? 'NULL'),
             'college_id' => 'required|exists:colleges,id',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $department = Department::create([
             'name' => $this->name,
             'college_id' => $this->college_id,
+            'description' => $this->description,
         ]);
 
         // Log the creation of the department
@@ -55,6 +59,7 @@ class CreateDepartment extends Component
             'details' => json_encode([
                 'department_name' => $department->name,
                 'college_name' => College::find($this->college_id)->name,
+                'description' => $department->description,
                 'user' => Auth::user()->full_name,
                 'username' => Auth::user()->username,
             ]),
@@ -72,6 +77,8 @@ class CreateDepartment extends Component
     public function close()
     {
         $this->resetErrorBag();
+        $this->editForm = false;
+        $this->formTitle = 'Create Department';
         $this->reset();
     }
 
@@ -83,6 +90,7 @@ class CreateDepartment extends Component
         $this->department = Department::findOrFail($id);
         $this->name = $this->department->name;
         $this->college_id = $this->department->college_id;
+        $this->description = $this->department->description;
     }
 
     public function update()
@@ -90,11 +98,13 @@ class CreateDepartment extends Component
         $this->validate([
             'name' => 'required|unique:departments,name,' . $this->department->id,
             'college_id' => 'required|exists:colleges,id',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $this->department->update([
             'name' => $this->name,
             'college_id' => $this->college_id,
+            'description' => $this->description,
         ]);
 
         // Log the update of the department
@@ -106,6 +116,7 @@ class CreateDepartment extends Component
             'details' => json_encode([
                 'department_name' => $this->department->name,
                 'college_name' => College::find($this->college_id)->name,
+                'description' => $this->department->description,
                 'user' => Auth::user()->full_name,
                 'username' => Auth::user()->username,
             ]),

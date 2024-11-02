@@ -69,7 +69,9 @@ class CreateCollege extends Component
     public function close()
     {
         $this->resetErrorBag();
-        $this->reset(['name', 'description']); // Reset description
+        $this->reset();
+        $this->editForm = false; // Reset edit mode to false
+        $this->formTitle = 'Create College'; // Reset the title
     }
 
     #[On('edit-mode')]
