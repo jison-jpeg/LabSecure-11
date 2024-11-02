@@ -23,7 +23,7 @@ class MqttService
     {
         $this->mqttClient = new MqttClient(env('MQTT_BROKER_ADDRESS'), env('MQTT_PORT'), 'laravel_client_' . uniqid());
         $this->connectionSettings = (new ConnectionSettings())
-            ->setUsername(env('MQTT_USER'))
+            ->setUsername(env('MQTT_USERNAME'))
             ->setPassword(env('MQTT_PASSWORD'));
 
         $this->connect();

@@ -26,11 +26,15 @@ class ListenToMQTT extends Command
         // Get MQTT details from .env
         $brokerAddress = env('MQTT_BROKER_ADDRESS', '127.0.0.1');
         $brokerPort = env('MQTT_PORT', 1883);
+        $mqttUser = env('MQTT_USERNAME') ?: null;
+        $mqttPassword = env('MQTT_PASSWORD') ?: null;
 
         // Create MQTT client and keep the connection alive
         $this->mqtt = new MqttClient($brokerAddress, $brokerPort, 'laravel_mqtt_listener');
         $connectionSettings = (new ConnectionSettings())
-            ->setKeepAliveInterval(60);  // Keep the connection alive for 60 seconds
+            ->setKeepAliveInterval(60)  // Keep the connection alive for 60 seconds
+            ->setUsername($mqttUser)
+            ->setPassword($mqttPassword);
 
         // Connect to the broker
         try {
