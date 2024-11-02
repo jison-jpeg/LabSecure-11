@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Exports\UsersExport;
 use App\Models\College;
 use App\Models\Department;
+use App\Models\Role; // Make sure to import the Role model
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\TransactionLog;
@@ -137,7 +138,9 @@ class UserTable extends Component
         return view('livewire.user-table', [
             'users' => User::search($this->search)
                 ->when($this->role !== '', function ($query) {
-                    $query->where('role_id', $this->role);
+                    $query->whereHas('role', function ($q) {
+                        $q->where('name', $this->role);
+                    });
                 })
                 ->orderBy($this->sortBy, $this->sortDir)
                 ->paginate($this->perPage),

@@ -16,6 +16,7 @@ class CreateCollege extends Component
     public $editForm = false;
     public $college;
     public $name;
+    public $description; // Added description field
 
     public function render()
     {
@@ -26,6 +27,7 @@ class CreateCollege extends Component
     {
         $this->validateOnly($propertyName, [
             'name' => 'required|unique:colleges,name,' . ($this->college->id ?? 'NULL'),
+            'description' => 'nullable|string|max:1000'
         ]);
     }
 
@@ -33,10 +35,12 @@ class CreateCollege extends Component
     {
         $this->validate([
             'name' => 'required|unique:colleges,name,' . ($this->college->id ?? 'NULL'),
+            'description' => 'nullable|string|max:1000'
         ]);
 
         $college = College::create([
             'name' => $this->name,
+            'description' => $this->description, // Save description
         ]);
 
         // Log the creation of the college
@@ -47,6 +51,7 @@ class CreateCollege extends Component
             'model_id' => $college->id,
             'details' => json_encode([
                 'college_name' => $college->name,
+                'description' => $college->description, // Include description in log
                 'user' => Auth::user()->full_name,
                 'username' => Auth::user()->username,
             ]),
@@ -57,13 +62,14 @@ class CreateCollege extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('College created successfully');
-        $this->reset();
+        $this->reset(['name', 'description']); // Reset description
     }
 
     #[On('reset-modal')]
-    public function close(){
+    public function close()
+    {
         $this->resetErrorBag();
-        $this->reset();
+        $this->reset(['name', 'description']); // Reset description
     }
 
     #[On('edit-mode')]
@@ -73,16 +79,19 @@ class CreateCollege extends Component
         $this->editForm = true;
         $this->college = College::findOrFail($id);
         $this->name = $this->college->name;
+        $this->description = $this->college->description; // Load description for editing
     }
 
     public function update()
     {
         $this->validate([
             'name' => 'required|unique:colleges,name,' . $this->college->id,
+            'description' => 'nullable|string|max:1000'
         ]);
 
         $this->college->update([
             'name' => $this->name,
+            'description' => $this->description, // Update description
         ]);
 
         // Log the update of the college
@@ -93,6 +102,7 @@ class CreateCollege extends Component
             'model_id' => $this->college->id,
             'details' => json_encode([
                 'college_name' => $this->college->name,
+                'description' => $this->college->description, // Include description in log
                 'user' => Auth::user()->full_name,
                 'username' => Auth::user()->username,
             ]),
@@ -103,6 +113,6 @@ class CreateCollege extends Component
             ->position('y', 'top')
             ->success('College updated successfully');
         $this->dispatch('refresh-college-table');
-        $this->reset();
+        $this->reset(['name', 'description']); // Reset description
     }
 }

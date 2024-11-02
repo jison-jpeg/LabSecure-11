@@ -24,8 +24,11 @@
                         </div>
                         <div class="col-md-4">
                             <label for="type" class="form-label">Type</label>
-                            <input wire:model.lazy="type" type="text"
-                                class="form-control @error('type') is-invalid @enderror" name="type">
+                            <select wire:model="type" name="type" class="form-select form-control @error('location') is-invalid @enderror">
+                                <option value="">Laboratory Type</option>
+                                <option value="Computer Laboratory">Computer Laboratory</option>
+                                <option value="Multimedia Laboratory">Multimedia Laboratory</option>
+                            </select>
                             @error('type')
                                 <span class="invalid-feedback">
                                     {{ $message }}

@@ -61,20 +61,30 @@
                         'name' => 'name',
                         'displayName' => 'Name',
                     ])
+
+                    @include('livewire.includes.table-sortable-th', [
+                        'name' => 'description',
+                        'displayName' => 'Description',
+                    ])
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($colleges as $key => $college)
-                    <tr wire:key="{{ $college->id }}" onclick="window.location='{{ route('college.view', ['college' => $college->id]) }}';" style="cursor: pointer;">
+                    <tr wire:key="{{ $college->id }}"
+                        onclick="window.location='{{ route('college.view', ['college' => $college->id]) }}';"
+                        style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $college->name }}</td>
+                        <td>{{ $college->description }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                    onclick="event.stopPropagation()">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                    onclick="event.stopPropagation()">
                                     <li><button type="button" class="dropdown-item" href="#">View</button></li>
                                     <li><button @click="$dispatch('edit-mode',{id:{{ $college->id }}})" type="button"
                                             class="dropdown-item" data-bs-toggle="modal"

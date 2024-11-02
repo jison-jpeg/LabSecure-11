@@ -21,6 +21,16 @@
                                 </span>
                             @enderror
                         </div>
+                        <div class="col-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea wire:model="description" class="form-control @error('description') is-invalid @enderror"
+                                name="description" rows="3"></textarea>
+                            @error('description')
+                                <span class="invalid-feedback">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
                     </div>
                     <div class="modal-footer">
                         @if ($editForm)

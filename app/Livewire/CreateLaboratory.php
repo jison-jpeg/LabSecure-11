@@ -7,6 +7,7 @@ use App\Models\TransactionLog;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class CreateLaboratory extends Component
 {
@@ -18,24 +19,46 @@ class CreateLaboratory extends Component
     public $type;
     public $status = 'Available';  // Default status to "Available"
 
+    protected $listeners = ['edit-mode' => 'edit'];
+
     public function render()
     {
         return view('livewire.create-laboratory');
     }
 
+    /**
+     * Real-time validation as properties are updated.
+     *
+     * @param string $propertyName
+     */
     public function updated($propertyName)
     {
         $this->validateOnly($propertyName, [
-            'name' => 'required|unique:laboratories',
+            'name' => [
+                'required',
+                Rule::unique('laboratories')
+                    ->where(function ($query) {
+                        return $query->where('type', $this->type);
+                    }),
+            ],
             'location' => 'required',
             'type' => 'required',
         ]);
     }
 
+    /**
+     * Save a new laboratory.
+     */
     public function save()
     {
         $this->validate([
-            'name' => 'required|unique:laboratories',
+            'name' => [
+                'required',
+                Rule::unique('laboratories')
+                    ->where(function ($query) {
+                        return $query->where('type', $this->type);
+                    }),
+            ],
             'location' => 'required',
             'type' => 'required',
         ]);
@@ -73,6 +96,11 @@ class CreateLaboratory extends Component
         $this->reset();
     }
 
+    /**
+     * Enter edit mode for a laboratory.
+     *
+     * @param int $id
+     */
     #[On('edit-mode')]
     public function edit($id)
     {
@@ -85,10 +113,20 @@ class CreateLaboratory extends Component
         $this->status = $this->laboratory->status ?? 'Available';
     }
 
+    /**
+     * Update an existing laboratory.
+     */
     public function update()
     {
         $this->validate([
-            'name' => 'required|unique:laboratories,name,' . $this->laboratory->id,
+            'name' => [
+                'required',
+                Rule::unique('laboratories')
+                    ->where(function ($query) {
+                        return $query->where('type', $this->type);
+                    })
+                    ->ignore($this->laboratory->id),
+            ],
             'location' => 'required',
             'type' => 'required',
             'status' => 'required',
@@ -96,7 +134,7 @@ class CreateLaboratory extends Component
 
         // Capture old values for logging
         $original = $this->laboratory->only(['name', 'location', 'type', 'status']);
-        
+
         // Update laboratory details
         $this->laboratory->update([
             'name' => $this->name,
@@ -130,6 +168,9 @@ class CreateLaboratory extends Component
         $this->reset();
     }
 
+    /**
+     * Close the modal and reset form data.
+     */
     #[On('reset-modal')]
     public function close()
     {

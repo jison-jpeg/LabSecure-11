@@ -52,9 +52,12 @@
                 <div class="col-12 col-md-2">
                     <select wire:model.live="role" name="role" class="form-select">
                         <option value="">User Type</option>
-                        <option value="1">Admin</option>
-                        <option value="2">Instructor</option>
-                        <option value="3">Student</option>
+                        <option value="admin">Admin</option>
+                        <option value="dean">Dean</option>
+                        <option value="chairperson">Chairperson</option>
+                        <option value="instructor">Instructor</option>
+                        <option value="student">Student</option>
+
                     </select>
                 </div>
 

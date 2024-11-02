@@ -91,6 +91,9 @@ class CreateUser extends Component
         $this->selectedSection = null;
     }
 
+    /**
+     * Reset errors when the role changes.
+     */
     public function updatedRoleId()
     {
         if ($this->isRoleAdmin()) {
@@ -120,6 +123,15 @@ class CreateUser extends Component
             $this->yearLevels = [];
             $this->sections = [];
         }
+
+        // Reset validation errors related to role and dependent fields
+        $this->resetErrorBag([
+            'role_id',
+            'selectedCollege',
+            'selectedDepartment',
+            'selectedYearLevel',
+            'selectedSection',
+        ]);
     }
 
     /**
