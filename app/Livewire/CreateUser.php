@@ -34,9 +34,11 @@ class CreateUser extends Component
 
     public $selectedCollege = null;
     public $selectedDepartment = null;
+    public $selectedYearLevel = null; // New Property
     public $selectedSection = null;
     public $colleges = [];
     public $departments = [];
+    public $yearLevels = []; // New Property
     public $sections = [];
     public $roles = [];
 
@@ -50,6 +52,7 @@ class CreateUser extends Component
     {
         $this->colleges = College::all();
         $this->departments = [];
+        $this->yearLevels = [];
         $this->sections = [];
     }
 
@@ -57,40 +60,64 @@ class CreateUser extends Component
     {
         $this->departments = Department::where('college_id', $collegeId)->get();
         $this->selectedDepartment = null;
+        $this->yearLevels = [];
+        $this->selectedYearLevel = null;
         $this->sections = [];
         $this->selectedSection = null;
     }
 
     public function updatedSelectedDepartment($departmentId)
     {
-        $this->sections = Section::where('department_id', $departmentId)->get();
+        // Load unique year levels for the selected department
+        $this->yearLevels = Section::where('department_id', $departmentId)
+                                   ->pluck('year_level')
+                                   ->unique()
+                                   ->sort()
+                                   ->values()
+                                   ->toArray();
+
+        $this->selectedYearLevel = null;
+        $this->sections = [];
+        $this->selectedSection = null;
+    }
+
+    public function updatedSelectedYearLevel($yearLevel)
+    {
+        // Load sections based on selected department and year level
+        $this->sections = Section::where('department_id', $this->selectedDepartment)
+                                 ->where('year_level', $yearLevel)
+                                 ->get();
+
         $this->selectedSection = null;
     }
 
     public function updatedRoleId()
     {
         if ($this->isRoleAdmin()) {
-            // Reset College, Department, and Section for Admin
-            $this->reset(['selectedCollege', 'selectedDepartment', 'selectedSection']);
+            // Reset College, Department, Year Level, and Section for Admin
+            $this->reset(['selectedCollege', 'selectedDepartment', 'selectedYearLevel', 'selectedSection']);
             $this->departments = [];
+            $this->yearLevels = [];
             $this->sections = [];
         } elseif ($this->isRoleDean()) {
-            // Reset Department and Section for Dean
-            $this->reset(['selectedDepartment', 'selectedSection']);
+            // Reset Department, Year Level, and Section for Dean
+            $this->reset(['selectedDepartment', 'selectedYearLevel', 'selectedSection']);
+            $this->yearLevels = [];
             $this->sections = [];
         } elseif ($this->isRoleChairperson()) {
-            // Reset Section for Chairperson
-            $this->reset(['selectedSection']);
+            // Reset Year Level and Section for Chairperson
+            $this->reset(['selectedYearLevel', 'selectedSection']);
+            $this->yearLevels = [];
+            $this->sections = [];
+        } elseif ($this->isRoleStudent()) {
+            // Reset Year Level and Section for Student
+            $this->reset(['selectedYearLevel', 'selectedSection']);
+            $this->yearLevels = [];
             $this->sections = [];
         } else {
-            // Reset Department and Section for other roles
-            $this->reset(['selectedDepartment', 'selectedSection']);
-            if ($this->selectedCollege) {
-                // Reload departments based on the current selectedCollege
-                $this->departments = Department::where('college_id', $this->selectedCollege)->get();
-            } else {
-                $this->departments = [];
-            }
+            // Reset Year Level and Section for other roles
+            $this->reset(['selectedYearLevel', 'selectedSection']);
+            $this->yearLevels = [];
             $this->sections = [];
         }
     }
@@ -187,6 +214,12 @@ class CreateUser extends Component
             }
 
             if ($this->isRoleStudent()) {
+                // Year Level is required only for Student
+                $rules['selectedYearLevel'] = [
+                    'required',
+                    'in:' . implode(',', $this->yearLevels),
+                ];
+
                 // Section is required only for Student
                 $rules['selectedSection'] = 'required|exists:sections,id';
             }
@@ -275,10 +308,11 @@ class CreateUser extends Component
     {
         $this->reset([
             'first_name', 'middle_name', 'last_name', 'suffix', 'username', 'role_id', 'email', 
-            'password', 'selectedCollege', 'selectedDepartment', 'selectedSection', 'status'
+            'password', 'selectedCollege', 'selectedDepartment', 'selectedYearLevel', 'selectedSection', 'status'
         ]);
         $this->resetErrorBag();
         $this->departments = [];
+        $this->yearLevels = [];
         $this->sections = [];
     }
 
@@ -315,14 +349,28 @@ class CreateUser extends Component
         if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
             if ($this->user->department_id) {
                 $this->selectedDepartment = $this->user->department_id;
-                $this->sections = Section::where('department_id', $this->selectedDepartment)->get();
+                $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+
+                // Load year levels based on selected department
+                $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                                           ->pluck('year_level')
+                                           ->unique()
+                                           ->sort()
+                                           ->values()
+                                           ->toArray();
             }
         }
 
-        // Set the section if applicable
+        // Set the section and year_level if applicable
         if ($this->isRoleStudent()) {
             if ($this->user->section_id) {
                 $this->selectedSection = $this->user->section_id;
+                $this->selectedYearLevel = $this->user->section->year_level;
+
+                // Load sections based on selected department and year level
+                $this->sections = Section::where('department_id', $this->selectedDepartment)
+                                         ->where('year_level', $this->selectedYearLevel)
+                                         ->get();
             }
         }
     }
@@ -367,7 +415,7 @@ class CreateUser extends Component
             $data['department_id'] = null;
         }
 
-        // Conditionally add or remove section for students
+        // Conditionally add or remove year level and section for students
         if ($this->isRoleStudent()) {
             $data['section_id'] = $this->selectedSection;
         } else {
@@ -458,6 +506,7 @@ class CreateUser extends Component
             'roles'        => $this->roles,
             'colleges'     => $this->colleges,
             'departments'  => $this->departments,
+            'yearLevels'   => $this->yearLevels, // Pass yearLevels to the view
             'sections'     => $this->sections,
         ]);
     }
