@@ -33,9 +33,9 @@
                     <!-- Close Button -->
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="$dispatch('reset-modal')">Close</button>
                     <!-- Save/Update Button -->
-                    <button type="submit" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" wire:click="{{ $editForm ? 'update' : 'save' }}">
                         {{ $editForm ? 'Update Attendance' : 'Save Attendance' }}
-                    </button>
+                    </button>                    
                 </div>
             </div>
         </div>
@@ -44,20 +44,21 @@
     {{-- JavaScript to Handle Modal Events --}}
     <script>
         document.addEventListener('livewire:initialized', () => {
-            Livewire.on('refresh-attendance-table', () => {
-                let myModalEl = document.querySelector('#verticalycentered');
-                let modal = bootstrap.Modal.getOrCreateInstance(myModalEl);
+    @this.on('refresh-attendance-table', () => {
+        let myModalEl = document.querySelector('#verticalycentered');
+        let modal = bootstrap.Modal.getOrCreateInstance(myModalEl);
 
-                setTimeout(() => {
-                    modal.hide();
-                    Livewire.emit('reset-modal');
-                }); // Adjust the delay if needed
-            });
+        setTimeout(() => {
+            modal.hide();
+            @this.dispatch('reset-modal');
+        }); // Adjust delay if needed
+    });
 
-            let myModal = document.getElementById('verticalycentered');
-            myModal.addEventListener('hidden.bs.modal', () => {
-                Livewire.emit('reset-modal');
-            });
-        });
+    let myModal = document.getElementById('verticalycentered');
+    myModal.addEventListener('hidden.bs.modal', () => {
+        @this.dispatch('reset-modal');
+    });
+});
+
     </script>
 </div>
