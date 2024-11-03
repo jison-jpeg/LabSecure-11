@@ -16,9 +16,12 @@
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
+                            </li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
+                            </li>
                         </ul>
                     </li>
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
@@ -36,17 +39,17 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-    
+
                 <!-- Search Filter -->
                 <div class="col-12 col-md-3 col-sm-10">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search users...">
                 </div>
-    
+
                 @php
                     $user = Auth::user();
                 @endphp
-    
+
                 @if ($user->isAdmin())
                     <!-- College Filter -->
                     <div class="col-12 col-md-2 col-sm-4">
@@ -58,7 +61,7 @@
                         </select>
                     </div>
                 @endif
-    
+
                 @if ($user->isAdmin() || $user->isDean())
                     <!-- Department Filter -->
                     <div class="col-12 col-md-2 col-sm-4">
@@ -70,7 +73,7 @@
                         </select>
                     </div>
                 @endif
-    
+
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Year Level Filter -->
                     <div class="col-12 col-md-2 col-sm-4">
@@ -82,7 +85,7 @@
                         </select>
                     </div>
                 @endif
-                
+
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Section Filter -->
                     <div class="col-12 col-md-2 col-sm-4">
@@ -94,7 +97,7 @@
                         </select>
                     </div>
                 @endif
-    
+
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor() || $user->isStudent())
                     <!-- Subject Filter -->
                     <div class="col-12 col-md-2 col-sm-6">
@@ -106,7 +109,7 @@
                         </select>
                     </div>
                 @endif
-    
+
                 <!-- Status Filter -->
                 <div class="col-12 col-md-2 col-sm-6">
                     <select wire:model.live="status" name="status" class="form-select">
@@ -118,7 +121,7 @@
                         <option value="incomplete">Incomplete</option>
                     </select>
                 </div>
-    
+
                 <!-- Month Filter -->
                 <div class="col-12 col-md-2 col-sm-6">
                     <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
@@ -128,9 +131,9 @@
         <div class="col-md-1">
             <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
         </div>
-        
+
     </div>
-    
+
     <!-- Attendance Table -->
     <div class="overflow-auto">
         <table class="table table-hover">
@@ -253,6 +256,8 @@
     <div class="mt-4">
         {{ $attendances->links() }}
     </div>
+
+    @livewire('edit-attendance')
 </div>
 
 
