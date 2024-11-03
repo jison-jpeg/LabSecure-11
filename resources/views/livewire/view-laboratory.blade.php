@@ -24,8 +24,8 @@
                                     <select wire:model="type" name="type"
                                         class="form-select form-control @error('location') is-invalid @enderror">
                                         <option value="">Laboratory Type</option>
-                                        <option value="Computer Laboratory">Computer</option>
-                                        <option value="EMC Laboratory">Entertainment MC</option>
+                                        <option value="Computer Laboratory">Computer Laboratory</option>
+                                        <option value="Multimedia Laboratory">Multimedia Laboratory</option>
                                     </select>
                                     @error('type')
                                         <span class="invalid-feedback">{{ $message }}</span>

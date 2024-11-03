@@ -189,8 +189,11 @@
     window.addEventListener('show-edit-user-modal', () => {
         new bootstrap.Modal(document.getElementById('editUserModal')).show();
     });
-    window.addEventListener('refresh-user-table', () => {
+
+    window.addEventListener('refresh-user-details', () => {
         const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
         modal.hide();
+
+        Livewire.emit('refreshUserDetails'); // Trigger refresh in ViewUser
     });
 </script>

@@ -1,17 +1,38 @@
 <div>
     <section class="section dashboard">
         <div class="row">
+            <livewire:edit-user :user="$faculty" />
 
             <!-- Faculty Overview -->
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info">
                     <div class="card-body">
-                        <h5 class="card-title fs-3">{{ $faculty->full_name }}</h5>
-                        <div
-                        class="badge rounded-pill 
-                        {{ $faculty->status === 'active' ? 'bg-success text-light' : 'bg-danger text-light' }} 
-                        position-absolute top-0 end-0 m-3">
-                        {{ ucfirst($faculty->status) }}
+                        <div class="action">
+                            <a class="icon" href="#" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots text-white"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                <li class="dropdown-header text-start">
+                                    <h6>Action</h6>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" wire:click="$dispatch('show-edit-user-modal')">Edit User</a>
+
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#">
+                                        Delete User
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <h5 class="card-title fs-3">{{ $faculty->full_name }}</h5>
+                            <div
+                                class="badge rounded-pill ms-3
+                                {{ $faculty->status === 'active' ? 'bg-success text-light' : 'bg-danger text-light' }}">
+                                {{ ucfirst($faculty->status) }}
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-12 col-md-4">
