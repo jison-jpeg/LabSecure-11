@@ -224,11 +224,7 @@ class EditUser extends Component
 
         notyf()->position('x', 'right')->position('y', 'top')->success('User updated successfully');
 
-        // Reload user data to retain values in the form after update
-        $this->loadUserData();
-
-        // Notify frontend to refresh the user table and close modal
-        $this->dispatch('refresh-user-table');
+        
         $this->dispatch('close-modal');
     }
 
