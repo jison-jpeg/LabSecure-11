@@ -34,7 +34,7 @@
             <!-- Filters Row -->
             <div class="row g-2">
                 <!-- Per Page Filter -->
-                <div class="col-3 col-sm-4 col-md-2">
+                <div class="col-3 col-sm-4 col-md-1">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>

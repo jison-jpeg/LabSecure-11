@@ -68,9 +68,11 @@
                 </div>
             </div>
         </div>
+        @if(Auth::user()->isAdmin())
         <div class="col-12 col-md-2">
             <livewire:create-section />
         </div>
+        @endif
     </div>
 
     <div class="overflow-auto">
