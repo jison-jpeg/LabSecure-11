@@ -6,10 +6,14 @@
     @livewire('edit-attendance')
 
     <!-- Filters Section -->
-    <div class="row mb-4">
-        <div class="col-md-11">
-            <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+    <div class="row mb-4 align-items-start">
+        <!-- Filters Section -->
+        <div class="col-md-10">
+            <!-- Dropdown Menu -->
+            <div class="filter mb-3">
+                <a class="icon" href="#" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots"></i>
+                </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                     <li class="dropdown-header text-start">
                         <h6>Options</h6>
@@ -18,20 +22,19 @@
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
-                            </li>
+                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
+                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
+                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
                         </ul>
                     </li>
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
-            <div class="row g-1">
+    
+            <!-- Filters Row -->
+            <div class="row g-2">
                 <!-- Per Page Filter -->
-                <div class="col-12 col-md-1 col-sm-2">
+                <div class="col-3 col-sm-4 col-md-2">
                     <select wire:model.live="perPage" name="perPage" class="form-select">
                         <option value="10">10</option>
                         <option value="15">15</option>
@@ -41,20 +44,20 @@
                         <option value="100">100</option>
                     </select>
                 </div>
-
+    
                 <!-- Search Filter -->
-                <div class="col-12 col-md-3 col-sm-10">
+                <div class="col-9 col-sm-8 col-md-4">
                     <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
                         placeholder="Search users...">
                 </div>
-
+    
                 @php
                     $user = Auth::user();
                 @endphp
-
+    
                 @if ($user->isAdmin())
                     <!-- College Filter -->
-                    <div class="col-12 col-md-2 col-sm-4">
+                    <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedCollege" name="selectedCollege" class="form-select">
                             <option value="">All Colleges</option>
                             @foreach ($colleges as $college)
@@ -63,10 +66,10 @@
                         </select>
                     </div>
                 @endif
-
+    
                 @if ($user->isAdmin() || $user->isDean())
                     <!-- Department Filter -->
-                    <div class="col-12 col-md-2 col-sm-4">
+                    <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedDepartment" name="selectedDepartment" class="form-select">
                             <option value="">All Departments</option>
                             @foreach ($departments as $department)
@@ -75,10 +78,10 @@
                         </select>
                     </div>
                 @endif
-
+    
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Year Level Filter -->
-                    <div class="col-12 col-md-2 col-sm-4">
+                    <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedYearLevel" name="selectedYearLevel" class="form-select">
                             <option value="">All Year Levels</option>
                             @foreach ($yearLevels as $yearLevel)
@@ -87,10 +90,10 @@
                         </select>
                     </div>
                 @endif
-
+    
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Section Filter -->
-                    <div class="col-12 col-md-2 col-sm-4">
+                    <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedSection" name="selectedSection" class="form-select">
                             <option value="">All Sections</option>
                             @foreach ($sections as $section)
@@ -99,10 +102,10 @@
                         </select>
                     </div>
                 @endif
-
+    
                 @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor() || $user->isStudent())
                     <!-- Subject Filter -->
-                    <div class="col-12 col-md-2 col-sm-6">
+                    <div class="col-6 col-sm-6 col-md-2">
                         <select wire:model.live="selectedSubject" name="selectedSubject" class="form-select">
                             <option value="">All Subjects</option>
                             @foreach ($subjects as $subject)
@@ -111,9 +114,9 @@
                         </select>
                     </div>
                 @endif
-
+    
                 <!-- Status Filter -->
-                <div class="col-12 col-md-2 col-sm-6">
+                <div class="col-6 col-sm-6 col-md-2">
                     <select wire:model.live="status" name="status" class="form-select">
                         <option value="">All Statuses</option>
                         <option value="present">Present</option>
@@ -123,18 +126,20 @@
                         <option value="incomplete">Incomplete</option>
                     </select>
                 </div>
-
+    
                 <!-- Month Filter -->
-                <div class="col-12 col-md-2 col-sm-6">
+                <div class="col-12 col-sm-6 col-md-2">
                     <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
                 </div>
             </div>
         </div>
-        <div class="col-md-1">
-            <button class="btn btn-secondary w-100 mb-1" type="reset" wire:click="clear">Clear Filters</button>
+    
+        <!-- Clear Filters Button -->
+        <div class="col-md-2 d-flex align-items-start mt-3 mt-md-0">
+            <button class="btn btn-secondary w-100" type="reset" wire:click="clear">Clear Filters</button>
         </div>
-
     </div>
+    
 
     <!-- Attendance Table -->
     <div class="overflow-auto">

@@ -104,9 +104,11 @@
                 </div>
             </div>
         </div>
+        @if(Auth::user()->isAdmin())
         <div class="col-12 col-md-2">
             <livewire:create-student />
         </div>
+        @endif
     </div>
     
     {{-- Student Table --}}

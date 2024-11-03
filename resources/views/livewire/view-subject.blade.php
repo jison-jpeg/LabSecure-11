@@ -33,9 +33,9 @@
                                         <th scope="col">Days</th>
                                         <th scope="col">Start Time</th>
                                         <th scope="col">End Time</th>
-                                        @if (Auth::user()->isAdmin())
+                                        {{-- @if (Auth::user()->isAdmin())
                                         <th scope="col" class="text-center">Action</th>
-                                        @endif
+                                        @endif --}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -48,7 +48,7 @@
                                             <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
                                             <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                                             <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
-                                            @if (Auth::user()->isAdmin())
+                                            {{-- @if (Auth::user()->isAdmin())
                                             <td class="text-center">
                                                 <div class="btn-group dropstart">
                                                     <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
@@ -61,7 +61,7 @@
                                                     </ul>
                                                 </div>
                                             </td>
-                                            @endif
+                                            @endif --}}
                                         </tr>
                                     @endforeach
                                 </tbody>
