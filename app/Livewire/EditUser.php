@@ -48,8 +48,12 @@ class EditUser extends Component
     public function loadInitialData()
     {
         $this->colleges = College::all();
-        $this->departments = $this->user->college_id ? Department::where('college_id', $this->user->college_id)->get() : [];
-        $this->sections = $this->user->department_id ? Section::where('department_id', $this->user->department_id)->get() : [];
+        $this->departments = $this->user->college_id 
+            ? Department::where('college_id', $this->user->college_id)->get() 
+            : [];
+        $this->sections = $this->user->department_id 
+            ? Section::where('department_id', $this->user->department_id)->get() 
+            : [];
     }
 
     public function loadUserData()
@@ -65,7 +69,26 @@ class EditUser extends Component
         $this->selectedCollege = $this->user->college_id;
         $this->selectedDepartment = $this->user->department_id;
         $this->selectedSection = $this->user->section_id;
-        $this->selectedYearLevel = $this->user->section->year_level ?? null;
+        
+        // Load year levels based on the selected department
+        if ($this->selectedDepartment) {
+            $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                                       ->pluck('year_level')
+                                       ->unique()
+                                       ->sort()
+                                       ->values()
+                                       ->toArray();
+        }
+
+        // Set the selected year level based on the user's section
+        $this->selectedYearLevel = $this->user->section ? $this->user->section->year_level : null;
+
+        // If a year level is selected, load the corresponding sections
+        if ($this->selectedYearLevel) {
+            $this->sections = Section::where('department_id', $this->selectedDepartment)
+                                     ->where('year_level', $this->selectedYearLevel)
+                                     ->get();
+        }
     }
 
     public function updatedSelectedCollege($collegeId)
@@ -78,7 +101,12 @@ class EditUser extends Component
 
     public function updatedSelectedDepartment($departmentId)
     {
-        $this->yearLevels = Section::where('department_id', $departmentId)->pluck('year_level')->unique()->sort()->values()->toArray();
+        $this->yearLevels = Section::where('department_id', $departmentId)
+                                   ->pluck('year_level')
+                                   ->unique()
+                                   ->sort()
+                                   ->values()
+                                   ->toArray();
         $this->reset(['selectedYearLevel', 'selectedSection']);
         $this->sections = [];
     }

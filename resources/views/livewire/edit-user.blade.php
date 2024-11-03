@@ -190,10 +190,12 @@
         new bootstrap.Modal(document.getElementById('editUserModal')).show();
     });
 
-    window.addEventListener('refresh-user-details', () => {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
-        modal.hide();
-
-        Livewire.emit('refreshUserDetails'); // Trigger refresh in ViewUser
+    window.addEventListener('close-modal', () => { <!-- Changed event name here -->
+        const modalElement = document.getElementById('editUserModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+            modal.hide();
+        }
     });
 </script>
+
