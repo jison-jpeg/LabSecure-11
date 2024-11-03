@@ -51,25 +51,22 @@
 
     {{-- JavaScript to Handle Modal Events --}}
     <script>
-        document.addEventListener('livewire:load', function () {
-            // Listen for the 'edit-mode' event to open the modal
-            Livewire.on('edit-mode', () => {
-                var editModal = new bootstrap.Modal(document.getElementById('verticalycentered'));
-                editModal.show();
-            });
+        document.addEventListener('livewire:initialized', () => {
+    @this.on('refresh-attendance-table', (event) => { 
+        var myModalEl = document.querySelector('#verticalycentered');
+        var modal = bootstrap.Modal.getOrCreateInstance(myModalEl);
 
-            // Listen for the 'reset-modal' event to hide the modal
-            Livewire.on('reset-modal', () => {
-                var editModal = bootstrap.Modal.getInstance(document.getElementById('verticalycentered'));
-                if (editModal) {
-                    editModal.hide();
-                }
-            });
+        setTimeout(() => {
+            modal.hide();
+            @this.dispatch('reset-modal');
+        }); // You may adjust the delay as needed
+    });
 
-            // Optionally, listen for 'refresh-attendance-table' to perform actions like reloading data
-            Livewire.on('refresh-attendance-table', () => {
-                // Implement any additional logic if needed
-            });
-        });
+    var mymodal = document.getElementById('verticalycentered');
+    mymodal.addEventListener('hidden.bs.modal', (event) => {
+        @this.dispatch('reset-modal');
+    });
+});
+
     </script>
 </div>

@@ -20,11 +20,6 @@ class EditAttendance extends Component
         return view('livewire.edit-attendance');
     }
 
-    /**
-     * Real-time validation as properties are updated.
-     *
-     * @param string $propertyName
-     */
     public function updated($propertyName)
     {
         $this->validateOnly($propertyName, [
@@ -33,11 +28,6 @@ class EditAttendance extends Component
         ]);
     }
 
-    /**
-     * Save a new attendance record.
-     *
-     * @return void
-     */
     public function save()
     {
         $this->validate([
@@ -48,22 +38,13 @@ class EditAttendance extends Component
         Attendance::create([
             'status' => $this->status,
             'remarks' => $this->remarks,
-            // Add other necessary fields here, e.g., user_id, date, etc.
         ]);
 
         $this->dispatch('refresh-attendance-table');
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Attendance created successfully');
+        notyf()->position('x', 'right')->position('y', 'top')->success('Attendance created successfully');
         $this->reset();
     }
 
-    /**
-     * Handle the 'reset-modal' event to reset the form.
-     *
-     * @return void
-     */
     #[On('reset-modal')]
     public function close()
     {
@@ -71,12 +52,6 @@ class EditAttendance extends Component
         $this->reset(['formTitle', 'editForm', 'attendance', 'status', 'remarks']);
     }
 
-    /**
-     * Handle the 'edit-mode' event to load a specific attendance record.
-     *
-     * @param int $id
-     * @return void
-     */
     #[On('edit-mode')]
     public function edit($id)
     {
@@ -87,11 +62,6 @@ class EditAttendance extends Component
         $this->remarks = $this->attendance->remarks;
     }
 
-    /**
-     * Update an existing attendance record.
-     *
-     * @return void
-     */
     public function update()
     {
         $this->validate([
@@ -102,13 +72,9 @@ class EditAttendance extends Component
         $this->attendance->update([
             'status' => $this->status,
             'remarks' => $this->remarks,
-            // Update other necessary fields here if needed
         ]);
 
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Attendance updated successfully');
+        notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
         $this->dispatch('refresh-attendance-table');
         $this->reset();
     }
