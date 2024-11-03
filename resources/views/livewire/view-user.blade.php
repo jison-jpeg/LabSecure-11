@@ -20,7 +20,7 @@
                                     <h6>Action</h6>
                                 </li>
                                 <li>
-                                    <button class="btn btn-primary" wire:click="$dispatch('show-edit-user-modal')">Edit User</button>
+                                    <a class="dropdown-item" wire:click="$dispatch('show-edit-user-modal')">Edit User</a>
 
                                 </li>
                                 <li>
