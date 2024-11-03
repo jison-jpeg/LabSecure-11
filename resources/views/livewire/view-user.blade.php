@@ -5,12 +5,13 @@
 <div>
     <section class="section dashboard">
         <div class="row">
-    
+            <livewire:edit-user :user="$user" />
+
             <!-- User Details -->
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info">
                     <div class="card-body text-white">
-                        {{-- <div class="action">
+                        <div class="action">
                             <a class="icon" href="#" data-bs-toggle="dropdown">
                                 <i class="bi bi-three-dots text-white"></i>
                             </a>
@@ -19,9 +20,8 @@
                                     <h6>Action</h6>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-                                        Edit
-                                    </a>
+                                    <button class="btn btn-primary" wire:click="$dispatch('show-edit-user-modal')">Edit User</button>
+
                                 </li>
                                 <li>
                                     <a class="dropdown-item text-danger" href="#">
@@ -29,7 +29,7 @@
                                     </a>
                                 </li>
                             </ul>
-                        </div> --}}
+                        </div>
                         
                         <div class="d-flex align-items-center">
                             <h5 class="card-title fs-3">{{ $user->full_name }}</h5>
