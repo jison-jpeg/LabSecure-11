@@ -3,6 +3,8 @@
 @endphp
 
 <div>
+    @livewire('edit-attendance')
+
     <!-- Filters Section -->
     <div class="row mb-4">
         <div class="col-md-11">
@@ -257,7 +259,6 @@
         {{ $attendances->links() }}
     </div>
 
-    @livewire('edit-attendance')
 </div>
 
 

@@ -1,4 +1,4 @@
-@section('pageTitle', 'View Suject')
+@section('pageTitle', 'View Subject')
 <x-app-layout>
     <main id="main" class="main">
         {{-- Dynamic Page Breadcrumbs --}}
@@ -7,6 +7,7 @@
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/subjects">Subjects</a></li>
                     <li class="breadcrumb-item"><a href="{{ url()->previous() }}">@yield('pageTitle')</a></li>
                     <li class="breadcrumb-item active">{{$subject->name}}</li>
                 </ol>
