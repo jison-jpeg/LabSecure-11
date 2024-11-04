@@ -144,6 +144,7 @@ class ViewAttendance extends Component
                     $q->where('schedule_code', $this->scheduleCode);
                 });
             })
+            ->orderBy('date', 'desc')
             ->paginate($this->perPage);
     }
 

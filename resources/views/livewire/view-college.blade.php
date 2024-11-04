@@ -47,7 +47,7 @@
                         <div class="card info-card customers-card">
                             <a href="#">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total Departments</h5>
+                                    <h5 class="card-title text-truncate">Total Departments</h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                             <i class="bi bi-person-circle"></i>
@@ -65,7 +65,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">{{ $college->name }}</h5>
+                        <h5 class="card-title text-truncate">{{ $college->name }}</h5>
                         <p><strong>Description:</strong> {{ $college->description ?? 'N/A'}}</p>
                         <p class="mb-0"><strong>Dean:</strong> {{ $college->dean->full_name ?? 'There is no assigned dean for this college yet.' }}</p>
 
@@ -75,7 +75,7 @@
                 <!-- Department List -->
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Departments</h5>
+                        <h5 class="card-title text-truncate">Departments</h5>
                         <div class="row">
                             <div class="col-8">
                                 <ul class="list-unstyled">

@@ -1,11 +1,32 @@
 <div>
+    
     <section class="section dashboard">
+        @livewire('edit-subject', ['subject' => $subject])
         <div class="row">
-
             <!-- Subject Overview -->
             <div class="col-lg-8">
                 <div class="card card-info">
                     <div class="card-body text-white">
+                        <div class="action">
+
+                            <a class="icon" href="#" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots text-white"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                <li class="dropdown-header text-start">
+                                    <h6>Action</h6>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editSubjectModal">Edit Subject</a>
+
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#">
+                                        Delete Subject
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="d-flex flex-column">
                             <h5 class="card-title fs-3">{{ $subject->code }} - {{ $subject->name }}</h5>
                             <p class="mb-4">{{ $subject->description }}</p>
