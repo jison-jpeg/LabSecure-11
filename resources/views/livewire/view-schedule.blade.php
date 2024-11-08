@@ -3,6 +3,8 @@
 @endphp
 
 <div>
+    <livewire:edit-schedule :schedule="$schedule" />
+
     <section class="section dashboard">
         <div class="row">
             <!-- Schedule Overview -->
@@ -10,7 +12,6 @@
                 <div class="card h-100 card-info position-relative mb-4">
                     <div class="card-body text-white">
                         <div class="action">
-
                             <a class="icon" href="#" data-bs-toggle="dropdown">
                                 <i class="bi bi-three-dots text-white"></i>
                             </a>
