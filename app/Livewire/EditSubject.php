@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Models\College;
+use App\Models\Department;
 use Livewire\Component;
 use App\Models\Subject;
 use Flasher\Notyf\Prime\NotyfInterface;
@@ -52,8 +54,8 @@ class EditSubject extends Component
     public function render()
     {
         return view('livewire.edit-subject', [
-            'colleges' => \App\Models\College::all(),
-            'departments' => \App\Models\Department::all(),
+            'colleges' => College::all(),
+            'departments' => Department::all(),
         ]);
     }
 }
