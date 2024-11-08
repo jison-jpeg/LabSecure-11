@@ -206,7 +206,6 @@
     });
 
     window.addEventListener('close-modal', () => {
-        < !--Changed event name here-- >
         const modalElement = document.getElementById('editUserModal');
         const modal = bootstrap.Modal.getInstance(modalElement);
         if (modal) {
@@ -214,3 +213,4 @@
         }
     });
 </script>
+
