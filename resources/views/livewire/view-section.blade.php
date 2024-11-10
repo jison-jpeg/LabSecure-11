@@ -3,12 +3,33 @@
 @endphp
 
 <div>
+    <livewire:edit-section :section="$section" />
     <section class="section dashboard">
         <div class="row">
             <!-- Section Overview -->
+
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info position-relative mb-4">
                     <div class="card-body text-white">
+                        <div class="action">
+                            <a class="icon" href="#" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots text-white"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                <li class="dropdown-header text-start">
+                                    <h6>Action</h6>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editSectionModal">Edit Section</a>
+
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#">
+                                        Delete Section
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <h5 class="card-title fs-3">Section {{ $section->name }}</h5>
 
                         <div class="row">
