@@ -91,13 +91,28 @@ Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
         Route::get('/department/{department}', [CollegeManagementController::class, 'viewDepartment'])->name('department.view');
     });
 
+// College Management
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
+    ->prefix('college')
+    ->group(function () {
+        Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
+        Route::get('/{department}', [CollegeManagementController::class, 'viewDepartment'])->name('dean-department.view');
+    });
+
+// Department Management
+Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
+    ->prefix('department')
+    ->group(function () {
+        Route::get('/', [CollegeManagementController::class, 'viewCollegeManagement'])->name('college-management');
+        Route::get('/{department}', [CollegeManagementController::class, 'viewDepartment'])->name('chairperson-department.view');
+    });
+
 // Schedule
 Route::middleware(['auth', 'verified', 'role:admin,dean,chairperson'])
     ->prefix('schedules')
     ->group(function () {
         Route::get('/', [ScheduleController::class, 'viewSchedules'])->name('schedule');
         Route::get('/{schedule}', [ScheduleController::class, 'viewSchedule'])->name('schedule.view');
-
     });
 
 // Classes

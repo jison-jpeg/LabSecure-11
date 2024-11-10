@@ -49,12 +49,30 @@
             <li class="nav-heading">INSTITUTION</li>
 
             @if (Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean())
+            @if (Auth::user()->isAdmin())
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('courses*') ? '' : 'collapsed' }}" href="{{ url('/courses') }}">
                     <i class="bi bi-bank"></i>
                     <span>Courses</span>
                 </a>
             </li>
+            @elseif (Auth::user()->isDean())
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('college*') ? '' : 'collapsed' }}"
+                    href="{{ url('/college') }}">
+                    <i class="bi bi-building"></i>
+                    <span>College</span>
+                </a>
+            </li>
+            @elseif (Auth::user()->isChairperson())
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('department*') ? '' : 'collapsed' }}"
+                    href="{{ url('/department') }}">
+                    <i class="bi bi-building"></i>
+                    <span>Department</span>
+                </a>
+            </li>
+            @endif
 
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('faculties*') ? '' : 'collapsed' }}"
