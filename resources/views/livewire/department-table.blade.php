@@ -87,7 +87,7 @@
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $department->name }}</td>
                         <td>{{ $department->college->name }}</td>
-                        <td>{{ $department->description }}</td>
+                        <td>{{ Str::limit($department->description, 100, '...') }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">

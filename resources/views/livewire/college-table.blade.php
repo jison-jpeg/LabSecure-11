@@ -76,7 +76,7 @@
                         style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $college->name }}</td>
-                        <td>{{ $college->description }}</td>
+                        <td>{{ Str::limit($college->description, 100, '...') }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
