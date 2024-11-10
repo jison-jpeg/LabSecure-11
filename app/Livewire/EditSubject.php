@@ -4,8 +4,8 @@ namespace App\Livewire;
 
 use App\Models\College;
 use App\Models\Department;
-use Livewire\Component;
 use App\Models\Subject;
+use Livewire\Component;
 use Flasher\Notyf\Prime\NotyfInterface;
 
 class EditSubject extends Component
@@ -16,6 +16,7 @@ class EditSubject extends Component
     public $description;
     public $collegeId;
     public $departmentId;
+    public $departments = [];
 
     public function mount(Subject $subject)
     {
@@ -25,6 +26,16 @@ class EditSubject extends Component
         $this->description = $subject->description;
         $this->collegeId = $subject->college_id;
         $this->departmentId = $subject->department_id;
+
+        // Load the initial departments based on the selected college
+        $this->departments = Department::where('college_id', $this->collegeId)->get();
+    }
+
+    public function updatedCollegeId($collegeId)
+    {
+        // Fetch departments related to the selected college
+        $this->departments = Department::where('college_id', $collegeId)->get();
+        $this->departmentId = null; // Reset department selection when college changes
     }
 
     public function update()
@@ -46,16 +57,19 @@ class EditSubject extends Component
             'department_id' => $this->departmentId,
         ]);
 
-        $this->dispatch('refresh-subject-table'); // Refresh the subject table
+        // Dispatch event to refresh the subject table
+        $this->dispatch('refresh-subject-table');
         notyf()->position('x', 'right')->position('y', 'top')->success('Subject updated successfully');
 
-        $this->dispatch('closeModal'); // Close the modal after update
+        // Close the modal
+        $this->dispatch('closeModal');
     }
+
     public function render()
     {
         return view('livewire.edit-subject', [
             'colleges' => College::all(),
-            'departments' => Department::all(),
+            'departments' => $this->departments,
         ]);
     }
 }
