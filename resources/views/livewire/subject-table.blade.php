@@ -1,4 +1,41 @@
 <div>
+    <!-- Import Subject Modal -->
+    <div wire:ignore.self class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel">Import Subjects</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if ($importErrors)
+                        <div class="alert alert-danger mt-3">
+                            <ul>
+                                @foreach ($importErrors as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form wire:submit.prevent="importSubjects">
+                        <div class="mb-3">
+                            <label for="subjectFile" class="form-label">Upload File</label>
+                            <input type="file" class="form-control" id="subjectFile" wire:model="subjectFile"
+                                accept=".csv, .xlsx">
+                            @error('subjectFile')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div wire:loading wire:target="subjectFile" class="text-primary">Uploading...</div>
+                        <button type="submit" class="btn btn-primary w-100">Import</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col-md-10">
             <div class="filter">
@@ -7,7 +44,8 @@
                     <li class="dropdown-header text-start">
                         <h6>Option</h6>
                     </li>
-                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
+                            data-bs-target="#importModal">Import</a></li>
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
@@ -117,10 +155,12 @@
                         @if (Auth::user()->role->name === 'admin')
                             <td class="text-center">
                                 <div class="btn-group dropstart">
-                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                        onclick="event.stopPropagation()">
                                         <i class="bi bi-three-dots"></i>
                                     </a>
-                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
+                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                        onclick="event.stopPropagation()">
                                         <li><button type="button" class="dropdown-item" href="#">View</button>
                                         </li>
                                         <li><button @click="$dispatch('edit-mode',{id:{{ $subject->id }}})"
@@ -128,7 +168,8 @@
                                                 data-bs-target="#verticalycentered">Edit</button></li>
                                         <li><button wire:click="delete({{ $subject->id }})"
                                                 wire:confirm="Are you sure you want to delete '{{ $subject->name }}'"
-                                                type="button" class="dropdown-item text-danger" href="#">Delete
+                                                type="button" class="dropdown-item text-danger"
+                                                href="#">Delete
                                                 {{ $subject->name }}</button>
                                     </ul>
                                 </div>
@@ -144,6 +185,13 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.addEventListener('close-import-modal', () => {
+                var importModal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+                importModal.hide();
+            });
+        });
+
         document.addEventListener('livewire:initialized', () => {
             @this.on('refresh-subject-table', (event) => {
                 var myModalEl = document.querySelector('#verticalycentered')

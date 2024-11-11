@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Exports\SubjectExport;
+use App\Imports\SubjectImport;
 use App\Models\Subject;
 use App\Models\College;
 use App\Models\Department;
@@ -10,15 +11,20 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SubjectTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
 
     public $subject;
+    public $subjectFile;
+    public $importErrors = []; // To hold any import errors
+
+
     public $title = 'Manage Subjects';
     public $event = 'create-subject';
 
@@ -71,6 +77,63 @@ class SubjectTable extends Component
             ->position('y', 'top')
             ->success('Subject deleted successfully');
     }
+
+    public function importSubjects()
+{
+    $this->validate([
+        'subjectFile' => 'required|file|mimes:csv,xlsx',
+    ]);
+
+    $import = new SubjectImport();
+
+    try {
+        Excel::import($import, $this->subjectFile->getRealPath());
+
+        if (count($import->failures) > 0) {
+            $this->importErrors = [];
+            foreach ($import->failures as $failure) {
+                $this->importErrors[] = "Row {$failure->row()}: {$failure->errors()[0]}";
+            }
+        }
+
+        $successCount = $import->successfulImports;
+        $skippedCount = count($import->skipped);
+
+        // Prepare detailed success message for Notyf
+        $message = "$successCount out of " . ($successCount + $skippedCount) . " subjects imported successfully.";
+        if ($skippedCount > 0) {
+            $message .= " $skippedCount subjects were skipped as they already exist.";
+            $this->importErrors[] = "Skipped Subjects: ";
+            foreach ($import->skipped as $skipped) {
+                $this->importErrors[] = "{$skipped['name']} ({$skipped['code']})";
+            }
+        }
+
+        // Display Notyf message
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success($message);
+
+        // Close modal if no critical errors
+        if (empty($this->importErrors)) {
+            $this->dispatch('close-import-modal');
+        }
+
+    } catch (\Exception $e) {
+        $this->importErrors = ['Error: ' . $e->getMessage()];
+    }
+
+    $this->reset('subjectFile');
+}
+
+
+    public function updatedSubjectFile()
+    {
+        $this->reset('importErrors');
+    }
+
+
 
     public function exportAs($format)
     {
