@@ -10,21 +10,20 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
+
 class SubjectImport implements ToModel, WithHeadingRow, SkipsOnFailure, WithValidation
 {
     public $failures = [];
-    public $skipped = []; // To keep track of skipped records
-    public $successfulImports = 0; // To count successful imports
+    public $skipped = [];
+    public $successfulImports = 0;
 
     public function model(array $row)
     {
-        // Check if the subject already exists
         $existingSubject = Subject::where('name', $row['name'])
                                   ->where('code', $row['code'])
                                   ->first();
 
         if ($existingSubject) {
-            // If exists, skip this row and add to skipped list
             $this->skipped[] = [
                 'name' => $row['name'],
                 'code' => $row['code']
@@ -32,10 +31,8 @@ class SubjectImport implements ToModel, WithHeadingRow, SkipsOnFailure, WithVali
             return null;
         }
 
-        // Increment successful import count for valid new records
         $this->successfulImports++;
 
-        // Look up IDs for college and department by name
         $college = College::where('name', $row['college'])->first();
         $department = Department::where('name', $row['department'])->where('college_id', $college->id)->first();
 

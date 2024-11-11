@@ -22,9 +22,8 @@ class SubjectTable extends Component
 
     public $subject;
     public $subjectFile;
-    public $importErrors = []; // To hold any import errors
-
-
+    public $importErrors = [];
+    public $importSummary = '';
     public $title = 'Manage Subjects';
     public $event = 'create-subject';
 
@@ -79,69 +78,59 @@ class SubjectTable extends Component
     }
 
     public function importSubjects()
-{
-    $this->validate([
-        'subjectFile' => 'required|file|mimes:csv,xlsx',
-    ]);
+    {
+        $this->validate([
+            'subjectFile' => 'required|file|mimes:csv,xlsx',
+        ]);
 
-    $import = new SubjectImport();
+        $import = new SubjectImport();
 
-    try {
-        Excel::import($import, $this->subjectFile->getRealPath());
+        try {
+            Excel::import($import, $this->subjectFile->getRealPath());
 
-        // Collect the success and skipped counts from the import class
-        $successCount = $import->successfulImports;
-        $skippedCount = count($import->skipped);
+            $successCount = $import->successfulImports;
+            $skippedCount = count($import->skipped);
+            $totalCount = $successCount + $skippedCount;
 
-        // Handle validation errors, partial success, or full success
-        if (count($import->failures) > 0) {
-            $this->importErrors = [];
-            foreach ($import->failures as $failure) {
-                $this->importErrors[] = "Row {$failure->row()}: {$failure->errors()[0]}";
+            if (count($import->failures) > 0) {
+                $this->importErrors = [];
+                foreach ($import->failures as $failure) {
+                    $this->importErrors[] = "Row {$failure->row()}: {$failure->errors()[0]}";
+                }
+                return;
+
+            } elseif ($skippedCount > 0) {
+                $this->importSummary = "$successCount out of $totalCount subjects imported successfully. $skippedCount subjects were skipped as they already exist.";
+                $this->importErrors = [];
+
+            } else {
+                $message = "$totalCount subjects imported successfully.";
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->success($message);
+
+                $this->dispatch('close-import-modal');
+                $this->reset(['importErrors', 'importSummary']);
             }
-            return;
 
-        } elseif ($skippedCount > 0 && $successCount > 0) {
-            $message = "$successCount out of " . ($successCount + $skippedCount) . " subjects imported successfully. $skippedCount subjects were skipped as they already exist.";
+        } catch (\Exception $e) {
+            $this->importErrors = ['Error: ' . $e->getMessage()];
+            $this->importSummary = '';
             
             notyf()
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->warning($message);
-
-        } elseif ($successCount > 0 && $skippedCount === 0) {
-            $message = "$successCount subjects imported successfully.";
-            notyf()
-                ->position('x', 'right')
-                ->position('y', 'top')
-                ->success($message);
-            $this->dispatch('close-import-modal');
-
-        } else {
-            $message = "No new subjects were imported. All records already exist.";
-            notyf()
-                ->position('x', 'right')
-                ->position('y', 'top')
-                ->warning($message);
+                ->danger('An unexpected error occurred during import.');
         }
 
-    } catch (\Exception $e) {
-        $this->importErrors = ['Error: ' . $e->getMessage()];
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->danger('An unexpected error occurred during import.');
+        $this->reset('subjectFile');
     }
-
-    $this->reset('subjectFile');
-}
-
+    
     public function updatedSubjectFile()
     {
-        $this->reset('importErrors');
+        $this->reset(['importErrors', 'importSummary']);
     }
-
-
 
     public function exportAs($format)
     {
