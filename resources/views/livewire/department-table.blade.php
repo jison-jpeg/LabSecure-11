@@ -1,4 +1,58 @@
 <div>
+    <!-- Department Import Modal -->
+    <div wire:ignore.self class="modal fade" id="importDepartmentModal" tabindex="-1" aria-labelledby="importModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel">Import Departments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Display Import Summary Message -->
+                    @if ($importSummary)
+                        <div class="alert alert-info">
+                            {{ $importSummary }}
+                        </div>
+                    @endif
+
+                    <!-- Display Row-level Validation Errors -->
+                    @if ($importErrors)
+                        <div class="alert alert-danger mt-3">
+                            <ul>
+                                @foreach ($importErrors as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form wire:submit.prevent="importDepartments">
+                        <div class="mb-3">
+                            <label for="departmentFile" class="form-label">Upload File</label>
+                            <input type="file" class="form-control" id="departmentFile" wire:model="departmentFile"
+                                accept=".csv, .xlsx">
+                            @error('departmentFile')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- Display uploading state on the button -->
+                        <button type="submit" class="btn btn-primary w-100" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="departmentFile">Import</span>
+                            <span wire:loading wire:target="departmentFile">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Uploading...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="row mb-4 mt-4">
         <div class="col-md-10">
             <div class="filter">
@@ -7,7 +61,7 @@
                     <li class="dropdown-header text-start">
                         <h6>Option</h6>
                     </li>
-                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importDepartmentModal">Import Departments</a>
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
@@ -83,18 +137,23 @@
             </thead>
             <tbody>
                 @foreach ($departments as $key => $department)
-                    <tr wire:key="{{ $department->id }}" onclick="window.location='{{ route('department.view', ['department' => $department->id]) }}';" style="cursor: pointer;">
+                    <tr wire:key="{{ $department->id }}"
+                        onclick="window.location='{{ route('department.view', ['department' => $department->id]) }}';"
+                        style="cursor: pointer;">
                         <th scope="row">{{ $key + 1 }}</th>
                         <td>{{ $department->name }}</td>
                         <td>{{ $department->college->name }}</td>
                         <td>{{ Str::limit($department->description, 100, '...') }}</td>
                         <td class="text-center">
                             <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                    onclick="event.stopPropagation()">
                                     <i class="bi bi-three-dots"></i>
                                 </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3" onclick="event.stopPropagation()">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                    onclick="event.stopPropagation()">
+                                    <li><button type="button" class="dropdown-item" href="#">View</button>
+                                    </li>
                                     <li><button @click="$dispatch('edit-department',{id:{{ $department->id }}})"
                                             type="button" class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentereddepartment">Edit</button></li>
