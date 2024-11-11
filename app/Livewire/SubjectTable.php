@@ -89,44 +89,52 @@ class SubjectTable extends Component
     try {
         Excel::import($import, $this->subjectFile->getRealPath());
 
+        // Collect the success and skipped counts from the import class
+        $successCount = $import->successfulImports;
+        $skippedCount = count($import->skipped);
+
+        // Handle validation errors, partial success, or full success
         if (count($import->failures) > 0) {
             $this->importErrors = [];
             foreach ($import->failures as $failure) {
                 $this->importErrors[] = "Row {$failure->row()}: {$failure->errors()[0]}";
             }
-        }
+            return;
 
-        $successCount = $import->successfulImports;
-        $skippedCount = count($import->skipped);
+        } elseif ($skippedCount > 0 && $successCount > 0) {
+            $message = "$successCount out of " . ($successCount + $skippedCount) . " subjects imported successfully. $skippedCount subjects were skipped as they already exist.";
+            
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->warning($message);
 
-        // Prepare detailed success message for Notyf
-        $message = "$successCount out of " . ($successCount + $skippedCount) . " subjects imported successfully.";
-        if ($skippedCount > 0) {
-            $message .= " $skippedCount subjects were skipped as they already exist.";
-            $this->importErrors[] = "Skipped Subjects: ";
-            foreach ($import->skipped as $skipped) {
-                $this->importErrors[] = "{$skipped['name']} ({$skipped['code']})";
-            }
-        }
-
-        // Display Notyf message
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success($message);
-
-        // Close modal if no critical errors
-        if (empty($this->importErrors)) {
+        } elseif ($successCount > 0 && $skippedCount === 0) {
+            $message = "$successCount subjects imported successfully.";
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success($message);
             $this->dispatch('close-import-modal');
+
+        } else {
+            $message = "No new subjects were imported. All records already exist.";
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->warning($message);
         }
 
     } catch (\Exception $e) {
         $this->importErrors = ['Error: ' . $e->getMessage()];
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->danger('An unexpected error occurred during import.');
     }
 
     $this->reset('subjectFile');
 }
-
 
     public function updatedSubjectFile()
     {
