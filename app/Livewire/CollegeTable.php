@@ -3,21 +3,25 @@
 namespace App\Livewire;
 
 use App\Exports\CollegeExport;
+use App\Imports\CollegeImport;
 use App\Models\College;
 use App\Models\TransactionLog;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CollegeTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
-
     public $college;
+    public $collegeFile;
+    public $importErrors = [];
+    public $importSummary = '';
     public $title = 'Create College';
     public $event = 'create-college';
 
@@ -72,6 +76,68 @@ class CollegeTable extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('College deleted successfully');
+    }
+
+    public function importColleges()
+{
+    $this->validate([
+        'collegeFile' => 'required|file|mimes:csv,xlsx',
+    ]);
+
+    $import = new CollegeImport();
+
+    try {
+        Excel::import($import, $this->collegeFile->getRealPath());
+
+        // Track success and skipped counts
+        $successCount = $import->successfulImports;
+        $skippedCount = count($import->skipped);
+        $totalCount = $successCount + $skippedCount;
+
+        if (count($import->failures) > 0) {
+            // Collect row-level validation errors to display in modal
+            $this->importErrors = [];
+            foreach ($import->failures as $failure) {
+                $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
+            }
+            return;
+
+        } elseif ($skippedCount > 0) {
+            // Partial success: Display summary with skipped details in modal
+            $skippedDetails = implode(", ", $import->skipped);
+            $this->importSummary = "$successCount out of $totalCount colleges imported successfully. $skippedCount colleges were skipped: $skippedDetails.";
+            $this->importErrors = [];
+
+        } else {
+            // Full success: Show success message in Notyf if all records imported
+            $message = "$totalCount colleges imported successfully.";
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success($message);
+
+            // Close modal and reset fields
+            $this->dispatch('close-import-modal');
+            $this->reset(['importErrors', 'importSummary']);
+        }
+
+    } catch (\Exception $e) {
+        // Handle unexpected errors
+        $this->importErrors = ['Error: ' . $e->getMessage()];
+        $this->importSummary = '';
+
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->danger('An unexpected error occurred during import.');
+    }
+
+    $this->reset('collegeFile');
+}
+
+    public function updatedCollegeFile()
+    {
+        $this->reset(['importErrors', 'importSummary']);
     }
 
     public function exportAs($format)

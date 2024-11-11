@@ -1,4 +1,54 @@
 <div>
+    <!-- College Import Modal -->
+<div wire:ignore.self class="modal fade" id="importCollegeModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Colleges</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Display Import Summary Message -->
+                @if ($importSummary)
+                    <div class="alert alert-info">
+                        {{ $importSummary }}
+                    </div>
+                @endif
+
+                <!-- Display Row-level Validation Errors -->
+                @if ($importErrors)
+                    <div class="alert alert-danger mt-3">
+                        <ul>
+                            @foreach ($importErrors as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form wire:submit.prevent="importColleges">
+                    <div class="mb-3">
+                        <label for="collegeFile" class="form-label">Upload File</label>
+                        <input type="file" class="form-control" id="collegeFile" wire:model="collegeFile" accept=".csv, .xlsx">
+                        @error('collegeFile')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    
+                    <!-- Display uploading state on the button -->
+                    <button type="submit" class="btn btn-primary w-100" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="collegeFile">Import</span>
+                        <span wire:loading wire:target="collegeFile">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
     <div class="row mb-4 mt-4">
         <div class="col-md-10">
             <div class="filter">
@@ -7,7 +57,7 @@
                     <li class="dropdown-header text-start">
                         <h6>Option</h6>
                     </li>
-                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importCollegeModal">Import Colleges</a>
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
