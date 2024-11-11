@@ -1,4 +1,57 @@
 <div>
+    <!-- User Import Modal -->
+    <div wire:ignore.self class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel">Import Users</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Display Partial Import Summary -->
+                    @if ($importSummary)
+                        <div class="alert alert-info">
+                            {{ $importSummary }}
+                        </div>
+                    @endif
+
+                    <!-- Display Row-level Validation Errors -->
+                    @if ($importErrors)
+                        <div class="alert alert-danger mt-3">
+                            <ul>
+                                @foreach ($importErrors as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form wire:submit.prevent="importUsers">
+                        <div class="mb-3">
+                            <label for="userFile" class="form-label">Upload File</label>
+                            <input type="file" class="form-control" id="userFile" wire:model="userFile"
+                                accept=".csv, .xlsx">
+                            @error('userFile')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- Display uploading state on the button -->
+                        <button type="submit" class="btn btn-primary w-100" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="userFile">Import</span>
+                            <span wire:loading wire:target="userFile">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Uploading...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- User Table Livewire --}}
     <div class="row mb-4">
         <div class="col-md-10">
@@ -8,7 +61,7 @@
                     <li class="dropdown-header text-start">
                         <h6>Option</h6>
                     </li>
-                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
+                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">Import Users</a>
                     <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
@@ -136,7 +189,8 @@
                                 class="badge rounded-pill {{ $user->role->name == 'admin' ? 'bg-danger' : ($user->role->name == 'instructor' ? 'bg-info text-black' : 'bg-dark') }}">{{ $user->role->name }}</span>
                         </td>
                         <td class="text-center">
-                            <span class="badge rounded-pill {{ $user->status ? 'bg-success' : 'bg-secondary' }}">{{ $user->status ? 'Active' : 'Inactive' }}</span>
+                            <span
+                                class="badge rounded-pill {{ $user->status ? 'bg-success' : 'bg-secondary' }}">{{ $user->status ? 'Active' : 'Inactive' }}</span>
                         </td>
                         {{-- <td>{{ $user->created_at->diffForHumans() }}</td> --}}
                         {{-- <td>{{ $user->updated_at->diffForHumans() }}</td> --}}
@@ -153,8 +207,8 @@
                                         <a href="{{ route('user.view', ['user' => $user->id]) }}"
                                             class="dropdown-item">View</a>
                                     </li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})" type="button"
-                                            class="dropdown-item" data-bs-toggle="modal"
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $user->id }}})"
+                                            type="button" class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
                                     <li><button wire:click="delete({{ $user->id }})"
                                             wire:confirm="Are you sure you want to delete '{{ $user->first_name }} {{ $user->last_name }}'"

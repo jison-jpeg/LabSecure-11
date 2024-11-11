@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Exports\UsersExport;
+use App\Imports\UserImport;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Role; // Make sure to import the Role model
@@ -13,14 +14,18 @@ use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 
 class UserTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
 
     public $user;
+    public $userFile;
+    public $importErrors = [];
+    public $importSummary = '';
     public $exporting = false;
     public $title = 'Create User';
     public $event = 'create-user';
@@ -36,7 +41,7 @@ class UserTable extends Component
 
     #[Url(history: true)]
     public $sortDir = 'DESC';
-    
+
     public $selected_user_id = []; // Array to store selected user IDs
 
     #[Url()]
@@ -118,6 +123,65 @@ class UserTable extends Component
 
         // Refresh the user table after deletion
         $this->refreshUserTable();
+    }
+
+    public function importUsers()
+{
+    $this->validate([
+        'userFile' => 'required|file|mimes:csv,xlsx',
+    ]);
+
+    $import = new UserImport();
+
+    try {
+        Excel::import($import, $this->userFile->getRealPath());
+
+        $successCount = $import->successfulImports;
+        $skippedCount = count($import->skipped);
+        $totalCount = $successCount + $skippedCount;
+
+        if (count($import->failures) > 0) {
+            $this->importErrors = [];
+            foreach ($import->failures as $failure) {
+                $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
+            }
+            return;
+
+        } elseif ($skippedCount > 0) {
+            // Show summary if some records were skipped
+            $this->importSummary = "$successCount out of $totalCount users imported successfully. $skippedCount users were skipped as they already exist.";
+            $this->importErrors = [];
+
+        } else {
+            // Full success message
+            $message = "$totalCount users imported successfully.";
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success($message);
+
+            // Close modal and reset fields
+            $this->dispatch('close-import-modal');
+            $this->reset(['importErrors', 'importSummary']);
+        }
+
+    } catch (\Exception $e) {
+        // Handle unexpected errors
+        $this->importErrors = ['Error: ' . $e->getMessage()];
+        $this->importSummary = '';
+
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->danger('An unexpected error occurred during import.');
+    }
+
+    $this->reset('userFile');
+}
+
+    public function updatedUserFile()
+    {
+        $this->reset(['importErrors', 'importSummary']);
     }
 
     public function exportAs($format)
