@@ -5,21 +5,27 @@ namespace App\Livewire;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\User;
+use App\Imports\FacultyImport;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 
 class FacultyTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     protected $paginationTheme = 'bootstrap';
 
     public $faculty;
     public $title = 'Create Faculty';
     public $event = 'create-faculty';
+    public $facultyFile;
+    public $importErrors = [];
+    public $importSummary = '';
 
     #[Url(history: true)]
     public $search = '';
@@ -81,9 +87,66 @@ class FacultyTable extends Component
             ->success('Faculty deleted successfully');
     }
 
-    public function import()
+    public function importFaculties()
     {
-        // Implement import functionality
+        $this->validate([
+            'facultyFile' => 'required|file|mimes:csv,xlsx',
+        ]);
+
+        $import = new FacultyImport();
+
+        try {
+            Excel::import($import, $this->facultyFile->getRealPath());
+
+            // Track success and skipped counts
+            $successCount = $import->successfulImports;
+            $skippedCount = count($import->skipped);
+            $totalCount = $successCount + $skippedCount;
+
+            if (count($import->failures) > 0) {
+                // Collect row-level validation errors to display in modal
+                $this->importErrors = [];
+                foreach ($import->failures as $failure) {
+                    $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
+                }
+                return;
+
+            } elseif ($skippedCount > 0) {
+                // Partial success: Display summary with skipped details in modal
+                $skippedDetails = implode(", ", $import->skipped);
+                $this->importSummary = "$successCount out of $totalCount faculties imported successfully. $skippedCount faculties were skipped: $skippedDetails.";
+                $this->importErrors = [];
+
+            } else {
+                // Full success: Show success message in Notyf if all records imported
+                $message = "$totalCount faculties imported successfully.";
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->success($message);
+
+                // Close modal and reset fields
+                $this->dispatch('close-import-modal');
+                $this->reset(['importErrors', 'importSummary']);
+            }
+
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            $this->importErrors = ['Error: ' . $e->getMessage()];
+            $this->importSummary = '';
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->danger('An unexpected error occurred during import.');
+        }
+
+        $this->reset('facultyFile');
+    }
+
+    public function updatedFacultyFile()
+    {
+        $this->reset(['importErrors', 'importSummary']);
     }
 
     public function render()

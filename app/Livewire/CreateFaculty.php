@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\User;
 use App\Models\College;
+use App\Models\Role;
 use App\Models\Department;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -88,6 +89,9 @@ class CreateFaculty extends Component
 
         $this->validate($rules);
 
+        // Fetch the role ID by role name
+        $facultyRole = Role::where('name', 'faculty')->firstOrFail();
+
         $faculty = User::create([
             'first_name' => $this->first_name,
             'middle_name' => $this->middle_name,
@@ -95,7 +99,7 @@ class CreateFaculty extends Component
             'username' => $this->username,
             'email' => $this->email,
             'password' => Hash::make($this->password),
-            'role_id' => 2, // Assuming role_id 2 is for faculty
+            'role_id' => $facultyRole->id, // Dynamically set role ID
             'college_id' => $this->college_id,
             'department_id' => $this->department_id,
         ]);
@@ -168,10 +172,10 @@ class CreateFaculty extends Component
         $this->username = $this->user->username;
         $this->email = $this->user->email;
         $this->college_id = $this->user->college_id;
-        
+
         // Load Departments based on the Faculty's College
         $this->loadDepartments();
-        
+
         $this->department_id = $this->user->department_id;
     }
 
