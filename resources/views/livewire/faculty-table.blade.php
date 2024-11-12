@@ -223,6 +223,13 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.addEventListener('close-import-modal', () => {
+                var importModal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+                importModal.hide();
+            });
+        });
+
         document.addEventListener('livewire:initialized', () => {
             @this.on('refresh-faculty-table', (event) => {
                 var myModalEl = document.querySelector('#verticalycentered')

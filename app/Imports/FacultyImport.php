@@ -16,7 +16,7 @@ use Maatwebsite\Excel\Validators\Failure;
 class FacultyImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
     public $failures = []; // Store validation failures with row details
-    public $skipped = []; // Track skipped records due to duplicates
+    public $skipped = []; // Track skipped records with specific messages
     public $successfulImports = 0;
 
     public function model(array $row)
@@ -32,15 +32,27 @@ class FacultyImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnF
             return null;
         }
 
+        // Check if college exists
+        $college = College::where('name', $row['college'])->first();
+        if (!$college) {
+            $this->skipped[] = "College '{$row['college']}' does not exist for '{$row['first_name']} {$row['last_name']}'.";
+            return null;
+        }
+
+        // Check if department exists within the specified college
+        $department = Department::where('name', $row['department'])
+                                ->where('college_id', $college->id)
+                                ->first();
+        if (!$department) {
+            $this->skipped[] = "Department '{$row['department']}' does not exist in '{$row['college']}' for '{$row['first_name']} {$row['last_name']}'.";
+            return null;
+        }
+
         // Increment successful import count for new records
         $this->successfulImports++;
 
-        // Resolve IDs for role, college, and department by name
-        $role = Role::where('name', $row['role'])->first();
-        $college = College::where('name', $row['college'])->first();
-        $department = Department::where('name', $row['department'])
-                                ->where('college_id', optional($college)->id)
-                                ->first();
+        // Set the role to "Instructor" by default
+        $role = Role::where('name', 'instructor')->first();
 
         return new User([
             'rfid_number'     => $row['rfid_number'],
@@ -50,11 +62,11 @@ class FacultyImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnF
             'suffix'          => $row['suffix'],
             'username'        => $row['username'],
             'email'           => $row['email'],
-            'password'        => Hash::make('default_password'), // Set default or specific password
+            'password'        => Hash::make('default_password'), // Set default password or specific one
             'status'          => $row['status'] ?? 'active',
-            'role_id'         => optional($role)->id,
-            'college_id'      => optional($college)->id,
-            'department_id'   => optional($department)->id,
+            'role_id'         => optional($role)->id, // Assign "instructor" role by default
+            'college_id'      => $college->id,
+            'department_id'   => $department->id,
             'created_at'      => $row['created_at'] ?? now(),
             'updated_at'      => $row['updated_at'] ?? now(),
         ]);
@@ -68,7 +80,8 @@ class FacultyImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnF
             'last_name'   => 'required|string|max:255',
             'username'    => 'required|string|max:255',
             'email'       => 'required|email',
-            'role'        => 'required|string|max:255',
+            'college'     => 'required|string|max:255',
+            'department'  => 'required|string|max:255',
         ];
     }
 
