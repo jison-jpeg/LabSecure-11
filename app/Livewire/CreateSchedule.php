@@ -18,29 +18,69 @@ class CreateSchedule extends Component
     public $formTitle = 'Create Schedule';
     public $editForm = false;
     public $schedule;
+
+    // Form Fields
     public $subject_id;
     public $instructor_id;
     public $laboratory_id;
     public $college_id;
     public $department_id;
+    public $year_level; // Year Level is used to filter sections
     public $section_id;
     public $days_of_week = [];
     public $start_time;
     public $end_time;
     public $conflicts = [];
 
+    // Listeners
+    protected $listeners = [
+        'refresh-schedule-table' => '$refresh',
+    ];
+
+    /**
+     * Render the Livewire component view with dynamic data.
+     *
+     * @return \Illuminate\View\View
+     */
     public function render()
     {
+        // Fetch departments based on selected college
+        $departments = $this->college_id
+            ? Department::where('college_id', $this->college_id)->get()
+            : Department::all(); // Show all departments if no college is selected
+
+        // Fetch unique year levels based on selected department
+        $yearLevels = $this->department_id
+            ? Section::where('department_id', $this->department_id)
+                ->pluck('year_level')
+                ->unique()
+                ->sort()
+            : collect(); // Empty list if no department is selected
+
+        // Fetch sections based on selected department and year level
+        $sections = ($this->department_id && $this->year_level)
+            ? Section::where('department_id', $this->department_id)
+                ->where('year_level', $this->year_level)
+                ->get()
+            : collect(); // Empty list if department or year level not selected
+
         return view('livewire.create-schedule', [
             'subjects' => Subject::all(),
-            'instructors' => User::where('role_id', 2)->get(),
+            'instructors' => User::where('role_id', 2)->get(), // Assuming role_id 2 is for instructors
             'laboratories' => Laboratory::all(),
             'colleges' => College::all(),
-            'departments' => Department::all(),
-            'sections' => Section::all(),
+            'departments' => $departments,
+            'year_levels' => $yearLevels,
+            'sections' => $sections,
         ]);
     }
 
+    /**
+     * Validate individual properties when they are updated.
+     *
+     * @param string $propertyName
+     * @return void
+     */
     public function updated($propertyName)
     {
         $this->validateOnly($propertyName, [
@@ -49,6 +89,7 @@ class CreateSchedule extends Component
             'laboratory_id' => 'required',
             'college_id' => 'required',
             'department_id' => 'required',
+            'year_level' => 'required|integer|min:1',
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
             'start_time' => 'required',
@@ -56,6 +97,11 @@ class CreateSchedule extends Component
         ]);
     }
 
+    /**
+     * Save a new schedule.
+     *
+     * @return void
+     */
     public function save()
     {
         $this->validate([
@@ -64,6 +110,7 @@ class CreateSchedule extends Component
             'laboratory_id' => 'required',
             'college_id' => 'required',
             'department_id' => 'required',
+            'year_level' => 'required|integer|min:1',
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
             'start_time' => 'required',
@@ -86,7 +133,13 @@ class CreateSchedule extends Component
         }
 
         // Check for schedule conflicts
-        $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time);
+        $conflicts = $this->getConflicts(
+            $this->instructor_id,
+            $this->section_id,
+            $this->days_of_week,
+            $this->start_time,
+            $this->end_time
+        );
 
         if ($conflicts->isNotEmpty()) {
             $this->conflicts = $conflicts;
@@ -101,6 +154,7 @@ class CreateSchedule extends Component
         // Generate the schedule code
         $schedule_code = $this->generateScheduleCode();
 
+        // Create the schedule without saving 'year_level'
         Schedule::create([
             'subject_id' => $this->subject_id,
             'instructor_id' => $this->instructor_id,
@@ -120,9 +174,14 @@ class CreateSchedule extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Schedule created successfully');
-        $this->reset();
+        $this->resetForm();
     }
 
+    /**
+     * Update an existing schedule.
+     *
+     * @return void
+     */
     public function update()
     {
         $this->validate([
@@ -131,6 +190,7 @@ class CreateSchedule extends Component
             'laboratory_id' => 'required',
             'college_id' => 'required',
             'department_id' => 'required',
+            'year_level' => 'required|integer|min:1',
             'section_id' => 'required',
             'days_of_week' => 'required|array|min:1',
             'start_time' => 'required',
@@ -141,7 +201,7 @@ class CreateSchedule extends Component
         $existingSchedule = Schedule::where('subject_id', $this->subject_id)
             ->where('section_id', $this->section_id)
             ->where('department_id', $this->department_id)
-            ->where('id', '!=', $this->schedule->id) // Ignore the current schedule during update
+            ->where('id', '!=', $this->schedule->id) // Ignore current schedule
             ->first();
 
         if ($existingSchedule) {
@@ -154,7 +214,14 @@ class CreateSchedule extends Component
         }
 
         // Check for schedule conflicts
-        $conflicts = $this->getConflicts($this->instructor_id, $this->section_id, $this->days_of_week, $this->start_time, $this->end_time, $this->schedule->id);
+        $conflicts = $this->getConflicts(
+            $this->instructor_id,
+            $this->section_id,
+            $this->days_of_week,
+            $this->start_time,
+            $this->end_time,
+            $this->schedule->id
+        );
 
         if ($conflicts->isNotEmpty()) {
             $this->conflicts = $conflicts;
@@ -166,6 +233,7 @@ class CreateSchedule extends Component
             return;
         }
 
+        // Update the schedule without modifying 'year_level'
         $this->schedule->update([
             'subject_id' => $this->subject_id,
             'instructor_id' => $this->instructor_id,
@@ -184,33 +252,46 @@ class CreateSchedule extends Component
             ->position('y', 'top')
             ->success('Schedule updated successfully');
         $this->dispatch('refresh-schedule-table');
-        $this->reset();
+        $this->resetForm();
     }
 
-    // Function to generate a unique schedule code
+    /**
+     * Generate a unique schedule code.
+     *
+     * @return string
+     */
     protected function generateScheduleCode()
-{
-    $lastSchedule = Schedule::orderBy('id', 'desc')->first();
-    $newCodeNumber = $lastSchedule ? $lastSchedule->id + 1 + 100 : 100;
-    return 'T' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
-}
+    {
+        $lastSchedule = Schedule::orderBy('id', 'desc')->first();
+        $newCodeNumber = $lastSchedule ? $lastSchedule->id + 1 + 100 : 100;
+        return 'T' . str_pad($newCodeNumber, 3, '0', STR_PAD_LEFT);
+    }
 
+    /**
+     * Check for schedule conflicts.
+     *
+     * @param int $instructor_id
+     * @param int $section_id
+     * @param array $days_of_week
+     * @param string $start_time
+     * @param string $end_time
+     * @param int|null $ignoreScheduleId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)
     {
         $query = Schedule::where(function ($query) use ($instructor_id, $section_id) {
-            $query->where('instructor_id', $instructor_id)
-                ->orWhere('section_id', $section_id);
-        })
+                $query->where('instructor_id', $instructor_id)
+                      ->orWhere('section_id', $section_id);
+            })
             ->where(function ($query) use ($days_of_week) {
                 foreach ($days_of_week as $day) {
                     $query->orWhereJsonContains('days_of_week', $day);
                 }
             })
             ->where(function ($query) use ($start_time, $end_time) {
-                $query->where(function ($query) use ($start_time, $end_time) {
-                    $query->where('start_time', '<', $end_time)
-                        ->where('end_time', '>', $start_time);
-                });
+                $query->where('start_time', '<', $end_time)
+                      ->where('end_time', '>', $start_time);
             });
 
         if ($ignoreScheduleId) {
@@ -220,13 +301,49 @@ class CreateSchedule extends Component
         return $query->get();
     }
 
+    /**
+     * Reset form fields and errors.
+     *
+     * @return void
+     */
+    public function resetForm()
+    {
+        $this->reset([
+            'subject_id',
+            'instructor_id',
+            'laboratory_id',
+            'college_id',
+            'department_id',
+            'year_level',
+            'section_id',
+            'days_of_week',
+            'start_time',
+            'end_time',
+            'conflicts',
+        ]);
+        $this->resetErrorBag();
+        $this->resetValidation();
+        $this->editForm = false;
+        $this->formTitle = 'Create Schedule';
+    }
+
+    /**
+     * Close the modal and reset the form.
+     *
+     * @return void
+     */
     #[On('reset-modal')]
     public function close()
     {
-        $this->resetErrorBag();
-        $this->reset();
+        $this->resetForm();
     }
 
+    /**
+     * Enter edit mode with existing schedule data.
+     *
+     * @param int $id
+     * @return void
+     */
     #[On('edit-mode')]
     public function edit($id)
     {
@@ -238,9 +355,43 @@ class CreateSchedule extends Component
         $this->laboratory_id = $this->schedule->laboratory_id;
         $this->college_id = $this->schedule->college_id;
         $this->department_id = $this->schedule->department_id;
+        $this->year_level = $this->schedule->section->year_level; // Set year_level based on section
         $this->section_id = $this->schedule->section_id;
         $this->days_of_week = json_decode($this->schedule->days_of_week, true);
         $this->start_time = $this->schedule->start_time;
         $this->end_time = $this->schedule->end_time;
+    }
+
+    /**
+     * Reset dependent properties when College changes.
+     *
+     * @return void
+     */
+    public function updatedCollegeId()
+    {
+        $this->department_id = null;
+        $this->year_level = null;
+        $this->section_id = null;
+    }
+
+    /**
+     * Reset dependent properties when Department changes.
+     *
+     * @return void
+     */
+    public function updatedDepartmentId()
+    {
+        $this->year_level = null;
+        $this->section_id = null;
+    }
+
+    /**
+     * Reset dependent properties when Year Level changes.
+     *
+     * @return void
+     */
+    public function updatedYear_level()
+    {
+        $this->section_id = null;
     }
 }

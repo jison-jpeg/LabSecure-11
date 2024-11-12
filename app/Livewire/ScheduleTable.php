@@ -3,22 +3,27 @@
 namespace App\Livewire;
 
 use App\Exports\ScheduleExport;
+use App\Imports\ScheduleImport;
 use App\Models\Schedule;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Section;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ScheduleTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     protected $paginationTheme = 'bootstrap';
 
     public $user;
+    public $scheduleFile;
+    public $importErrors = [];
+    public $importSummary = '';
     public $title = 'Manage Schedules';
     public $event = 'create-schedule';
 
@@ -141,6 +146,68 @@ class ScheduleTable extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Schedule deleted successfully');
+    }
+
+    public function importSchedules()
+    {
+        $this->validate([
+            'scheduleFile' => 'required|file|mimes:csv,xlsx',
+        ]);
+
+        $import = new ScheduleImport();
+
+        try {
+            Excel::import($import, $this->scheduleFile->getRealPath());
+
+            // Track success and skipped counts
+            $successCount = $import->successfulImports;
+            $skippedCount = count($import->skipped);
+            $totalCount = $successCount + $skippedCount;
+
+            if (count($import->failures) > 0) {
+                // Collect row-level validation errors to display in modal
+                $this->importErrors = [];
+                foreach ($import->failures as $failure) {
+                    $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
+                }
+                return;
+
+            } elseif ($skippedCount > 0) {
+                // Partial success: Display summary with skipped details in modal
+                $skippedDetails = implode(", ", $import->skipped);
+                $this->importSummary = "$successCount out of $totalCount schedules imported successfully. $skippedCount schedules were skipped: $skippedDetails.";
+                $this->importErrors = [];
+
+            } else {
+                // Full success: Show success message in Notyf if all records imported
+                $message = "$totalCount schedules imported successfully.";
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->success($message);
+
+                // Close modal and reset fields
+                $this->dispatch('close-import-modal');
+                $this->reset(['importErrors', 'importSummary']);
+            }
+
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            $this->importErrors = ['Error: ' . $e->getMessage()];
+            $this->importSummary = '';
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('An unexpected error occurred during import.');
+        }
+
+        $this->reset('scheduleFile');
+    }
+
+    public function updatedScheduleFile()
+    {
+        $this->reset(['importErrors', 'importSummary']);
     }
 
     public function exportAs($format)
