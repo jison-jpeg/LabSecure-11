@@ -11,6 +11,7 @@
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info position-relative mb-4">
                     <div class="card-body text-white">
+                        @if(Auth::user()->isAdmin())
                         <div class="action">
                             <a class="icon" href="#" data-bs-toggle="dropdown">
                                 <i class="bi bi-three-dots text-white"></i>
@@ -30,6 +31,7 @@
                                 </li>
                             </ul>
                         </div>
+                        @endif
                         <h5 class="card-title fs-3">Class {{ ucfirst($schedule->schedule_code) }} -
                             {{ $schedule->section->name }}</h5>
 

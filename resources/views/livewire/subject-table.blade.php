@@ -51,6 +51,7 @@
 
     <div class="row mb-4">
         <div class="col-md-10">
+            @if(Auth::user()->isAdmin())
             <div class="filter">
                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
@@ -73,6 +74,7 @@
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li> --}}
                 </ul>
             </div>
+            @endif
             {{-- Per Page --}}
             <div class="row g-1">
                 <div class="col-md-1">

@@ -7,6 +7,7 @@
             <div class="col-lg-8">
                 <div class="card card-info">
                     <div class="card-body text-white">
+                        @if(Auth::user()->isAdmin())
                         <div class="action">
 
                             <a class="icon" href="#" data-bs-toggle="dropdown">
@@ -27,6 +28,7 @@
                                 </li>
                             </ul>
                         </div>
+                        @endif
                         <div class="d-flex flex-column">
                             <h5 class="card-title fs-3">{{ $subject->code }} - {{ $subject->name }}</h5>
                             <p class="mb-4">{{ $subject->description }}</p>

@@ -10,6 +10,7 @@
         <!-- Filters Section -->
         <div class="col-md-10">
             <!-- Dropdown Menu -->
+            @if(Auth::user()->isAdmin())
             <div class="filter mb-3">
                 <a class="icon" href="#" data-bs-toggle="dropdown">
                     <i class="bi bi-three-dots"></i>
@@ -30,6 +31,7 @@
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li> --}}
                 </ul>
             </div>
+            @endif
     
             <!-- Filters Row -->
             <div class="row g-2">

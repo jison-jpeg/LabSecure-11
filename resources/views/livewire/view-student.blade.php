@@ -7,6 +7,7 @@
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info position-relative">
                     <div class="card-body text-white">
+                        @if(Auth::user()->isAdmin())
                         <div class="action">
                             <a class="icon" href="#" data-bs-toggle="dropdown">
                                 <i class="bi bi-three-dots text-white"></i>
@@ -26,6 +27,7 @@
                                 </li>
                             </ul>
                         </div>
+                        @endif
                         <div class="d-flex align-items-center">
                             <h5 class="card-title fs-3">{{ $student->full_name }}</h5>
                             <div
