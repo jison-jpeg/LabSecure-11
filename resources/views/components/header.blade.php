@@ -12,7 +12,7 @@
 
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
-                <x-notifications />
+                {{-- <x-notifications /> --}}
                 {{-- <x-messages /> --}}
                 <x-profile />
             </ul>

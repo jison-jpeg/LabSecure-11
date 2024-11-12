@@ -62,7 +62,7 @@
                         <h6>Option</h6>
                     </li>
                     <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importDepartmentModal">Import Departments</a>
-                    <li class="dropdown-submenu position-relative">
+                    {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
                             <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
@@ -73,7 +73,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li> --}}
                 </ul>
             </div>
 

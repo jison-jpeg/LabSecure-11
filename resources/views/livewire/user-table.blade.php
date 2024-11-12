@@ -62,7 +62,7 @@
                         <h6>Option</h6>
                     </li>
                     <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">Import Users</a>
-                    <li class="dropdown-submenu position-relative">
+                    {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
                             <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
@@ -72,7 +72,7 @@
                             <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
                             </li>
                         </ul>
-                    </li>
+                    </li> --}}
                     <li>
                         @if ($selected_user_id)
                             <a wire:click.prevent="deleteSelected"

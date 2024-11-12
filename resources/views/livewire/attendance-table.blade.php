@@ -19,7 +19,7 @@
                         <h6>Options</h6>
                     </li>
                     <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li class="dropdown-submenu position-relative">
+                    {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
                             <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
@@ -27,7 +27,7 @@
                             <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
                         </ul>
                     </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li> --}}
                 </ul>
             </div>
     
