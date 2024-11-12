@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Imports\StudentImport;
 use App\Models\User;
 use App\Models\College;
 use App\Models\Department;
@@ -10,15 +11,20 @@ use App\Models\Section;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     protected $paginationTheme = 'bootstrap';
 
     public $title = 'Manage Students';
     public $event = 'create-student';
+    public $studentFile;
+    public $importErrors = [];
+    public $importSummary = '';
 
     // Filter Properties
     public $search = '';
@@ -118,9 +124,66 @@ class StudentTable extends Component
             ->success('Student deleted successfully');
     }
 
-    public function import()
+    public function importStudents()
     {
-        // Implement import functionality
+        $this->validate([
+            'studentFile' => 'required|file|mimes:csv,xlsx',
+        ]);
+
+        $import = new StudentImport();
+
+        try {
+            Excel::import($import, $this->studentFile->getRealPath());
+
+            // Track success and skipped counts
+            $successCount = $import->successfulImports;
+            $skippedCount = count($import->skipped);
+            $totalCount = $successCount + $skippedCount;
+
+            if (count($import->failures) > 0) {
+                // Collect row-level validation errors to display in modal
+                $this->importErrors = [];
+                foreach ($import->failures as $failure) {
+                    $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
+                }
+                return;
+
+            } elseif ($skippedCount > 0) {
+                // Partial success: Display summary with skipped details in modal
+                $skippedDetails = implode(", ", $import->skipped);
+                $this->importSummary = "$successCount out of $totalCount students imported successfully. $skippedCount students were skipped: $skippedDetails.";
+                $this->importErrors = [];
+
+            } else {
+                // Full success: Show success message in Notyf if all records imported
+                $message = "$totalCount students imported successfully.";
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->success($message);
+
+                // Close modal and reset fields
+                $this->dispatch('close-import-modal');
+                $this->reset(['importErrors', 'importSummary']);
+            }
+
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            $this->importErrors = ['Error: ' . $e->getMessage()];
+            $this->importSummary = '';
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('An unexpected error occurred during import.');
+        }
+
+        $this->reset('studentFile');
+    }
+
+    public function updatedStudentFile()
+    {
+        $this->reset(['importErrors', 'importSummary']);
     }
 
     /**

@@ -129,7 +129,7 @@ class CollegeTable extends Component
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
-            ->danger('An unexpected error occurred during import.');
+            ->error('An unexpected error occurred during import.');
     }
 
     $this->reset('collegeFile');
