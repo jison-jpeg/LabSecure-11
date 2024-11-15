@@ -38,27 +38,20 @@ class Attendance extends Model
         return $this->hasMany(AttendanceSession::class);
     }
 
-    // Method to calculate and save the status and remarks
+    /**
+     * Method to calculate and save the status and remarks.
+     *
+     * @return void
+     */
     public function calculateAndSaveStatusAndRemarks()
     {
-        $scheduleStartTime = Carbon::parse($this->schedule->start_time);
-        $scheduleEndTime = Carbon::parse($this->schedule->end_time);
-        $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
-
-        // Get the first session's time_in
-        $firstSession = $this->sessions->first();
-        if ($firstSession && $firstSession->time_in) {
-            $timeIn = Carbon::parse($firstSession->time_in);
-            $lateMinutes = max(0, $scheduleStartTime->diffInMinutes($timeIn, false));
-
-            // Determine initial status based on late minutes
-            if ($lateMinutes <= 15 && $lateMinutes >= 0) {
-                $this->status = 'present';  // On time or within 15 minutes grace period
-            } elseif ($lateMinutes > 15) {
-                $this->status = 'late';  // Arrived after 15 minutes grace period
-            } else {
-                $this->status = 'absent';  // Did not attend in time
-            }
+        if ($this->schedule) {
+            $scheduleStartTime = Carbon::parse($this->schedule->start_time);
+            $scheduleEndTime = Carbon::parse($this->schedule->end_time);
+            $totalScheduledMinutes = $scheduleStartTime->diffInMinutes($scheduleEndTime);
+        } else {
+            // Define default or personnel-specific scheduled minutes
+            $totalScheduledMinutes = 480; // Example: 8 hours
         }
 
         // Calculate total attended minutes based on all sessions
@@ -75,33 +68,54 @@ class Attendance extends Model
         $incompleteSession = $this->sessions()->whereNull('time_out')->exists();
 
         if ($incompleteSession) {
-            // No time_out recorded, mark as incomplete
+            // Mark attendance as incomplete if any session is open
             $this->status = 'incomplete';
-            $this->remarks = 'Incomplete attendance: No time out recorded.';
+            $this->remarks = 'Incomplete attendance: Some sessions have no time out recorded.';
         } else {
             // Calculate the percentage of the session attended, capped at 100%
-            $this->percentage = round(min(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 100), 2);
+            $this->percentage = $totalScheduledMinutes > 0 
+                ? round(min(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 100), 2) 
+                : 100;
 
-            // Determine final status and remarks based on the attended duration and late minutes
-            if ($attendedDurationMinutes < 10) {
-                // Absent if attended less than 10 minutes
-                $this->status = 'absent';
-                $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
-            } elseif ($attendedDurationMinutes >= 10 && $attendedDurationMinutes < ceil($totalScheduledMinutes * 0.75)) {
-                if ($lateMinutes > 15) {
-                    $this->status = 'absent';
-                    $this->remarks = "Marked as absent. Arrived late by {$lateMinutes} minutes and attended only {$attendedDurationMinutes} minutes.";
-                } else {
-                    $this->status = 'absent';
-                    $this->remarks = "Marked as absent. Attended {$attendedDurationMinutes} minutes, which is less than the required 75%.";
+            if ($this->schedule) {
+                // For scheduled users
+                $lateMinutes = 0;
+                $firstSession = $this->sessions->first();
+                if ($firstSession && $firstSession->time_in) {
+                    $timeIn = Carbon::parse($firstSession->time_in);
+                    $scheduleStartTime = Carbon::parse($this->schedule->start_time);
+                    $lateMinutes = $scheduleStartTime->diffInMinutes($timeIn, false);
                 }
-            } elseif ($attendedDurationMinutes >= ceil($totalScheduledMinutes * 0.75)) {
-                if ($lateMinutes > 15) {
-                    $this->status = 'late';
-                    $this->remarks = "Marked as late. Arrived {$lateMinutes} minutes late but attended {$attendedDurationMinutes} minutes out of {$totalScheduledMinutes} minutes.";
+
+                if ($attendedDurationMinutes < 10) {
+                    // Absent if attended less than 10 minutes
+                    $this->status = 'absent';
+                    $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
+                } elseif ($attendedDurationMinutes >= 10 && $attendedDurationMinutes < ceil($totalScheduledMinutes * 0.75)) {
+                    if ($lateMinutes > 15) {
+                        $this->status = 'absent';
+                        $this->remarks = "Marked as absent. Arrived late by {$lateMinutes} minutes and attended only {$attendedDurationMinutes} minutes.";
+                    } else {
+                        $this->status = 'absent';
+                        $this->remarks = "Marked as absent. Attended {$attendedDurationMinutes} minutes, which is less than the required 75%.";
+                    }
+                } elseif ($attendedDurationMinutes >= ceil($totalScheduledMinutes * 0.75)) {
+                    if ($lateMinutes > 15) {
+                        $this->status = 'late';
+                        $this->remarks = "Marked as late. Arrived {$lateMinutes} minutes late but attended {$attendedDurationMinutes} minutes out of {$totalScheduledMinutes} minutes.";
+                    } else {
+                        $this->status = 'present';
+                        $this->remarks = "Marked as present. Attended {$attendedDurationMinutes} out of {$totalScheduledMinutes} minutes ({$this->percentage}%).";
+                    }
+                }
+            } else {
+                // For personnel without schedules
+                if ($attendedDurationMinutes < 10) {
+                    $this->status = 'absent';
+                    $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
                 } else {
-                    $this->status = 'present';
-                    $this->remarks = "Marked as present. Attended {$attendedDurationMinutes} out of {$totalScheduledMinutes} minutes ({$this->percentage}%).";
+                    $this->status = 'present'; // Or another logic as per requirements
+                    $this->remarks = "Attendance recorded. Total attended minutes: {$attendedDurationMinutes}.";
                 }
             }
         }
@@ -143,8 +157,6 @@ class Attendance extends Model
     {
         return $this->date ? $this->date->format('m/d/Y') : null;
     }
-
-
 
     public function scopeSearch($query, $value)
     {

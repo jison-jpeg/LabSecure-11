@@ -28,6 +28,11 @@ class EditAttendance extends Component
         ]);
     }
 
+    /**
+     * Save a new Attendance record.
+     *
+     * @return void
+     */
     public function save()
     {
         $this->validate([
@@ -35,10 +40,18 @@ class EditAttendance extends Component
             'remarks' => 'nullable|string|max:255',
         ]);
 
-        Attendance::create([
+        // Prepare data for creation
+        $data = [
             'status' => $this->status,
             'remarks' => $this->remarks,
-        ]);
+        ];
+
+        // If status is 'present', set percentage to 100
+        if ($this->status === 'present') {
+            $data['percentage'] = 100;
+        }
+
+        Attendance::create($data);
 
         $this->dispatch('refresh-attendance-table');
         notyf()->position('x', 'right')->position('y', 'top')->success('Attendance created successfully');
@@ -62,6 +75,11 @@ class EditAttendance extends Component
         $this->remarks = $this->attendance->remarks;
     }
 
+    /**
+     * Update an existing Attendance record.
+     *
+     * @return void
+     */
     public function update()
     {
         $this->validate([
@@ -69,10 +87,23 @@ class EditAttendance extends Component
             'remarks' => 'nullable|string|max:255',
         ]);
 
-        $this->attendance->update([
+        // Prepare data for update
+        $data = [
             'status' => $this->status,
             'remarks' => $this->remarks,
-        ]);
+        ];
+
+        // If status is 'present', set percentage to 100
+        if ($this->status === 'present') {
+            $data['percentage'] = 100;
+        }
+
+        // Optionally, reset percentage if status is not 'present'
+        else {
+            $data['percentage'] = 0; // or any default value
+        }
+
+        $this->attendance->update($data);
 
         notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
         $this->dispatch('refresh-attendance-table');
