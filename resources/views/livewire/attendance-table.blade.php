@@ -10,7 +10,7 @@
         <!-- Filters Section -->
         <div class="col-md-10">
             <!-- Dropdown Menu -->
-            @if(Auth::user()->isAdmin())
+            {{-- @if(Auth::user()->isAdmin()) --}}
             <div class="filter mb-3">
                 <a class="icon" href="#" data-bs-toggle="dropdown">
                     <i class="bi bi-three-dots"></i>
@@ -31,7 +31,7 @@
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
                 </ul>
             </div>
-            @endif
+            {{-- @endif --}}
     
             <!-- Filters Row -->
             <div class="row g-2">
@@ -46,6 +46,8 @@
                         <option value="100">100</option>
                     </select>
                 </div>
+
+                {{-- Role Filter --}}
     
                 <!-- Search Filter -->
                 <div class="col-9 col-sm-8 col-md-4">

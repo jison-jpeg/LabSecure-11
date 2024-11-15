@@ -9,37 +9,125 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     protected $selectedMonth;
     protected $selectedSubject;
     protected $selectedSection;
+    protected $selectedCollege;
+    protected $selectedDepartment;
+    protected $status;
+    protected $search;
+    protected $sortBy;
+    protected $sortDir;
 
-    public function __construct($selectedMonth, $selectedSubject, $selectedSection)
+    public function __construct($selectedMonth, $selectedSubject, $selectedSection, $selectedCollege, $selectedDepartment, $status, $search, $sortBy, $sortDir)
     {
         $this->selectedMonth = $selectedMonth;
         $this->selectedSubject = $selectedSubject;
         $this->selectedSection = $selectedSection;
+        $this->selectedCollege = $selectedCollege;
+        $this->selectedDepartment = $selectedDepartment;
+        $this->status = $status;
+        $this->search = $search;
+        $this->sortBy = $sortBy;
+        $this->sortDir = $sortDir;
     }
 
     public function query()
     {
-        return Attendance::with(['user', 'schedule.subject', 'schedule.section', 'schedule.laboratory', 'sessions'])
-            ->when($this->selectedMonth, function ($query) {
-                $query->whereMonth('date', Carbon::parse($this->selectedMonth)->month)
-                    ->whereYear('date', Carbon::parse($this->selectedMonth)->year);
-            })
-            ->when($this->selectedSubject, function ($query) {
-                $query->whereHas('schedule.subject', function ($query) {
-                    $query->where('id', $this->selectedSubject);
+        $user = Auth::user();
+
+        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'schedule.laboratory', 'sessions'])
+            ->orderBy($this->sortBy, 'ASC');
+
+        // Apply Role-Based Access Control
+        if ($user->isAdmin()) {
+            // Admin: All attendance records with optional College and Department filters
+            if ($this->selectedCollege) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('college_id', $this->selectedCollege);
                 });
-            })
-            ->when($this->selectedSection, function ($query) {
-                $query->whereHas('schedule.section', function ($query) {
-                    $query->where('id', $this->selectedSection);
+            }
+
+            if ($this->selectedDepartment) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('department_id', $this->selectedDepartment);
                 });
+            }
+        } elseif ($user->isDean()) {
+            // Dean: Attendances within their College
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('college_id', $user->college_id);
             });
+        } elseif ($user->isChairperson()) {
+            // Chairperson: Attendances within their Department
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('department_id', $user->department_id);
+            });
+        } elseif ($user->isInstructor()) {
+            // Instructor: Only their own attendance records
+            $query->where('user_id', $user->id);
+        } else {
+            // Other users: Only their own attendance records
+            $query->where('user_id', $user->id);
+        }
+
+        // Apply Search Filters
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->whereHas('user', function ($q) {
+                    $q->where('first_name', 'like', '%' . $this->search . '%')
+                      ->orWhere('middle_name', 'like', '%' . $this->search . '%')
+                      ->orWhere('last_name', 'like', '%' . $this->search . '%')
+                      ->orWhere('suffix', 'like', '%' . $this->search . '%')
+                      ->orWhere('username', 'like', '%' . $this->search . '%')
+                      ->orWhere('email', 'like', '%' . $this->search . '%');
+                })
+                ->orWhereHas('schedule.subject', function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%');
+                })
+                ->orWhereHas('schedule', function ($q) {
+                    $q->where('schedule_code', 'like', '%' . $this->search . '%');
+                })
+                ->orWhere('date', 'like', '%' . $this->search . '%')
+                ->orWhere('status', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        // Apply Status Filter
+        if (!empty($this->status)) {
+            $query->where('status', strtolower($this->status));
+        }
+
+        // Apply Subject Filter
+        if (!empty($this->selectedSubject)) {
+            $query->whereHas('schedule.subject', function ($q) {
+                $q->where('id', $this->selectedSubject);
+            });
+        }
+
+        // Apply Section Filter
+        if (!empty($this->selectedSection)) {
+            $query->whereHas('schedule.section', function ($q) {
+                $q->where('id', $this->selectedSection);
+            });
+        }
+
+        // Apply Month Filter
+        if ($this->selectedMonth) {
+            try {
+                $parsedMonth = Carbon::parse($this->selectedMonth);
+                $query->whereMonth('date', $parsedMonth->month)
+                      ->whereYear('date', $parsedMonth->year);
+            } catch (\Exception $e) {
+                // Handle invalid date format if necessary
+            }
+        }
+
+        return $query;
     }
 
     public function headings(): array
@@ -74,7 +162,7 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
         $formattedSchedule = "{$scheduleTime} ({$shortDaysOfWeek})";
 
         return [
-            Carbon::parse($attendance->date)->format('m/d/Y'), // Date (first column)
+            Carbon::parse($attendance->date)->format('m/d/Y'), // Date
             $attendance->user->full_name,  // Full name of the user
             $attendance->user->role->name, // Role of the user (e.g., student/instructor)
             $schedule->schedule_code,      // Section code
