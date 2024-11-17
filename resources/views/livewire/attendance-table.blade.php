@@ -17,39 +17,104 @@
 
             <!-- Modal Body -->
             <div class="modal-body">
-                <form wire:submit.prevent="prepareExport" class="row g-3 needs-validation" novalidate>
-                    <!-- You can optionally hide other fields if they are not needed for export -->
-                    <!-- Subject -->
-                    <div class="col-md-4">
-                        <label for="selectedSubject" class="form-label">Subject</label>
-                        <select id="selectedSubject" wire:model.lazy="selectedSubject"
-                            class="form-select @error('selectedSubject') is-invalid @enderror" required>
-                            <option value="">Select Subject</option>
-                            @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('selectedSubject')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
+                <form wire:submit.prevent="prepareExport" class="row g-2 needs-validation" novalidate>
+
+                    <!-- Search Filter -->
+                    <div class="col-9 col-sm-8 col-md-8">
+                        <label for="search" class="form-label">Search</label>
+                        <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control" placeholder="Search users...">
                     </div>
 
-                    <!-- Status -->
-                    <div class="col-md-2">
+                    <!-- Month Filter -->
+                    <div class="col-12 col-sm-6 col-md-4">
+                        <label for="selectedMonth" class="form-label">Month</label>
+                        <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
+                    </div>
+
+                    <!-- Role-Based Filters -->
+                    @php
+                        $user = Auth::user();
+                    @endphp
+
+                    @if ($user->isAdmin())
+                        <!-- College Filter -->
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <label for="selectedCollege" class="form-label">College</label>
+                            <select wire:model.live="selectedCollege" name="selectedCollege" class="form-select">
+                                <option value="">All Colleges</option>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    @if ($user->isAdmin() || $user->isDean())
+                        <!-- Department Filter -->
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <label for="selectedDepartment" class="form-label">Department</label>
+                            <select wire:model.live="selectedDepartment" name="selectedDepartment" class="form-select">
+                                <option value="">All Departments</option>
+                                @foreach ($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
+                        <!-- Year Level Filter -->
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <label for="selectedYearLevel" class="form-label">Year Level</label>
+                            <select wire:model.live="selectedYearLevel" name="selectedYearLevel" class="form-select">
+                                <option value="">All Year Levels</option>
+                                @foreach ($yearLevels as $yearLevel)
+                                    <option value="{{ $yearLevel }}">{{ $yearLevel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
+                        <!-- Section Filter -->
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <label for="selectedSection" class="form-label">Section</label>
+                            <select wire:model.live="selectedSection" name="selectedSection" class="form-select">
+                                <option value="">All Sections</option>
+                                @foreach ($sections as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor() || $user->isStudent())
+                        <!-- Subject Filter -->
+                        <div class="col-6 col-sm-6 col-md-2">
+                            <label for="selectedSubject" class="form-label">Subject</label>
+                            <select wire:model.live="selectedSubject" name="selectedSubject" class="form-select">
+                                <option value="">All Subjects</option>
+                                @foreach ($subjects as $subject)
+                                    <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <!-- Status Filter -->
+                    <div class="col-6 col-sm-6 col-md-2">
                         <label for="status" class="form-label">Status</label>
-                        <select id="status" wire:model.lazy="status"
-                            class="form-select @error('status') is-invalid @enderror" required>
-                            <option value="">Select Status</option>
+                        <select wire:model.live="status" name="status" class="form-select">
+                            <option value="">All Statuses</option>
                             <option value="present">Present</option>
                             <option value="absent">Absent</option>
                             <option value="late">Late</option>
                             <option value="excused">Excused</option>
                             <option value="incomplete">Incomplete</option>
                         </select>
-                        @error('status')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
                     </div>
+
+                    
 
                     <!-- Hidden Input to Store Export Format -->
                     <input type="hidden" wire:model="exportFormat" />
@@ -60,8 +125,7 @@
             <div class="modal-footer">
                 <!-- Export As Dropdown -->
                 <div class="dropdown me-auto">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown"
-                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         Export As
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="exportDropdown">
@@ -75,6 +139,7 @@
         </div>
     </div>
 </div>
+
 
 
     <!-- Filters Section -->

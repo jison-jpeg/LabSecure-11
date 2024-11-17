@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+div<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -6,10 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Daily Time Record</title>
     <style>
-        @page {
-            margin: 0.5in;
-        }
-
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -17,48 +13,38 @@
             /* Set font size to 10 points */
         }
 
+        .pdf-wrapper {
+            transform: scale(0.9);
+            transform-origin: top left;
+            width: 111.11%;
+        }
+
         .header {
-            position: relative;
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    display: flex;
+    align-items: center; /* Vertically centers items */
+    justify-content: center; /* Horizontally centers header text */
+    position: relative;
+    margin-bottom: 20px;
+    height: 100px; /* Adjust as needed */
+}
 
-        .header img {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            width: 60px;
-            height: auto;
-        }
+.header .logo {
+    position: absolute;
+    left: 0;
+    width: 60px;
+    height: auto;
+}
 
-        .header-text {
-            display: inline-block;
-            text-align: center;
-        }
+.header-text {
+    text-align: center;
+}
+
 
         .header-text h1,
         .header-text p {
             margin: 0;
             font-size: 15px;
             /* Equal font size for all elements */
-        }
-
-        .sub-header h1,
-        .sub-header p,
-        .sub-header strong,
-        .sub-header span,
-        .sub-header div,
-        .sub-header td,
-        .sub-header th {
-            margin: 0;
-            font-size: 15px;
-        }
-
-        .sub-header {
-            text-align: center;
-            font-size: 1rem;
-            margin-bottom: 10px;
         }
 
         .sub-header {
@@ -115,109 +101,130 @@
         }
 
         .signatures {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
+    display: flex;
+    justify-content: space-between; /* Space between the two sections */
+    align-items: center; /* Ensures vertical alignment */
+    /* width: 100%; Makes the container span the full width */
+}
 
-        .signatures div {
-            text-align: center;
-            width: 45%;
-        }
+.signature p,
+.dean p {
+    margin: 0; /* Removes any default margin that can cause misalignment */
+    line-height: 1; /* Ensures consistent line height for alignment */
+}
 
-        .signature-line {
-            border-top: 1px solid #000;
-            margin-top: 40px;
-        }
+.signature {
+    text-align: left; /* Align text to the left for signature */
+    flex: 1; /* Allows it to grow evenly */
+}
+
+.dean {
+    text-align: right; /* Align text to the right for dean */
+    flex: 1; /* Allows it to grow evenly */
+}
+
     </style>
 </head>
 
 <body>
-    <div class="header">
-        <img src="https://buksu.edu.ph/wp-content/uploads/2020/05/buksu-logo-min-1024x1024.png" alt="BukSU Logo" />
-        <div class="header-text">
-            <h1>Bukidnon State University</h1>
-            <p>Malaybalay City, Bukidnon 6700</p>
-            <p>Tel: (088) 813-5661 to 5663, Telefax: (088) 813-2717</p>
-            <p>www.buksu.edu.ph</p>
-        </div>
-    </div>
-    <div class="sub-header">
-        <h1>ATTENDANCE RECORD</h1>
-    </div>
-    <div class="info-box">
-        <table>
-            <tr>
-                <td><strong>Name:</strong> {{ $user->full_name }}</td>
-                <td><strong>Position:</strong> {{ $user->role->name }}</td>
-            </tr>
-            <tr>
-                <td>
-                    <strong>College:</strong> {{ optional($user->college)->name }}
-                </td>
-                <td><strong>Month:</strong> {{ \Carbon\Carbon::parse($selectedMonth)->format('F Y') }}</td>
-            </tr>
-        </table>
-    </div>
-
-    @foreach ($groupedAttendances as $scheduleName => $attendances)
-        @php
-            // Retrieve the schedule from the first attendance record in the group
-            $schedule = $attendances->first()->schedule;
-            // Format the schedule times
-            $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
-            $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
-            // Extract the year from the schedule's start time
-$scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
-        @endphp
-
-        <!-- Schedule Information -->
-        <div class="schedule">
-            <strong>SCHEDULE:</strong> {{ $scheduleName }} ({{ $schedule->schedule_code }}) {{ $scheduleYear }} M-F
-            {{ $scheduleStart }} - {{ $scheduleEnd }} : {{ $scheduleStart }} - {{ $scheduleEnd }}
+    <div class="pdf-wrapper">
+        <div class="header">
+            <!-- Embedded Logo Using Base64 Encoding -->
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}" alt="BukSU Logo" class="logo" />
+            <div class="header-text">
+                <h1>Bukidnon State University</h1>
+                <p>Malaybalay City, Bukidnon 6700</p>
+                <p>Tel: (088) 813-5661 to 5663, Telefax: (088) 813-2717</p>
+                <p>www.buksu.edu.ph</p>
+            </div>
         </div>
 
-        <!-- Attendance Table -->
-        <table class="dtr-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Status</th>
-                    <th>Percentage</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($attendances as $attendance)
+        <!-- Conditional Display of Info Box -->
+        @unless ($user->isAdmin())
+            <div class="info-box">
+                <table>
                     <tr>
-                        <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
-                        <td>{{ $attendance->formattedTimeIn }}</td>
-                        <td>{{ $attendance->formattedTimeOut }}</td>
-                        <td>{{ ucfirst($attendance->status) }}</td>
-                        <td>{{ $attendance->percentage ?? 'N/A' }}</td>
-                        <td>{{ $attendance->remarks ?? '' }}</td>
+                        <td><strong>Name:</strong> {{ $user->full_name }}</td>
+                        <td><strong>Position:</strong> {{ $user->role->name }}</td>
                     </tr>
-                @empty
                     <tr>
-                        <td colspan="6">No attendance records found for this schedule.</td>
+                        <td>
+                            <strong>College:</strong> {{ optional($user->college)->name }}
+                        </td>
+                        <td><strong>Month:</strong> {{ \Carbon\Carbon::parse($selectedMonth)->format('F Y') }}</td>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
-    @endforeach
+                </table>
+            </div>
+        @endunless
 
-    <div class="signatures">
-        <div>
+        @foreach ($groupedAttendances as $scheduleName => $attendances)
+            @php
+                // Retrieve the schedule from the first attendance record in the group
+                $schedule = $attendances->first()->schedule;
+                // Format the schedule times
+                $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
+                $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
+                // Extract the year from the schedule's start time
+                $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
+            @endphp
+
+            <!-- Schedule Information -->
+            <div class="schedule">
+                <strong>SCHEDULE:</strong> {{ $scheduleName }} ({{ $schedule->schedule_code }}) {{ $scheduleYear }} M-F
+                {{ $scheduleStart }} - {{ $scheduleEnd }} : {{ $scheduleStart }} - {{ $scheduleEnd }}
+            </div>
+
+            <!-- Attendance Table -->
+            <table class="dtr-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        @if ($user->isAdmin())
+                            <th>Name</th>
+                            <th>Role</th>
+                        @endif
+                        <th>Time In</th>
+                        <th>Time Out</th>
+                        <th>Status</th>
+                        <th>Percentage</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($attendances as $attendance)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
+                            
+                            @if ($user->isAdmin())
+                                <td>{{ $attendance->user->full_name }}</td>
+                                <td>{{ $attendance->user->role->name }}</td>
+                            @endif
+                            
+                            <td>{{ $attendance->formattedTimeIn }}</td>
+                            <td>{{ $attendance->formattedTimeOut }}</td>
+                            <td>{{ ucfirst($attendance->status) }}</td>
+                            <td>{{ $attendance->percentage ?? 'N/A' }}</td>
+                            <td>{{ $attendance->remarks ?? '' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ $user->isAdmin() ? 8 : 6 }}">No attendance records found for this schedule.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        @endforeach
+
+    </div>
+    {{-- <div class="signatures">
+        <div class="signature">
             <p>Signature</p>
-            <div class="signature-line"></div>
         </div>
-        <div>
+        <div class="dean">
             <p>Dean/Director/Head of Office</p>
-            <div class="signature-line"></div>
         </div>
-    </div>
+    </div> --}}
+    
 </body>
 
 </html>
