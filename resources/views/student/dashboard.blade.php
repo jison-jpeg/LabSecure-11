@@ -19,12 +19,7 @@
 
                 <!-- Left side columns -->
                 <div class="col-lg-12">
-                    {{-- Alert Logged-in as what auth role --}}
-                    <div class="alert alert-info alert-dismissible fade show" role="alert">
-                        <strong>Logged-in as {{ Auth::user()->role->name }}!</strong>
-                        You can now access the {{ Auth::user()->role->name }} dashboard.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                    
                     @livewire('upcoming-class')
                     @livewire('attendance-stats')
                     <div class="row">
