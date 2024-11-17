@@ -36,12 +36,12 @@
 <body>
     <div class="header">
         <h2>Attendance Report</h2>
-        <p>Month: {{ \Carbon\Carbon::parse($selectedMonth)->format('F Y') }}</p>
+        <p>Month: {{ \Carbon\Carbon::parse($selectedMonth ?? 'N/A')->format('F Y') }}</p>
         @if($selectedCollege)
-            <p>College: {{ $collegeName }}</p>
+            <p>College: {{ $collegeName ?? 'N/A' }}</p>
         @endif
         @if($selectedDepartment)
-            <p>Department: {{ $departmentName }}</p>
+            <p>Department: {{ $departmentName ?? 'N/A' }}</p>
         @endif
     </div>
 
@@ -65,29 +65,33 @@
         <tbody>
             @foreach($attendances as $attendance)
                 <tr>
-                    <td>{{ \Carbon\Carbon::parse($attendance->date)->format('m/d/Y') }}</td>
-                    <td>{{ $attendance->user->full_name }}</td>
-                    <td>{{ $attendance->user->role->name }}</td>
-                    <td>{{ $attendance->schedule->schedule_code }}</td>
-                    <td>{{ optional($attendance->schedule->section)->name }}</td>
-                    <td>{{ optional($attendance->schedule->subject)->name }}</td>
+                    <td>{{ \Carbon\Carbon::parse($attendance->date ?? 'N/A')->format('m/d/Y') }}</td>
+                    <td>{{ $attendance->user->full_name ?? 'N/A' }}</td>
+                    <td>{{ $attendance->user->role->name ?? 'N/A' }}</td>
+                    <td>{{ $attendance->schedule->schedule_code ?? 'N/A' }}</td>
+                    <td>{{ optional($attendance->schedule->section)->name ?? 'N/A' }}</td>
+                    <td>{{ optional($attendance->schedule->subject)->name ?? 'N/A' }}</td>
                     <td>
                         @php
                             $schedule = $attendance->schedule;
-                            $scheduleTime = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
+                            $scheduleTime = isset($schedule->start_time) && isset($schedule->end_time)
+                                ? \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . \Carbon\Carbon::parse($schedule->end_time)->format('h:i A')
+                                : 'N/A';
                             $shortDays = [];
-                            foreach (json_decode($schedule->days_of_week) as $day) {
-                                $shortDays[] = substr($day, 0, 3);
+                            if (isset($schedule->days_of_week)) {
+                                foreach (json_decode($schedule->days_of_week) as $day) {
+                                    $shortDays[] = substr($day, 0, 3);
+                                }
                             }
                             $formattedSchedule = "{$scheduleTime} (" . implode(', ', $shortDays) . ")";
                         @endphp
-                        {{ $formattedSchedule }}
+                        {{ $formattedSchedule ?? 'N/A' }}
                     </td>
-                    <td>{{ optional($attendance->schedule->laboratory)->name }}</td>
-                    <td>{{ $attendance->formattedTimeIn }}</td>
-                    <td>{{ $attendance->formattedTimeOut }}</td>
-                    <td>{{ ucfirst($attendance->status) }}</td>
-                    <td>{{ $attendance->remarks }}</td>
+                    <td>{{ optional($attendance->schedule->laboratory)->name ?? 'N/A' }}</td>
+                    <td>{{ $attendance->formattedTimeIn ?? 'N/A' }}</td>
+                    <td>{{ $attendance->formattedTimeOut ?? 'N/A' }}</td>
+                    <td>{{ ucfirst($attendance->status ?? 'N/A') }}</td>
+                    <td>{{ $attendance->remarks ?? 'N/A' }}</td>
                 </tr>
             @endforeach
         </tbody>
