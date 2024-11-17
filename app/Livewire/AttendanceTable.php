@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Exports\AttendanceExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AttendanceTable extends Component
 {
@@ -114,11 +115,11 @@ class AttendanceTable extends Component
         // Load Year Levels based on selected Department
         if ($this->selectedDepartment) {
             $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
-                                       ->distinct()
-                                       ->pluck('year_level')
-                                       ->sort()
-                                       ->values()
-                                       ->toArray();
+                ->distinct()
+                ->pluck('year_level')
+                ->sort()
+                ->values()
+                ->toArray();
         } else {
             // If no Department is selected, load all Year Levels
             $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
@@ -138,12 +139,12 @@ class AttendanceTable extends Component
     {
         if ($this->selectedDepartment && $this->selectedYearLevel) {
             $this->sections = Section::where('department_id', $this->selectedDepartment)
-                                     ->where('year_level', $this->selectedYearLevel)
-                                     ->get();
+                ->where('year_level', $this->selectedYearLevel)
+                ->get();
         } elseif ($this->selectedDepartment) {
             // If only Department is selected without Year Level
             $this->sections = Section::where('department_id', $this->selectedDepartment)
-                                     ->get();
+                ->get();
         } else {
             // If no Department is selected, reset Sections
             $this->sections = collect();
@@ -225,11 +226,11 @@ class AttendanceTable extends Component
 
         // Update Year Levels
         $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
-                                   ->distinct()
-                                   ->pluck('year_level')
-                                   ->sort()
-                                   ->values()
-                                   ->toArray();
+            ->distinct()
+            ->pluck('year_level')
+            ->sort()
+            ->values()
+            ->toArray();
 
         // Update Sections and Subjects
         $this->updateSections();
@@ -254,11 +255,11 @@ class AttendanceTable extends Component
         // Update Year Levels based on selected Department
         if ($value) {
             $this->yearLevels = Section::where('department_id', $value)
-                                       ->distinct()
-                                       ->pluck('year_level')
-                                       ->sort()
-                                       ->values()
-                                       ->toArray();
+                ->distinct()
+                ->pluck('year_level')
+                ->sort()
+                ->values()
+                ->toArray();
         } else {
             $this->yearLevels = Section::distinct()->pluck('year_level')->sort()->values()->toArray();
         }
@@ -416,145 +417,167 @@ class AttendanceTable extends Component
      * Export Attendance Records
      */
     public function exportAs($format)
-{
-    $export = new AttendanceExport(
-        $this->selectedMonth,
-        $this->selectedSubject,
-        $this->selectedSection,
-        $this->selectedCollege,
-        $this->selectedDepartment,
-        $this->status,
-        $this->search,
-        $this->sortBy,
-        $this->sortDir
-    );
+    {
+        $user = Auth::user(); // Get the authenticated user
 
-    switch ($format) {
-        case 'csv':
-            return Excel::download($export, 'attendance.csv', \Maatwebsite\Excel\Excel::CSV);
-        case 'excel':
-            return Excel::download($export, 'attendance.xlsx');
-        case 'pdf':
-            // Implement PDF export if needed
-            break;
-        default:
-            // Handle unsupported formats
-            notyf()
-                ->position('x', 'right')
-                ->position('y', 'top')
-                ->error('Unsupported export format.');
-            break;
+        // Instantiate the AttendanceExport with current filters and sorting
+        $export = new AttendanceExport(
+            $this->selectedMonth,
+            $this->selectedSubject,
+            $this->selectedSection,
+            $this->selectedCollege,
+            $this->selectedDepartment,
+            $this->status,
+            $this->search,
+            $this->sortBy,
+            $this->sortDir
+        );
+
+        // Execute the query to get the data
+        $attendances = $export->query()->get();
+
+        // Additional data for the PDF
+        $collegeName = $this->selectedCollege ? College::find($this->selectedCollege)->name : null;
+        $departmentName = $this->selectedDepartment ? Department::find($this->selectedDepartment)->name : null;
+
+        switch ($format) {
+            case 'csv':
+                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
+            case 'pdf':
+                // Generate PDF using the new Blade view path
+                $pdf = Pdf::loadView('exports.attendance_report', [
+                    'attendances' => $attendances,
+                    'selectedMonth' => $this->selectedMonth,
+                    'selectedCollege' => $this->selectedCollege,
+                    'collegeName' => $collegeName,
+                    'selectedDepartment' => $this->selectedDepartment,
+                    'departmentName' => $departmentName,
+                ])->setPaper('a4', 'landscape'); // Optional: set paper size and orientation
+
+                // Stream the PDF for download
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->output();
+                }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+
+            default:
+                // Handle unsupported formats
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->error('Unsupported export format.');
+                break;
+        }
     }
-}
-
 
     /**
      * Render the Component View
      */
     public function render()
-{
-    $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
-        ->orderBy($this->sortBy, $this->sortDir);
+    {
+        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
+            ->orderBy($this->sortBy, $this->sortDir);
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    // Apply Role-Based Access Control
-    if ($user->isAdmin()) {
-        // Admin: All attendance records with optional College and Department filters
-        if ($this->selectedCollege) {
-            $query->whereHas('user', function ($q) {
-                $q->where('college_id', $this->selectedCollege);
+        // Apply Role-Based Access Control
+        if ($user->isAdmin()) {
+            // Admin: All attendance records with optional College and Department filters
+            if ($this->selectedCollege) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('college_id', $this->selectedCollege);
+                });
+            }
+
+            if ($this->selectedDepartment) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('department_id', $this->selectedDepartment);
+                });
+            }
+        } elseif ($user->isDean()) {
+            // Dean: Attendances within their College
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('college_id', $user->college_id);
+            });
+        } elseif ($user->isChairperson()) {
+            // Chairperson: Attendances within their Department
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('department_id', $user->department_id);
+            });
+        } elseif ($user->isInstructor()) {
+            // Instructor: Only their own attendance records
+            $query->where('user_id', $user->id);
+        } else {
+            // Other users (students): Only their own attendance records
+            $query->where('user_id', $user->id);
+        }
+
+        // Apply Search Filters
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->whereHas('user', function ($q) {
+                    $q->where('first_name', 'like', '%' . $this->search . '%')
+                        ->orWhere('middle_name', 'like', '%' . $this->search . '%')
+                        ->orWhere('last_name', 'like', '%' . $this->search . '%')
+                        ->orWhere('suffix', 'like', '%' . $this->search . '%')
+                        ->orWhere('username', 'like', '%' . $this->search . '%')
+                        ->orWhere('email', 'like', '%' . $this->search . '%');
+                })
+                    ->orWhereHas('schedule.subject', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('schedule', function ($q) {
+                        $q->where('schedule_code', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhere('date', 'like', '%' . $this->search . '%')
+                    ->orWhere('status', 'like', '%' . $this->search . '%');
             });
         }
 
-        if ($this->selectedDepartment) {
-            $query->whereHas('user', function ($q) {
-                $q->where('department_id', $this->selectedDepartment);
+        // Apply Status Filter
+        if (!empty($this->status)) {
+            $query->where('status', strtolower($this->status));
+        }
+
+        // Apply Subject Filter
+        if (!empty($this->selectedSubject)) {
+            $query->whereHas('schedule.subject', function ($q) {
+                $q->where('id', $this->selectedSubject);
             });
         }
-    } elseif ($user->isDean()) {
-        // Dean: Attendances within their College
-        $query->whereHas('user', function ($q) use ($user) {
-            $q->where('college_id', $user->college_id);
-        });
-    } elseif ($user->isChairperson()) {
-        // Chairperson: Attendances within their Department
-        $query->whereHas('user', function ($q) use ($user) {
-            $q->where('department_id', $user->department_id);
-        });
-    } elseif ($user->isInstructor()) {
-        // Instructor: Only their own attendance records
-        $query->where('user_id', $user->id);
-    } else {
-        // Other users (students): Only their own attendance records
-        $query->where('user_id', $user->id);
-    }
 
-    // Apply Search Filters
-    if (!empty($this->search)) {
-        $query->where(function ($q) {
-            $q->whereHas('user', function ($q) {
-                $q->where('first_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('middle_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('last_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('suffix', 'like', '%' . $this->search . '%')
-                  ->orWhere('username', 'like', '%' . $this->search . '%')
-                  ->orWhere('email', 'like', '%' . $this->search . '%');
-            })
-            ->orWhereHas('schedule.subject', function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%');
-            })
-            ->orWhereHas('schedule', function ($q) {
-                $q->where('schedule_code', 'like', '%' . $this->search . '%');
-            })
-            ->orWhere('date', 'like', '%' . $this->search . '%')
-            ->orWhere('status', 'like', '%' . $this->search . '%');
-        });
-    }
-
-    // Apply Status Filter
-    if (!empty($this->status)) {
-        $query->where('status', strtolower($this->status));
-    }
-
-    // Apply Subject Filter
-    if (!empty($this->selectedSubject)) {
-        $query->whereHas('schedule.subject', function ($q) {
-            $q->where('id', $this->selectedSubject);
-        });
-    }
-
-    // Apply Section Filter
-    if (!empty($this->selectedSection)) {
-        $query->whereHas('schedule.section', function ($q) {
-            $q->where('id', $this->selectedSection);
-        });
-    }
-
-    // Apply Month Filter
-    if ($this->selectedMonth) {
-        try {
-            $parsedMonth = Carbon::parse($this->selectedMonth);
-            $query->whereMonth('date', $parsedMonth->month)
-                  ->whereYear('date', $parsedMonth->year);
-        } catch (\Exception $e) {
-            // Handle invalid date format if necessary
+        // Apply Section Filter
+        if (!empty($this->selectedSection)) {
+            $query->whereHas('schedule.section', function ($q) {
+                $q->where('id', $this->selectedSection);
+            });
         }
+
+        // Apply Month Filter
+        if ($this->selectedMonth) {
+            try {
+                $parsedMonth = Carbon::parse($this->selectedMonth);
+                $query->whereMonth('date', $parsedMonth->month)
+                    ->whereYear('date', $parsedMonth->year);
+            } catch (\Exception $e) {
+                // Handle invalid date format if necessary
+            }
+        }
+
+        // Paginate Results
+        $attendances = $query->paginate($this->perPage);
+
+        // Return the view with necessary data
+        return view('livewire.attendance-table', [
+            'attendances' => $attendances,
+            'subjects' => $this->subjects,
+            'sections' => $this->sections,
+            'departments' => $this->departments,
+            'colleges' => $this->colleges,
+            'yearLevels' => $this->yearLevels,
+        ]);
     }
-
-    // Paginate Results
-    $attendances = $query->paginate($this->perPage);
-
-    // Return the view with necessary data
-    return view('livewire.attendance-table', [
-        'attendances' => $attendances,
-        'subjects' => $this->subjects,
-        'sections' => $this->sections,
-        'departments' => $this->departments,
-        'colleges' => $this->colleges,
-        'yearLevels' => $this->yearLevels,
-    ]);
-}
 
     /**
      * Refresh the Attendance Table
