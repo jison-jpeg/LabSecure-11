@@ -34,9 +34,8 @@ class AttendanceSeeder extends Seeder
             // Retrieve the instructor for the schedule
             $instructor = $schedule->instructor;
 
-            // **Update the role_id for students as needed**
-            // Make sure to replace '3' with the actual role_id for students in your system
-            $students = User::where('role_id', 3)
+            // Retrieve students belonging to the schedule's section
+            $students = User::where('role_id', 2)
                             ->where('section_id', $schedule->section_id)
                             ->get();
 
@@ -99,6 +98,6 @@ class AttendanceSeeder extends Seeder
             }
         }
 
-        $this->command->info("Successfully seeded attendances based on schedules, including students.");
+        $this->command->info("Successfully seeded attendances based on schedules.");
     }
 }
