@@ -89,8 +89,8 @@ class ListenToMQTT extends Command
     /**
      * Handles laboratory access based on RFID number and access type.
      *
-     * @param string $rfid_number
-     * @param string $type 'entrance' or 'exit'
+     * @param string $rfid_number The RFID number of the user.
+     * @param string $type The type of access ('entrance' or 'exit').
      * @return void
      */
     private function handleLaboratoryAccess($rfid_number, $type)
@@ -100,7 +100,7 @@ class ListenToMQTT extends Command
         if (!$user) {
             $error = 'User not found';
             $this->error($error);
-            $this->publishToMqtt($rfid_number, $type, 'denied', null, $error);
+            $this->publishToMqtt($rfid_number, $type, 'denied', null, $error); // Publish error
             return;
         }
 
@@ -108,98 +108,95 @@ class ListenToMQTT extends Command
         if (!$user->isActive()) {
             $error = 'User is inactive';
             $this->error($error);
-            $this->publishToMqtt($rfid_number, $type, 'denied', $user->full_name, $error);
+            $this->publishToMqtt($rfid_number, $type, 'denied', $user->full_name, $error); // Publish error
             return;
         }
 
-        // Check if the user is Admin, IT Support, or can access without a schedule
-        if (in_array($user->role->name, ['admin', 'it_support'])) {
+        // Determine if the user is personnel or a scheduled user
+        if (in_array($user->role->name, ['admin', 'dean', 'chairperson', 'it_support'])) {
+            $this->info("Handling personnel access for {$user->full_name} (Role: {$user->role->name})");
             $this->handlePersonnelAccess($user, $type);
         } else {
+            $this->info("Handling scheduled user access for {$user->full_name} (Role: {$user->role->name})");
             $this->handleScheduledUserAccess($user, $type);
         }
     }
 
+
     /**
-     * Handles access for personnel without schedules (Admin, IT Support, etc.).
+     * Handles access for personnel without active schedules (e.g., Admin, Dean, Chairperson, IT Support).
      *
-     * @param \App\Models\User $user
-     * @param string $type 'entrance' or 'exit'
+     * @param \App\Models\User $user The user attempting to access the laboratory.
+     * @param string $type The type of access attempt ('entrance' or 'exit').
      * @return void
      */
     private function handlePersonnelAccess($user, $type)
     {
-        // Find or create today's attendance record
-        $currentDate = Carbon::now()->toDateString();
-        $attendance = Attendance::firstOrCreate([
-            'user_id' => $user->id,
-            'date' => $currentDate,
-            'schedule_id' => null, // Assuming personnel without schedule
-        ]);
-
-        if ($type === 'entrance') {
-            // Check if there's already an open session
-            $openSession = $attendance->sessions()->whereNull('time_out')->first();
-
-            if ($openSession) {
-                // Already checked in, ignore additional check-ins
-                $this->info("User {$user->full_name} is already checked in.");
-                $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name);
-                return;
-            }
-
-            // Create a new session for entrance
-            $session = $attendance->sessions()->create(['time_in' => Carbon::now()]);
-
-            // Log the entrance action
-            TransactionLog::create([
-                'user_id' => $user->id,
-                'action' => 'in',
-                'model' => 'AttendanceSession',
-                'model_id' => $session->id,
-                'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
-            ]);
-
-            // Update laboratory status
-            $laboratory = Laboratory::find(1); // Adjust logic to find the correct laboratory
-            $laboratory->update(['status' => 'Occupied']);
-            LaboratoryStatusUpdated::dispatch($laboratory);
-
-            $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name);
+        // Ensure the user is active
+        if (!$user->isActive()) {
+            $error = 'User is inactive';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error); // Publish error
+            return;
         }
 
-        if ($type === 'exit') {
-            // Find the open session
-            $session = $attendance->sessions()->whereNull('time_out')->first();
+        // Find the laboratory
+        $laboratory = Laboratory::find(1); // Adjust logic to locate the correct laboratory
 
-            if ($session) {
-                // Close the session
-                $session->update(['time_out' => Carbon::now()]);
+        if (!$laboratory) {
+            $error = 'Laboratory not found';
+            $this->error($error);
+            $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error); // Publish error
+            return;
+        }
+
+        switch ($type) {
+            case 'entrance':
+                $this->info("User {$user->full_name} is entering the laboratory.");
+
+                // Log the entrance action
+                TransactionLog::create([
+                    'user_id' => $user->id,
+                    'action' => 'in',
+                    'model' => 'Laboratory',
+                    'model_id' => $laboratory->id,
+                    'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Occupied']),
+                ]);
+
+                // Update laboratory status
+                $laboratory->update(['status' => 'Occupied']);
+                LaboratoryStatusUpdated::dispatch($laboratory);
+
+                // Publish successful entrance
+                $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name);
+                break;
+
+            case 'exit':
+                $this->info("User {$user->full_name} is exiting the laboratory.");
 
                 // Log the exit action
                 TransactionLog::create([
                     'user_id' => $user->id,
                     'action' => 'out',
-                    'model' => 'AttendanceSession',
-                    'model_id' => $session->id,
+                    'model' => 'Laboratory',
+                    'model_id' => $laboratory->id,
                     'details' => json_encode(['rfid_number' => $user->rfid_number, 'laboratory_status' => 'Available']),
                 ]);
 
                 // Update laboratory status
-                $laboratory = Laboratory::find(1); // Adjust logic to find the correct laboratory
                 $laboratory->update(['status' => 'Available']);
                 LaboratoryStatusUpdated::dispatch($laboratory);
 
+                // Publish successful exit
                 $this->publishToMqtt($user->rfid_number, $type, 'granted', $user->full_name);
-            } else {
-                $error = 'No active session found to check out.';
-                $this->error($error);
-                $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error);
-            }
-        }
+                break;
 
-        // Recalculate attendance status after each check-in/out
-        $attendance->calculateAndSaveStatusAndRemarks();
+            default:
+                $error = 'Invalid access type';
+                $this->error($error);
+                $this->publishToMqtt($user->rfid_number, $type, 'denied', $user->full_name, $error); // Publish error
+                break;
+        }
     }
 
     /**

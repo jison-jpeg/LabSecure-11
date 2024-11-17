@@ -64,6 +64,12 @@ class Attendance extends Model
             }
         }
 
+        // Cast to integer to avoid floating-point values
+        $attendedDurationMinutes = (int)$attendedDurationMinutes;
+
+        // Convert attended duration to hours and minutes
+        $attendedDurationFormatted = $this->formatDuration($attendedDurationMinutes);
+
         // Check if there are any sessions without a time_out
         $incompleteSession = $this->sessions()->whereNull('time_out')->exists();
 
@@ -73,8 +79,8 @@ class Attendance extends Model
             $this->remarks = 'Incomplete attendance: Some sessions have no time out recorded.';
         } else {
             // Calculate the percentage of the session attended, capped at 100%
-            $this->percentage = $totalScheduledMinutes > 0 
-                ? round(min(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 100), 2) 
+            $this->percentage = $totalScheduledMinutes > 0
+                ? round(min(($attendedDurationMinutes / $totalScheduledMinutes) * 100, 100), 2)
                 : 100;
 
             if ($this->schedule) {
@@ -90,38 +96,61 @@ class Attendance extends Model
                 if ($attendedDurationMinutes < 10) {
                     // Absent if attended less than 10 minutes
                     $this->status = 'absent';
-                    $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
+                    $this->remarks = "Marked as absent. Attended only {$attendedDurationFormatted}, which is insufficient.";
                 } elseif ($attendedDurationMinutes >= 10 && $attendedDurationMinutes < ceil($totalScheduledMinutes * 0.75)) {
                     if ($lateMinutes > 15) {
                         $this->status = 'absent';
-                        $this->remarks = "Marked as absent. Arrived late by {$lateMinutes} minutes and attended only {$attendedDurationMinutes} minutes.";
+                        $this->remarks = "Marked as absent. Arrived late by {$lateMinutes} minutes and attended only {$attendedDurationFormatted}.";
                     } else {
                         $this->status = 'absent';
-                        $this->remarks = "Marked as absent. Attended {$attendedDurationMinutes} minutes, which is less than the required 75%.";
+                        $this->remarks = "Marked as absent. Attended {$attendedDurationFormatted}, which is less than the required 75%.";
                     }
                 } elseif ($attendedDurationMinutes >= ceil($totalScheduledMinutes * 0.75)) {
                     if ($lateMinutes > 15) {
                         $this->status = 'late';
-                        $this->remarks = "Marked as late. Arrived {$lateMinutes} minutes late but attended {$attendedDurationMinutes} minutes out of {$totalScheduledMinutes} minutes.";
+                        $this->remarks = "Marked as late. Arrived {$lateMinutes} minutes late but attended {$attendedDurationFormatted} out of {$this->formatDuration($totalScheduledMinutes)}.";
                     } else {
                         $this->status = 'present';
-                        $this->remarks = "Marked as present. Attended {$attendedDurationMinutes} out of {$totalScheduledMinutes} minutes ({$this->percentage}%).";
+                        $this->remarks = "Marked as present. Attended {$attendedDurationFormatted} out of {$this->formatDuration($totalScheduledMinutes)} ({$this->percentage}%).";
                     }
                 }
             } else {
                 // For personnel without schedules
                 if ($attendedDurationMinutes < 10) {
                     $this->status = 'absent';
-                    $this->remarks = "Marked as absent. Attended only {$attendedDurationMinutes} minutes, which is insufficient.";
+                    $this->remarks = "Marked as absent. Attended only {$attendedDurationFormatted}, which is insufficient.";
                 } else {
                     $this->status = 'present'; // Or another logic as per requirements
-                    $this->remarks = "Attendance recorded. Total attended minutes: {$attendedDurationMinutes}.";
+                    $this->remarks = "Attendance recorded. Total attended time: {$attendedDurationFormatted}.";
                 }
             }
         }
 
         $this->save();
     }
+
+    /**
+     * Converts a duration in minutes to a formatted string with hours and minutes.
+     *
+     * @param int $minutes The total duration in minutes.
+     * @return string Formatted duration in 'Xh Ym' format.
+     */
+    private function formatDuration($minutes)
+    {
+        $hours = floor($minutes / 60);
+        $remainingMinutes = $minutes % 60;
+
+        $formatted = '';
+        if ($hours > 0) {
+            $formatted .= "{$hours}h ";
+        }
+        if ($remainingMinutes > 0 || $hours === 0) {
+            $formatted .= "{$remainingMinutes}m";
+        }
+
+        return trim($formatted);
+    }
+
 
     // Accessor for formatted time_in
     public function getFormattedTimeInAttribute()
