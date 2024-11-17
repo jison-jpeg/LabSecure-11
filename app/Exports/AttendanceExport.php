@@ -15,86 +15,32 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
 {
     protected $selectedMonth;
     protected $selectedSubject;
-    protected $selectedSection;
-    protected $selectedCollege;
-    protected $selectedDepartment;
     protected $status;
-    protected $search;
-    protected $sortBy;
-    protected $sortDir;
 
-    public function __construct($selectedMonth, $selectedSubject, $selectedSection, $selectedCollege, $selectedDepartment, $status, $search, $sortBy, $sortDir)
+    public function __construct($selectedMonth, $selectedSubject, $status)
     {
         $this->selectedMonth = $selectedMonth;
         $this->selectedSubject = $selectedSubject;
-        $this->selectedSection = $selectedSection;
-        $this->selectedCollege = $selectedCollege;
-        $this->selectedDepartment = $selectedDepartment;
         $this->status = $status;
-        $this->search = $search;
-        $this->sortBy = $sortBy;
-        $this->sortDir = $sortDir;
     }
 
     public function query()
     {
         $user = Auth::user();
 
-        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'schedule.laboratory', 'sessions'])
-            ->orderBy($this->sortBy, 'ASC');
+        $query = Attendance::with(['user', 'schedule.subject'])
+            ->orderBy('date', 'ASC'); // Default ordering by date
 
         // Apply Role-Based Access Control
         if ($user->isAdmin()) {
-            // Admin: All attendance records with optional College and Department filters
-            if ($this->selectedCollege) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('college_id', $this->selectedCollege);
-                });
-            }
-
-            if ($this->selectedDepartment) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('department_id', $this->selectedDepartment);
-                });
-            }
-        } elseif ($user->isDean()) {
-            // Dean: Attendances within their College
-            $query->whereHas('user', function ($q) use ($user) {
-                $q->where('college_id', $user->college_id);
-            });
-        } elseif ($user->isChairperson()) {
-            // Chairperson: Attendances within their Department
-            $query->whereHas('user', function ($q) use ($user) {
-                $q->where('department_id', $user->department_id);
-            });
+            // Admin: All attendance records with optional Subject and Status filters
+            // No additional filtering needed unless specified
         } elseif ($user->isInstructor()) {
             // Instructor: Only their own attendance records
             $query->where('user_id', $user->id);
         } else {
             // Other users: Only their own attendance records
             $query->where('user_id', $user->id);
-        }
-
-        // Apply Search Filters
-        if (!empty($this->search)) {
-            $query->where(function ($q) {
-                $q->whereHas('user', function ($q) {
-                    $q->where('first_name', 'like', '%' . $this->search . '%')
-                      ->orWhere('middle_name', 'like', '%' . $this->search . '%')
-                      ->orWhere('last_name', 'like', '%' . $this->search . '%')
-                      ->orWhere('suffix', 'like', '%' . $this->search . '%')
-                      ->orWhere('username', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('schedule.subject', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('schedule', function ($q) {
-                    $q->where('schedule_code', 'like', '%' . $this->search . '%');
-                })
-                ->orWhere('date', 'like', '%' . $this->search . '%')
-                ->orWhere('status', 'like', '%' . $this->search . '%');
-            });
         }
 
         // Apply Status Filter
@@ -106,13 +52,6 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
         if (!empty($this->selectedSubject)) {
             $query->whereHas('schedule.subject', function ($q) {
                 $q->where('id', $this->selectedSubject);
-            });
-        }
-
-        // Apply Section Filter
-        if (!empty($this->selectedSection)) {
-            $query->whereHas('schedule.section', function ($q) {
-                $q->where('id', $this->selectedSection);
             });
         }
 
@@ -134,65 +73,24 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
     {
         return [
             'Date',
-            'Name',
-            'Role',
-            'Section Code',
-            'Section',
-            'Subject',
-            'Schedule',
-            'Laboratory',
             'Time In',
             'Time Out',
             'Status',
-            'Remarks'
+            'Percentage',
+            'Remarks',
         ];
     }
 
     public function map($attendance): array
     {
-        $schedule = $attendance->schedule;
-
-        // Format the schedule time (e.g., "7:30 AM - 8:30 AM")
-        $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
-
-        // Get shortened days of the week
-        $shortDaysOfWeek = $this->getShortenedDays(json_decode($schedule->days_of_week));
-
-        // Combine the time and shortened days (e.g., "7:30 AM - 8:30 AM (Mon, Tue)")
-        $formattedSchedule = "{$scheduleTime} ({$shortDaysOfWeek})";
-
         return [
-            Carbon::parse($attendance->date)->format('m/d/Y'), // Date
-            $attendance->user->full_name,  // Full name of the user
-            $attendance->user->role->name, // Role of the user (e.g., student/instructor)
-            $schedule->schedule_code,      // Section code
-            optional($schedule->section)->name, // Section name
-            optional($schedule->subject)->name, // Subject name
-            $formattedSchedule,            // Schedule (time and shortened days of week)
-            optional($schedule->laboratory)->name, // Laboratory name
-            $attendance->formattedTimeIn,  // Time In from accessor
-            $attendance->formattedTimeOut, // Time Out from accessor
-            $attendance->status,           // Status (Present, Late, Absent)
-            $attendance->remarks,          // Remarks
+            Carbon::parse($attendance->date)->format('D - m/d/Y'), // Date (e.g., MON - 07/01/2024)
+            $attendance->formattedTimeIn,                        // Time In from accessor
+            $attendance->formattedTimeOut,                       // Time Out from accessor
+            ucfirst($attendance->status),                        // Status (Capitalized)
+            $attendance->percentage ?? 'N/A',                     // Percentage (Assuming accessor or null)
+            $attendance->remarks ?? '',                           // Remarks
         ];
-    }
-
-    // Helper function to get shortened days of the week
-    protected function getShortenedDays($days)
-    {
-        $shortDays = [
-            'Monday' => 'Mon',
-            'Tuesday' => 'Tue',
-            'Wednesday' => 'Wed',
-            'Thursday' => 'Thu',
-            'Friday' => 'Fri',
-            'Saturday' => 'Sat',
-            'Sunday' => 'Sun',
-        ];
-
-        return implode(', ', array_map(function ($day) use ($shortDays) {
-            return $shortDays[$day] ?? $day;
-        }, $days));
     }
 
     public function registerEvents(): array
@@ -203,7 +101,7 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
                 $headerStyle = [
                     'font' => [
                         'bold' => true,
-                        'color' => ['argb' => 'FFFFFF'], // White text color
+                        'color' => ['argb' => 'FFFFFFFF'], // White text color
                     ],
                     'alignment' => ['horizontal' => 'left'], // Left-align the header text
                     'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
@@ -213,10 +111,10 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
                     ]
                 ];
 
-                // Apply the header style
-                $event->sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
+                // Apply the header style to columns A1:F1
+                $event->sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
 
-                // Apply left alignment to all cells in the data rows
+                // Apply left alignment and borders to all data cells
                 $contentStyle = [
                     'alignment' => [
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, // Left alignment for all content
@@ -228,12 +126,12 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
                     ],
                 ];
 
-                // Apply the content style to the entire data range (A2 to the last row)
+                // Apply the content style to the entire data range (A2:F{last row})
                 $highestRow = $event->sheet->getHighestRow();
-                $event->sheet->getStyle('A2:L' . $highestRow)->applyFromArray($contentStyle);
+                $event->sheet->getStyle("A2:F{$highestRow}")->applyFromArray($contentStyle);
 
-                // Auto-size the columns
-                foreach (range('A', 'L') as $columnID) {
+                // Auto-size the columns A to F
+                foreach (range('A', 'F') as $columnID) {
                     $event->sheet->getColumnDimension($columnID)->setAutoSize(true);
                 }
             },

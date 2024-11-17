@@ -5,6 +5,78 @@
 <div>
     @livewire('edit-attendance')
 
+    <!-- Export Modal -->
+<div wire:ignore.self class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Export Attendance Records</h5>
+                <button wire:click="closeExportModal" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form wire:submit.prevent="prepareExport" class="row g-3 needs-validation" novalidate>
+                    <!-- You can optionally hide other fields if they are not needed for export -->
+                    <!-- Subject -->
+                    <div class="col-md-4">
+                        <label for="selectedSubject" class="form-label">Subject</label>
+                        <select id="selectedSubject" wire:model.lazy="selectedSubject"
+                            class="form-select @error('selectedSubject') is-invalid @enderror" required>
+                            <option value="">Select Subject</option>
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('selectedSubject')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-2">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" wire:model.lazy="status"
+                            class="form-select @error('status') is-invalid @enderror" required>
+                            <option value="">Select Status</option>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="late">Late</option>
+                            <option value="excused">Excused</option>
+                            <option value="incomplete">Incomplete</option>
+                        </select>
+                        @error('status')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <!-- Hidden Input to Store Export Format -->
+                    <input type="hidden" wire:model="exportFormat" />
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <!-- Export As Dropdown -->
+                <div class="dropdown me-auto">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Export As
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a></li>
+                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">Excel</a></li>
+                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a></li>
+                    </ul>
+                </div>
+                <button wire:click="closeExportModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <!-- Filters Section -->
     <div class="row mb-4 align-items-start">
         <!-- Filters Section -->
@@ -19,16 +91,19 @@
                     <li class="dropdown-header text-start">
                         <h6>Options</h6>
                     </li>
-                    <li><a wire:click.prevent="import" href="#" class="dropdown-item">Import</a></li>
-                    <li class="dropdown-submenu position-relative">
+                    <li><a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">Import</a></li>
+                    <li><a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exportModal">Export</a></li>
+
+                    {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
                             <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a></li>
                             <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a></li>
                             <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a></li>
+                            <li><a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exportModal">Export Attendance</a></li>
                         </ul>
                     </li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li>
+                    <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li> --}}
                 </ul>
             </div>
             {{-- @endif --}}

@@ -10,10 +10,6 @@
                 margin: 20px;
                 font-size: 10px; /* Set font size to 10 points */
             }
-            .pdf-wrapper {
-                transform: scale(0.9);
-                transform-origin: top left;
-            }
             .header {
                 position: relative;
                 text-align: center;
@@ -110,8 +106,6 @@
         </style>
     </head>
     <body>
-        <div class="pdf-wrapper">
-
         <div class="header">
             <img
                 src="https://buksu.edu.ph/wp-content/uploads/2020/05/buksu-logo-min-1024x1024.png"
@@ -130,124 +124,65 @@
         <div class="info-box">
             <table>
                 <tr>
-                    <td><strong>Name:</strong> MARK IAN M. MUKARA</td>
-                    <td><strong>Position:</strong> Instructor</td>
+                    <td><strong>Name:</strong> {{ $user->full_name }}</td>
+                    <td><strong>Position:</strong> {{ $user->role->name }}</td>
                 </tr>
                 <tr>
                     <td>
-                        <strong>College:</strong> College of Technologies -
-                        Information Technologies
+                        <strong>College:</strong> {{ optional($user->college)->name }}
                     </td>
-                    <td><strong>Month:</strong> July 2024</td>
+                    <td><strong>Month:</strong> {{ \Carbon\Carbon::parse($selectedMonth)->format('F Y') }}</td>
                 </tr>
             </table>
         </div>
 
-        <div class="schedule">
-            <strong>SCHEDULE:</strong> English Section A(T123) 2024 M-F
-            08:00 AM - 12:00 PM : 01:00 PM - 05:00 PM
-        </div>
-        <table class="dtr-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Status</th>
-                    <th>Percentage</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Example rows -->
-                <tr>
-                    <td>MON - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>TUE - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>THU - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>FRI - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+        @foreach($groupedAttendances as $scheduleName => $attendances)
+            @php
+                // Retrieve the schedule from the first attendance record in the group
+                $schedule = $attendances->first()->schedule;
+                // Format the schedule times
+                $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
+                $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
+                // Extract the year from the schedule's start time
+                $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
+            @endphp
 
-        <div class="schedule">
-            <strong>SCHEDULE:</strong> Science Section A(T123) 2024 M-F
-            08:00 AM - 12:00 PM : 01:00 PM - 05:00 PM
-        </div>
-        <table class="dtr-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Status</th>
-                    <th>Percentage</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Example rows -->
-                <tr>
-                    <td>MON - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td>Marked as late. Arrived 18 minutes late but attended 142 minutes out of 150
-                        minutes.
-                        </td>
-                </tr>
-                <tr>
-                    <td>TUE - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>THU - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>FRI - 07/01/2024</td>
-                    <td>08:00 AM</td>
-                    <td>12:00 PM</td>
-                    <td>Present</td>
-                    <td>100%</td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+            <!-- Schedule Information -->
+            <div class="schedule">
+                <strong>SCHEDULE:</strong> {{ $scheduleName }} ({{ $schedule->schedule_code }}) {{ $scheduleYear }} M-F
+                {{ $scheduleStart }} - {{ $scheduleEnd }} : {{ $scheduleStart }} - {{ $scheduleEnd }}
+            </div>
+
+            <!-- Attendance Table -->
+            <table class="dtr-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time In</th>
+                        <th>Time Out</th>
+                        <th>Status</th>
+                        <th>Percentage</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($attendances as $attendance)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
+                            <td>{{ $attendance->formattedTimeIn }}</td>
+                            <td>{{ $attendance->formattedTimeOut }}</td>
+                            <td>{{ ucfirst($attendance->status) }}</td>
+                            <td>{{ $attendance->percentage ?? 'N/A' }}</td>
+                            <td>{{ $attendance->remarks ?? '' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6">No attendance records found for this schedule.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        @endforeach
 
         <div class="signatures">
             <div>
@@ -259,6 +194,5 @@
                 <div class="signature-line"></div>
             </div>
         </div>
-    </div>
     </body>
 </html>
