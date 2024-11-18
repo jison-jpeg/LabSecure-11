@@ -64,9 +64,3 @@ window.Echo.channel("laboratory-channel").listen(
     }
 );
 
-// Listen for NFC tag detected public channel
-window.Echo.channel('nfc-tag-channel')
-    .listen('.nfc.tag.detected', (data) => {
-        console.log('NFC Tag Detected:', data.tag_id);
-        alert(`NFC Tag Detected: ${data.tag_id}`);
-    });

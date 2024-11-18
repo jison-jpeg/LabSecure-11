@@ -19,8 +19,3 @@ Broadcast::channel('attendance-channel', function ($user) {
 Broadcast::channel('laboratory-channel', function ($user) {
     return $user;
 });
-
-// Public channel for NFC tag
-Broadcast::channel('nfc-tag-channel', function () {
-    return true;
-});
