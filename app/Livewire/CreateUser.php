@@ -31,6 +31,9 @@ class CreateUser extends Component
     public $email;
     public $password;
     public $status = 'active';
+    
+    // New Property for RFID Number
+    public $rfid_number;
 
     public $selectedCollege = null;
     public $selectedDepartment = null;
@@ -90,6 +93,12 @@ class CreateUser extends Component
 
         $this->selectedSection = null;
     }
+
+    public function updatedRfidNumber($value)
+{
+    $this->validateOnly('rfid_number');
+}
+
 
     /**
      * Reset errors when the role changes.
@@ -171,6 +180,13 @@ class CreateUser extends Component
             ],
             'password'   => 'nullable|string|min:6',
             'status'     => 'required|in:active,inactive',
+            // Add validation for RFID Number
+            'rfid_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'rfid_number')->ignore($this->user->id ?? null),
+            ],
         ];
 
         // Additional rules based on role
@@ -265,6 +281,7 @@ class CreateUser extends Component
             'email'         => $this->email,
             'password'      => Hash::make($generatedPassword),
             'status'        => $this->status,
+            'rfid_number'   => $this->rfid_number, // Include RFID Number
         ];
 
         // Conditionally add college
@@ -294,6 +311,7 @@ class CreateUser extends Component
             'details' => json_encode([
                 'user'     => $user->full_name,
                 'username' => $user->username,
+                'rfid_number' => $user->rfid_number, // Log RFID Number
             ]),
         ]);
 
@@ -314,80 +332,6 @@ class CreateUser extends Component
     }
 
     /**
-     * Reset all form fields and error messages.
-     */
-    public function resetFields()
-    {
-        $this->reset([
-            'first_name', 'middle_name', 'last_name', 'suffix', 'username', 'role_id', 'email', 
-            'password', 'selectedCollege', 'selectedDepartment', 'selectedYearLevel', 'selectedSection', 'status'
-        ]);
-        $this->resetErrorBag();
-        $this->departments = [];
-        $this->yearLevels = [];
-        $this->sections = [];
-    }
-
-    #[On('reset-modal')]
-    public function close()
-    {
-        $this->resetFields();
-        $this->loadInitialData();
-    }
-
-    #[On('edit-mode')]
-    public function edit($id)
-    {
-        $this->formTitle = 'Edit User';
-        $this->editForm = true;
-        $this->user = User::findOrFail($id);
-
-        $this->first_name    = $this->user->first_name;
-        $this->middle_name   = $this->user->middle_name;
-        $this->last_name     = $this->user->last_name;
-        $this->suffix        = $this->user->suffix;
-        $this->username      = $this->user->username;
-        $this->role_id       = $this->user->role_id;
-        $this->email         = $this->user->email;
-        $this->status        = $this->user->status;
-
-        // Set and load the college
-        if ($this->user->college_id) {
-            $this->selectedCollege = $this->user->college_id;
-            $this->departments = Department::where('college_id', $this->selectedCollege)->get();
-        }
-
-        // Set and load the department if applicable
-        if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
-            if ($this->user->department_id) {
-                $this->selectedDepartment = $this->user->department_id;
-                $this->departments = Department::where('college_id', $this->selectedCollege)->get();
-
-                // Load year levels based on selected department
-                $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
-                                           ->pluck('year_level')
-                                           ->unique()
-                                           ->sort()
-                                           ->values()
-                                           ->toArray();
-            }
-        }
-
-        // Set the section and year_level if applicable
-        if ($this->isRoleStudent()) {
-            if ($this->user->section_id) {
-                $this->selectedSection = $this->user->section_id;
-                $this->selectedYearLevel = $this->user->section->year_level;
-
-                // Load sections based on selected department and year level
-                $this->sections = Section::where('department_id', $this->selectedDepartment)
-                                         ->where('year_level', $this->selectedYearLevel)
-                                         ->get();
-            }
-        }
-    }
-
-    /**
      * Update an existing user with conditional validation.
      */
     public function update()
@@ -404,6 +348,7 @@ class CreateUser extends Component
             'role_id'       => $this->role_id,
             'email'         => $this->email,
             'status'        => $this->status,
+            'rfid_number'   => $this->rfid_number, // Include RFID Number
         ];
 
         // Update password if provided
@@ -446,6 +391,7 @@ class CreateUser extends Component
             'details' => json_encode([
                 'user'     => $this->user->full_name,
                 'username' => $this->user->username,
+                'rfid_number' => $this->user->rfid_number, // Log RFID Number
             ]),
         ]);
 
@@ -460,6 +406,82 @@ class CreateUser extends Component
 
         // Reset form fields
         $this->resetFields();
+    }
+
+    /**
+     * Reset all form fields and error messages.
+     */
+    public function resetFields()
+    {
+        $this->reset([
+            'first_name', 'middle_name', 'last_name', 'suffix', 'username', 'role_id', 'email', 
+            'password', 'selectedCollege', 'selectedDepartment', 'selectedYearLevel', 'selectedSection', 
+            'status', 'rfid_number' // Include rfid_number
+        ]);
+        $this->resetErrorBag();
+        $this->departments = [];
+        $this->yearLevels = [];
+        $this->sections = [];
+    }
+
+    #[On('reset-modal')]
+    public function close()
+    {
+        $this->resetFields();
+        $this->loadInitialData();
+    }
+
+    #[On('edit-mode')]
+    public function edit($id)
+    {
+        $this->formTitle = 'Edit User';
+        $this->editForm = true;
+        $this->user = User::findOrFail($id);
+
+        $this->first_name    = $this->user->first_name;
+        $this->middle_name   = $this->user->middle_name;
+        $this->last_name     = $this->user->last_name;
+        $this->suffix        = $this->user->suffix;
+        $this->username      = $this->user->username;
+        $this->role_id       = $this->user->role_id;
+        $this->email         = $this->user->email;
+        $this->status        = $this->user->status;
+        $this->rfid_number   = $this->user->rfid_number; // Set RFID Number
+
+        // Set and load the college
+        if ($this->user->college_id) {
+            $this->selectedCollege = $this->user->college_id;
+            $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+        }
+
+        // Set and load the department if applicable
+        if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
+            if ($this->user->department_id) {
+                $this->selectedDepartment = $this->user->department_id;
+                $this->departments = Department::where('college_id', $this->selectedCollege)->get();
+
+                // Load year levels based on selected department
+                $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
+                                           ->pluck('year_level')
+                                           ->unique()
+                                           ->sort()
+                                           ->values()
+                                           ->toArray();
+            }
+        }
+
+        // Set the section and year_level if applicable
+        if ($this->isRoleStudent()) {
+            if ($this->user->section_id) {
+                $this->selectedSection = $this->user->section_id;
+                $this->selectedYearLevel = $this->user->section->year_level;
+
+                // Load sections based on selected department and year level
+                $this->sections = Section::where('department_id', $this->selectedDepartment)
+                                         ->where('year_level', $this->selectedYearLevel)
+                                         ->get();
+            }
+        }
     }
 
     /**
