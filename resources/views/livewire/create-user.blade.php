@@ -13,18 +13,18 @@
                 <div class="modal-body">
                     <form wire:submit.prevent="{{ $editForm ? 'update' : 'save' }}" class="row g-3 needs-validation"
                         novalidate>
-                        <!-- RFID Number -->
-                        <div class="col-md-2">
+                        <!-- RFID Number  -->
+                        <div class="col-md-3">
                             <label for="rfid_number" class="form-label">RFID Number</label>
-                            <input wire:model="rfid_number" type="password"
-                                class="form-control @error('rfid_number') is-invalid @enderror" name="rfid_number" id="rfid-number" placeholder="Scanning RFID..."
-                                >
+                            <input wire:model.lazy="rfid_number" type="text"
+                                class="form-control @error('rfid_number') is-invalid @enderror" name="rfid_number">
                             @error('rfid_number')
                                 <span class="invalid-feedback">
                                     {{ $message }}
                                 </span>
                             @enderror
                         </div>
+                        
                         <!-- First Name -->
                         <div class="col-md-3">
                             <label for="first_name" class="form-label">First Name</label>

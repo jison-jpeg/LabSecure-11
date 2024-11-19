@@ -31,9 +31,6 @@ class CreateUser extends Component
     public $email;
     public $password;
     public $status = 'active';
-    
-    // New Property for RFID Number
-    public $rfid_number;
 
     public $selectedCollege = null;
     public $selectedDepartment = null;
@@ -73,11 +70,11 @@ class CreateUser extends Component
     {
         // Load unique year levels for the selected department
         $this->yearLevels = Section::where('department_id', $departmentId)
-                                   ->pluck('year_level')
-                                   ->unique()
-                                   ->sort()
-                                   ->values()
-                                   ->toArray();
+            ->pluck('year_level')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
 
         $this->selectedYearLevel = null;
         $this->sections = [];
@@ -88,18 +85,11 @@ class CreateUser extends Component
     {
         // Load sections based on selected department and year level
         $this->sections = Section::where('department_id', $this->selectedDepartment)
-                                 ->where('year_level', $yearLevel)
-                                 ->get();
+            ->where('year_level', $yearLevel)
+            ->get();
 
         $this->selectedSection = null;
     }
-
-    public function updatedRfidNumber($value)
-{
-    $this->validateOnly('rfid_number');
-}
-
-
     /**
      * Reset errors when the role changes.
      */
@@ -180,7 +170,6 @@ class CreateUser extends Component
             ],
             'password'   => 'nullable|string|min:6',
             'status'     => 'required|in:active,inactive',
-            // Add validation for RFID Number
             'rfid_number' => [
                 'required',
                 'string',
@@ -202,7 +191,7 @@ class CreateUser extends Component
                 $rules['selectedCollege'][] = function ($attribute, $value, $fail) {
                     $deanRoleId = Role::where('name', 'dean')->value('id');
                     $query = User::where('role_id', $deanRoleId)
-                                 ->where('college_id', $value);
+                        ->where('college_id', $value);
 
                     // If editing, exclude the current user from the check
                     if ($this->editForm && $this->user) {
@@ -227,7 +216,7 @@ class CreateUser extends Component
                     $rules['selectedDepartment'][] = function ($attribute, $value, $fail) {
                         $chairRoleId = Role::where('name', 'chairperson')->value('id');
                         $query = User::where('role_id', $chairRoleId)
-                                     ->where('department_id', $value);
+                            ->where('department_id', $value);
 
                         // If editing, exclude the current user from the check
                         if ($this->editForm && $this->user) {
@@ -281,7 +270,6 @@ class CreateUser extends Component
             'email'         => $this->email,
             'password'      => Hash::make($generatedPassword),
             'status'        => $this->status,
-            'rfid_number'   => $this->rfid_number, // Include RFID Number
         ];
 
         // Conditionally add college
@@ -307,11 +295,10 @@ class CreateUser extends Component
             'user_id' => Auth::id(),
             'action'  => 'create',
             'model'   => 'User',
-            'model_id'=> $user->id,
+            'model_id' => $user->id,
             'details' => json_encode([
                 'user'     => $user->full_name,
                 'username' => $user->username,
-                'rfid_number' => $user->rfid_number, // Log RFID Number
             ]),
         ]);
 
@@ -348,7 +335,6 @@ class CreateUser extends Component
             'role_id'       => $this->role_id,
             'email'         => $this->email,
             'status'        => $this->status,
-            'rfid_number'   => $this->rfid_number, // Include RFID Number
         ];
 
         // Update password if provided
@@ -387,11 +373,10 @@ class CreateUser extends Component
             'user_id' => Auth::id(),
             'action'  => 'update',
             'model'   => 'User',
-            'model_id'=> $this->user->id,
+            'model_id' => $this->user->id,
             'details' => json_encode([
                 'user'     => $this->user->full_name,
                 'username' => $this->user->username,
-                'rfid_number' => $this->user->rfid_number, // Log RFID Number
             ]),
         ]);
 
@@ -414,9 +399,18 @@ class CreateUser extends Component
     public function resetFields()
     {
         $this->reset([
-            'first_name', 'middle_name', 'last_name', 'suffix', 'username', 'role_id', 'email', 
-            'password', 'selectedCollege', 'selectedDepartment', 'selectedYearLevel', 'selectedSection', 
-            'status', 'rfid_number' // Include rfid_number
+            'first_name',
+            'middle_name',
+            'last_name',
+            'suffix',
+            'username',
+            'role_id',
+            'email',
+            'password',
+            'selectedCollege',
+            'selectedDepartment',
+            'selectedYearLevel',
+            'selectedSection',
         ]);
         $this->resetErrorBag();
         $this->departments = [];
@@ -446,7 +440,6 @@ class CreateUser extends Component
         $this->role_id       = $this->user->role_id;
         $this->email         = $this->user->email;
         $this->status        = $this->user->status;
-        $this->rfid_number   = $this->user->rfid_number; // Set RFID Number
 
         // Set and load the college
         if ($this->user->college_id) {
@@ -462,11 +455,11 @@ class CreateUser extends Component
 
                 // Load year levels based on selected department
                 $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
-                                           ->pluck('year_level')
-                                           ->unique()
-                                           ->sort()
-                                           ->values()
-                                           ->toArray();
+                    ->pluck('year_level')
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->toArray();
             }
         }
 
@@ -478,8 +471,8 @@ class CreateUser extends Component
 
                 // Load sections based on selected department and year level
                 $this->sections = Section::where('department_id', $this->selectedDepartment)
-                                         ->where('year_level', $this->selectedYearLevel)
-                                         ->get();
+                    ->where('year_level', $this->selectedYearLevel)
+                    ->get();
             }
         }
     }
