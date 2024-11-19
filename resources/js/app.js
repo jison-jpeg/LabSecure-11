@@ -65,26 +65,28 @@ window.Echo.channel("laboratory-channel").listen(
 );
 
 // Listen for NFC card detection on the public channel
-window.Echo.channel("nfc-channel")
-    .listen(".nfc.card.detected", (data) => {
-        // Log the detected card ID for debugging purposes
-        // console.log("NFC Card Detected:", data.card_id);
+window.Echo.channel("nfc-channel").listen(".nfc.card.detected", (data) => {
+    console.log("NFC Card Detected:", data.card_id);
 
-        // Automatically update the RFID input field
-        const rfidInputField = document.querySelector("#rfid-number");
-        if (rfidInputField) {
-            rfidInputField.value = data.card_id;
-        }
+    // Automatically update the RFID input field
+    const rfidInputField = document.querySelector("#rfid_number"); // Updated ID
+    if (rfidInputField) {
+        rfidInputField.value = data.card_id;
 
-        // Optionally alert the user
-        // alert(`NFC Card Detected! Card ID: ${data.card_id}`);
+        // Dispatch the 'input' and 'change' events
+        rfidInputField.dispatchEvent(new Event("input"));
+        rfidInputField.dispatchEvent(new Event("change"));
+    }
 
-        // Emit a custom browser event for further processing
-        window.dispatchEvent(
-            new CustomEvent("nfc-card-detected", {
-                detail: {
-                    cardId: data.card_id,
-                },
-            })
-        );
-    });
+    // Optionally alert the user
+    // alert(`NFC Card Detected! Card ID: ${data.card_id}`);
+
+    // Emit a custom browser event for further processing
+    window.dispatchEvent(
+        new CustomEvent("nfc-card-detected", {
+            detail: {
+                cardId: data.card_id,
+            },
+        })
+    );
+});
