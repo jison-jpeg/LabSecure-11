@@ -26,7 +26,7 @@ class AttendanceTable extends Component
     // Component Title and Events
     public $title = 'Attendance Records';
     public $event = 'create-attendance';
-
+    public $user;
     // Search and Sorting
     public $search = '';
     public $status = '';
@@ -76,8 +76,9 @@ class AttendanceTable extends Component
     /**
      * Component Mounting
      */
-    public function mount()
+    public function mount($user = null)
     {
+        $this->user = $user;
         // Initialize the selected month to the current month
         $this->selectedMonth = Carbon::now()->format('Y-m');
 
@@ -502,6 +503,10 @@ class AttendanceTable extends Component
         } else {
             // Other users (students): Only their own attendance records
             $query->where('user_id', $user->id);
+        }
+
+        if ($this->user) {
+            $query->where('user_id', $this->user->id);
         }
 
         // Apply Search Filters
