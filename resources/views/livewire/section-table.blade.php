@@ -172,7 +172,9 @@
                         'name' => 'created_at',
                         'displayName' => 'Created At',
                     ])
+                    @if(Auth::user()->isAdmin())
                     <th scope="col" class="text-center">Action</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -188,6 +190,7 @@
                         <td>{{ $section->semester }}</td>
                         <td>{{ $section->school_year }}</td>
                         <td>{{ $section->created_at->diffForHumans() }}</td>
+                        @if(Auth::user()->isAdmin())
                         <td class="text-center">
                             <div class="btn-group dropstart">
                                 <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
@@ -208,6 +211,7 @@
                                 </ul>
                             </div>
                         </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

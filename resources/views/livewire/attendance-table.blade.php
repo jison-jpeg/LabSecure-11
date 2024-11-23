@@ -426,14 +426,11 @@
                                                 Edit
                                             </button>
                                         </li>
-                                        
-                                        @if (Auth::user()->isAdmin())
                                         <li>
                                             <button wire:click="delete({{ $attendance->id }})"
                                                 wire:confirm="Are you sure you want to delete this record?"
                                                 type="button" class="dropdown-item text-danger">Delete</button>
                                         </li>
-                                        @endif
                                     </ul>
                                 </div>
                             </td>
