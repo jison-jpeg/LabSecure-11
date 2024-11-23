@@ -27,6 +27,7 @@ class AttendanceTable extends Component
     public $title = 'Attendance Records';
     public $event = 'create-attendance';
     public $userId;
+    public $scheduleId;
     public $hideFilters = false;
     public $search = '';
     public $status = '';
@@ -76,10 +77,11 @@ class AttendanceTable extends Component
     /**
      * Component Mounting
      */
-    public function mount($userId = null)
+    public function mount($userId = null, $scheduleId = null)
     {
         $this->userId = $userId;
-        $this->hideFilters = $userId !== null;
+        $this->scheduleId = $scheduleId;
+        $this->hideFilters = $userId !== null || $scheduleId !== null;
 
 
         // Initialize the selected month to the current month
@@ -510,6 +512,15 @@ class AttendanceTable extends Component
 
         if ($this->userId) {
             $query->where('user_id', $this->userId);
+        }
+        if ($this->scheduleId) {
+            $query->where('schedule_id', $this->scheduleId);
+
+            // Filter only students
+        $query->whereHas('user.role', function ($q) {
+            $q->where('name', 'student');
+        });
+        
         }
     
 

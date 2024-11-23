@@ -11,26 +11,27 @@
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info position-relative mb-4">
                     <div class="card-body text-white">
-                        @if(Auth::user()->isAdmin())
-                        <div class="action">
-                            <a class="icon" href="#" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots text-white"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                <li class="dropdown-header text-start">
-                                    <h6>Action</h6>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editScheduleModal">Edit Schedule</a>
+                        @if (Auth::user()->isAdmin())
+                            <div class="action">
+                                <a class="icon" href="#" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots text-white"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                    <li class="dropdown-header text-start">
+                                        <h6>Action</h6>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                            data-bs-target="#editScheduleModal">Edit Schedule</a>
 
-                                </li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="#">
-                                        Delete Schedule
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#">
+                                            Delete Schedule
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         @endif
                         <h5 class="card-title fs-3">Class {{ ucfirst($schedule->schedule_code) }} -
                             {{ $schedule->section->name }}</h5>
@@ -67,9 +68,18 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
 
-            <!-- Filters and Students/Attendance livewire -->
-            
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title">Student Attendance</h5>
+                        </div>
+                        <!-- Filters and Students/Attendance livewire -->
+                        @livewire('attendance-table', ['scheduleId' => $schedule->id])
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 </div>
