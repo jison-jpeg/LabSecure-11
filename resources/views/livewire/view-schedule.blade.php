@@ -76,7 +76,7 @@
                             <h5 class="card-title">Student Attendance</h5>
                         </div>
                         <!-- Filters and Students/Attendance livewire -->
-                        @livewire('attendance-table', ['scheduleId' => $schedule->id])
+                        @livewire('attendance-table', ['scheduleId' => $schedule->id, 'hideFilters' => ['subject', 'college', 'department', 'section', 'yearLevel']])
                     </div>
                 </div>
             </div>

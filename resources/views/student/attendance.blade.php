@@ -29,7 +29,7 @@
                                     </div>
 
                                     {{-- User Table Livewire --}}
-                                    @livewire('attendance-table')
+                                    @livewire('attendance-table', ['userId' => Auth::id()])
                                     <!-- End User Table Livewire -->
 
                                 </div>

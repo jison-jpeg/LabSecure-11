@@ -28,7 +28,7 @@
                     <!-- Month Filter -->
                     <div class="col-12 col-sm-6 col-md-4">
                         <label for="selectedMonth" class="form-label">Month</label>
-                        <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
+                        <input type="{{ $dateInputType }}" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
                     </div>
 
                     <!-- Role-Based Filters -->
@@ -199,65 +199,66 @@
                     $user = Auth::user();
                 @endphp
     
-                @if (!$hideFilters && $user->isAdmin())
-                    <!-- College Filter -->
-                    <div class="col-6 col-sm-4 col-md-2">
-                        <select wire:model.live="selectedCollege" name="selectedCollege" class="form-select">
-                            <option value="">All Colleges</option>
-                            @foreach ($colleges as $college)
-                                <option value="{{ $college->id }}">{{ $college->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-    
-                @if (!$hideFilters && $user->isAdmin() || $user->isDean())
-                    <!-- Department Filter -->
-                    <div class="col-6 col-sm-4 col-md-2">
-                        <select wire:model.live="selectedDepartment" name="selectedDepartment" class="form-select">
-                            <option value="">All Departments</option>
-                            @foreach ($departments as $department)
-                                <option value="{{ $department->id }}">{{ $department->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-    
-                @if (!$hideFilters && $user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
-                    <!-- Year Level Filter -->
-                    <div class="col-6 col-sm-4 col-md-2">
-                        <select wire:model.live="selectedYearLevel" name="selectedYearLevel" class="form-select">
-                            <option value="">All Year Levels</option>
-                            @foreach ($yearLevels as $yearLevel)
-                                <option value="{{ $yearLevel }}">{{ $yearLevel }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-    
-                @if (!$hideFilters && $user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
-                    <!-- Section Filter -->
-                    <div class="col-6 col-sm-4 col-md-2">
-                        <select wire:model.live="selectedSection" name="selectedSection" class="form-select">
-                            <option value="">All Sections</option>
-                            @foreach ($sections as $section)
-                                <option value="{{ $section->id }}">{{ $section->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-    
-                @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor() || $user->isStudent())
-                    <!-- Subject Filter -->
-                    <div class="col-6 col-sm-6 col-md-2">
-                        <select wire:model.live="selectedSubject" name="selectedSubject" class="form-select">
-                            <option value="">All Subjects</option>
-                            @foreach ($subjects as $subject)
-                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
+    @if ($user->isAdmin() && !in_array('college', $hideFilters))
+    <!-- College Filter -->
+    <div class="col-6 col-sm-4 col-md-2">
+        <select wire:model.live="selectedCollege" name="selectedCollege" class="form-select">
+            <option value="">All Colleges</option>
+            @foreach ($colleges as $college)
+                <option value="{{ $college->id }}">{{ $college->name }}</option>
+            @endforeach
+        </select>
+    </div>
+@endif
+
+@if (($user->isAdmin() || $user->isDean()) && !in_array('department', $hideFilters))
+    <!-- Department Filter -->
+    <div class="col-6 col-sm-4 col-md-2">
+        <select wire:model.live="selectedDepartment" name="selectedDepartment" class="form-select">
+            <option value="">All Departments</option>
+            @foreach ($departments as $department)
+                <option value="{{ $department->id }}">{{ $department->name }}</option>
+            @endforeach
+        </select>
+    </div>
+@endif
+
+@if (($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor()) && !in_array('yearLevel', $hideFilters))
+    <!-- Year Level Filter -->
+    <div class="col-6 col-sm-4 col-md-2">
+        <select wire:model.live="selectedYearLevel" name="selectedYearLevel" class="form-select">
+            <option value="">All Year Levels</option>
+            @foreach ($yearLevels as $yearLevel)
+                <option value="{{ $yearLevel }}">{{ $yearLevel }}</option>
+            @endforeach
+        </select>
+    </div>
+@endif
+
+@if (($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor()) && !in_array('section', $hideFilters))
+    <!-- Section Filter -->
+    <div class="col-6 col-sm-4 col-md-2">
+        <select wire:model.live="selectedSection" name="selectedSection" class="form-select">
+            <option value="">All Sections</option>
+            @foreach ($sections as $section)
+                <option value="{{ $section->id }}">{{ $section->name }}</option>
+            @endforeach
+        </select>
+    </div>
+@endif
+
+@if (($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor() || $user->isStudent()) && !in_array('subject', $hideFilters))
+    <!-- Subject Filter -->
+    <div class="col-6 col-sm-6 col-md-2">
+        <select wire:model.live="selectedSubject" name="selectedSubject" class="form-select">
+            <option value="">All Subjects</option>
+            @foreach ($subjects as $subject)
+                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+            @endforeach
+        </select>
+    </div>
+@endif
+
     
                 <!-- Status Filter -->
                 <div class="col-6 col-sm-6 col-md-2">

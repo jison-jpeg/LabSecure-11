@@ -120,7 +120,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="card-title">User Attendance</h5>
                             </div>
-                            @livewire('attendance-table', ['userId' => $user->id])
+                            @livewire('attendance-table', ['userId' => $user->id, 'hideFilters' => ['college', 'department', 'section', 'yearLevel']])
                         </div>
                     </div>
 

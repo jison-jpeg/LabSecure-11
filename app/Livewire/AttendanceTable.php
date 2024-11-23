@@ -29,7 +29,7 @@ class AttendanceTable extends Component
     public $event = 'create-attendance';
     public $userId;
     public $scheduleId;
-    public $hideFilters = false;
+    public $hideFilters = [];
     public $search = '';
     public $status = '';
     public $sortBy = 'date';
@@ -79,11 +79,11 @@ class AttendanceTable extends Component
     /**
      * Component Mounting
      */
-    public function mount($userId = null, $scheduleId = null)
+    public function mount($userId = null, $scheduleId = null, $hideFilters = [])
     {
         $this->userId = $userId;
         $this->scheduleId = $scheduleId;
-        $this->hideFilters = $userId !== null || $scheduleId !== null;
+        $this->hideFilters = $hideFilters;
 
         $this->dateInputType = $scheduleId ? 'date' : 'month';
 
