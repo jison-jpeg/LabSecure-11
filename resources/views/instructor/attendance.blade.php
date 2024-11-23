@@ -28,7 +28,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="card-title">My Attendances</h5>
                                     </div>
-                                    @livewire('attendance-table')
+                                    @livewire('attendance-table', ['userId' => Auth::id()])
 
 
                                 </div>

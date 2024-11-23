@@ -33,9 +33,16 @@ class Section extends Model
         return $this->belongsTo(Department::class);
     }
     public function users()
-{
-    return $this->hasMany(User::class, 'section_id');
-}
+    {
+        return $this->hasMany(User::class, 'section_id');
+    }
+    public function students()
+    {
+        // Fetch users assigned to this section who have the student role
+        return $this->hasMany(User::class, 'section_id')->whereHas('role', function ($query) {
+            $query->where('name', 'student');
+        });
+    }
 
     public function scopeSearch($query, $value)
     {
