@@ -76,38 +76,39 @@ class EditAttendance extends Component
     }
 
     /**
- * Update an existing Attendance record.
- *
- * @return void
- */
-public function update()
-{
-    $this->validate([
-        'status' => 'required|in:present,absent,late,excused,incomplete',
-        'remarks' => 'nullable|string|max:255',
-    ]);
+     * Update an existing Attendance record.
+     *
+     * @return void
+     */
+    public function update()
+    {
+        $this->validate([
+            'status' => 'required|in:present,absent,late,excused,incomplete',
+            'remarks' => 'nullable|string|max:255',
+        ]);
 
-    // Prepare data for update
-    $data = [
-        'status' => $this->status,
-        'remarks' => $this->remarks,
-    ];
+        // Determine the updated percentage based on the status logic
+        $currentStatus = $this->attendance->status;
 
-    // Check if the current status is already 'present'
-    if ($this->status === 'present') {
-        if ($this->attendance->status !== 'present') {
-            $data['percentage'] = 100; // Only set to 100% if not already 'present'
+        $data = [
+            'status' => $this->status,
+            'remarks' => $this->remarks,
+            'percentage' => $this->attendance->percentage, // Default to current percentage
+        ];
+
+        if ($this->status === 'present' && $currentStatus !== 'present') {
+            // Only set to 100 if not already present
+            $data['percentage'] = 100;
+        } elseif ($this->status === 'absent' && $currentStatus !== 'absent') {
+            // Set to 0% if changing to absent and not already absent
+            $data['percentage'] = 0;
         }
-    } else {
-        // Optionally, reset percentage if status is not 'present'
-        $data['percentage'] = 0; // or any default value
+
+        // Update the attendance record
+        $this->attendance->update($data);
+
+        notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
+        $this->dispatch('refresh-attendance-table');
+        $this->reset();
     }
-
-    $this->attendance->update($data);
-
-    notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
-    $this->dispatch('refresh-attendance-table');
-    $this->reset();
-}
-
 }

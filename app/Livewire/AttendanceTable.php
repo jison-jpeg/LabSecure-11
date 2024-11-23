@@ -319,6 +319,16 @@ class AttendanceTable extends Component
     }
 
     /**
+     * Event Handler: When the Date Filter is updated
+     */
+    public function updatedSelectedMonth($value)
+    {
+        // Reset pagination only when the date filter changes
+        $this->resetPage();
+    }
+
+
+    /**
      * Handle search term updates
      */
     public function updatedSearch()
@@ -620,6 +630,6 @@ class AttendanceTable extends Component
     public function refreshAttendanceTable()
     {
         // Reset Pagination to refresh data
-        $this->resetPage();
+        $this->render();
     }
 }
