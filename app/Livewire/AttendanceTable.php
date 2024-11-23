@@ -369,8 +369,10 @@ class AttendanceTable extends Component
             ]);
         }
 
-        // Reset to current month
-        $this->selectedMonth = Carbon::now()->format('Y-m');
+        // Reset `selectedMonth` based on the `dateInputType`
+        $this->selectedMonth = $this->dateInputType === 'month'
+            ? Carbon::now()->format('Y-m') // Reset to current month
+            : Carbon::now()->format('Y-m-d'); // Reset to current date
 
         // Re-initialize filters based on user role
         $this->initializeFilters();
