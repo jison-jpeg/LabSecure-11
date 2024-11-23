@@ -14,7 +14,7 @@ class SectionSeeder extends Seeder
     public function run(): void
     {
         Section::create([
-            'name' => '4A',
+            'name' => 'A',
             'year_level' => '4',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',
@@ -23,7 +23,7 @@ class SectionSeeder extends Seeder
         ]);
 
         Section::create([
-            'name' => '4B',
+            'name' => 'B',
             'year_level' => '4',
             'semester' => '1st Semester',
             'school_year' => '2024-2025',

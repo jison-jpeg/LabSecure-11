@@ -34,7 +34,7 @@
                             </div>
                         @endif
                         <h5 class="card-title fs-3">Class {{ ucfirst($schedule->schedule_code) }} -
-                            {{ $schedule->section->name }}</h5>
+                            {{ $schedule->section->year_level }} {{ $schedule->section->name }}</h5>
 
                         <div class="row">
                             <div class="col-12 col-md-4">
@@ -49,7 +49,7 @@
 
                             <div class="col-12 col-md-4">
                                 <h6>Section</h6>
-                                <p>{{ $schedule->section->name }}</p>
+                                <p>{{ $schedule->section->year_level }} {{ $schedule->section->name }}</p>
                             </div>
                         </div>
 
