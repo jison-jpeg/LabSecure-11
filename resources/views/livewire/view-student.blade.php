@@ -81,6 +81,37 @@
                 </div>
             </div>
 
+            <!-- Enrolled Schedules -->
+            <div class="col-12 d-flex flex-column">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Enrolled Schedules</h5>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Schedule Code</th>
+                                    <th>Subject</th>
+                                    <th>Instructor</th>
+                                    <th>Days</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($schedules as $schedule)
+                                    <tr>
+                                        <td>{{ $schedule->schedule_code }}</td>
+                                        <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+                                        <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
+                                        <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
+                                        <td>{{ $schedule->start_time }} - {{ $schedule->end_time }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Attendance History -->
             <div class="col-12 d-flex flex-column">
                 <div class="card mb-4">
@@ -119,36 +150,7 @@
                 </div>
             </div>
 
-            <!-- Enrolled Schedules -->
-            <div class="col-12 d-flex flex-column">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Enrolled Schedules</h5>
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Schedule Code</th>
-                                    <th>Subject</th>
-                                    <th>Instructor</th>
-                                    <th>Days</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($schedules as $schedule)
-                                    <tr>
-                                        <td>{{ $schedule->schedule_code }}</td>
-                                        <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
-                                        <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                        <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
-                                        <td>{{ $schedule->start_time }} - {{ $schedule->end_time }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </section>
 </div>

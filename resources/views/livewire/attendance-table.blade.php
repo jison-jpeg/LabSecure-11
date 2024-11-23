@@ -199,7 +199,7 @@
                     $user = Auth::user();
                 @endphp
     
-                @if ($user->isAdmin())
+                @if (!$hideFilters && $user->isAdmin())
                     <!-- College Filter -->
                     <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedCollege" name="selectedCollege" class="form-select">
@@ -211,7 +211,7 @@
                     </div>
                 @endif
     
-                @if ($user->isAdmin() || $user->isDean())
+                @if (!$hideFilters && $user->isAdmin() || $user->isDean())
                     <!-- Department Filter -->
                     <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedDepartment" name="selectedDepartment" class="form-select">
@@ -223,7 +223,7 @@
                     </div>
                 @endif
     
-                @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
+                @if (!$hideFilters && $user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Year Level Filter -->
                     <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedYearLevel" name="selectedYearLevel" class="form-select">
@@ -235,7 +235,7 @@
                     </div>
                 @endif
     
-                @if ($user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
+                @if (!$hideFilters && $user->isAdmin() || $user->isDean() || $user->isChairperson() || $user->isInstructor())
                     <!-- Section Filter -->
                     <div class="col-6 col-sm-4 col-md-2">
                         <select wire:model.live="selectedSection" name="selectedSection" class="form-select">

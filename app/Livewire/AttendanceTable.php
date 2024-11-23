@@ -27,7 +27,7 @@ class AttendanceTable extends Component
     public $title = 'Attendance Records';
     public $event = 'create-attendance';
     public $userId;
-    // Search and Sorting
+    public $hideFilters = false;
     public $search = '';
     public $status = '';
     public $sortBy = 'date';
@@ -79,6 +79,8 @@ class AttendanceTable extends Component
     public function mount($userId = null)
     {
         $this->userId = $userId;
+        $this->hideFilters = $userId !== null;
+
 
         // Initialize the selected month to the current month
         $this->selectedMonth = Carbon::now()->format('Y-m');
