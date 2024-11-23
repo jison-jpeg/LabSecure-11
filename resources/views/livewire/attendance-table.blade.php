@@ -3,6 +3,7 @@
 @endphp
 
 <div>
+    {{-- edit attendance --}}
     @livewire('edit-attendance')
 
     <!-- Export Modal -->
@@ -412,10 +413,20 @@
                                             <button type="button" class="dropdown-item">View</button>
                                         </li>
                                         <li>
-                                            <button @click="$dispatch('edit-mode',{id:{{ $attendance->id }}})"
-                                                type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#verticalycentered">Edit</button>
+                                            <button 
+                                                @click="$dispatch('edit-mode', {
+                                                    userId: {{ $attendance->user->id }},
+                                                    scheduleId: {{ $attendance->schedule->id }},
+                                                    date: '{{ $attendance->date }}'
+                                                })"
+                                                type="button" 
+                                                class="dropdown-item" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#verticalycentered">
+                                                Edit
+                                            </button>
                                         </li>
+                                        
                                         @if (Auth::user()->isAdmin())
                                         <li>
                                             <button wire:click="delete({{ $attendance->id }})"

@@ -3,17 +3,22 @@
 namespace App\Livewire;
 
 use App\Models\Attendance;
+use App\Models\TransactionLog;
 use Livewire\Component;
 use Livewire\Attributes\On;
-use Flasher\Notyf\Prime\NotyfInterface;
+use Illuminate\Support\Facades\Auth;
 
 class EditAttendance extends Component
 {
     public $formTitle = 'Create Attendance';
     public $editForm = false;
     public $attendance;
-    public $status;
+    public $userId;
+    public $scheduleId;
+    public $status = 'absent'; // Default to 'absent'
     public $remarks;
+
+    protected $listeners = ['edit-mode' => 'edit'];
 
     public function render()
     {
@@ -28,11 +33,32 @@ class EditAttendance extends Component
         ]);
     }
 
-    /**
-     * Save a new Attendance record.
-     *
-     * @return void
-     */
+    #[On('edit-mode')]
+    public function edit($userId, $scheduleId, $date)
+    {
+        $this->userId = $userId;
+        $this->scheduleId = $scheduleId;
+
+        $this->attendance = Attendance::firstOrCreate(
+            [
+                'user_id' => $userId,
+                'schedule_id' => $scheduleId,
+                'date' => $date,
+            ],
+            [
+                'status' => $this->status,
+                'remarks' => 'No attendance record yet',
+                'percentage' => 0,
+            ]
+        );
+
+        $this->formTitle = $this->attendance->wasRecentlyCreated ? 'Create Attendance' : 'Edit Attendance';
+        $this->editForm = !$this->attendance->wasRecentlyCreated;
+
+        $this->status = $this->attendance->status;
+        $this->remarks = $this->attendance->remarks;
+    }
+
     public function save()
     {
         $this->validate([
@@ -40,46 +66,38 @@ class EditAttendance extends Component
             'remarks' => 'nullable|string|max:255',
         ]);
 
-        // Prepare data for creation
-        $data = [
-            'status' => $this->status,
-            'remarks' => $this->remarks,
-        ];
+        if ($this->editForm) {
+            $this->update();
+        } else {
+            $this->attendance->update([
+                'status' => $this->status,
+                'remarks' => $this->remarks,
+                'percentage' => $this->status === 'present' ? 100 : ($this->status === 'absent' ? 0 : $this->attendance->percentage),
+            ]);
 
-        // If status is 'present', set percentage to 100
-        if ($this->status === 'present') {
-            $data['percentage'] = 100;
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'create',
+                'model' => 'Attendance',
+                'model_id' => $this->attendance->id,
+                'details' => json_encode([
+                    'user_id' => $this->userId,
+                    'schedule_id' => $this->scheduleId,
+                    'status' => $this->status,
+                    'remarks' => $this->remarks,
+                ]),
+            ]);
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Attendance created successfully');
         }
 
-        Attendance::create($data);
-
         $this->dispatch('refresh-attendance-table');
-        notyf()->position('x', 'right')->position('y', 'top')->success('Attendance created successfully');
         $this->reset();
     }
 
-    #[On('reset-modal')]
-    public function close()
-    {
-        $this->resetErrorBag();
-        $this->reset(['formTitle', 'editForm', 'attendance', 'status', 'remarks']);
-    }
-
-    #[On('edit-mode')]
-    public function edit($id)
-    {
-        $this->formTitle = 'Edit Attendance';
-        $this->editForm = true;
-        $this->attendance = Attendance::findOrFail($id);
-        $this->status = $this->attendance->status;
-        $this->remarks = $this->attendance->remarks;
-    }
-
-    /**
-     * Update an existing Attendance record.
-     *
-     * @return void
-     */
     public function update()
     {
         $this->validate([
@@ -87,28 +105,38 @@ class EditAttendance extends Component
             'remarks' => 'nullable|string|max:255',
         ]);
 
-        // Determine the updated percentage based on the status logic
-        $currentStatus = $this->attendance->status;
+        $originalData = $this->attendance->only(['status', 'remarks', 'percentage']);
 
-        $data = [
+        $this->attendance->update([
             'status' => $this->status,
             'remarks' => $this->remarks,
-            'percentage' => $this->attendance->percentage, // Default to current percentage
-        ];
+            'percentage' => $this->status === 'present' ? 100 : ($this->status === 'absent' ? 0 : $this->attendance->percentage),
+        ]);
 
-        if ($this->status === 'present' && $currentStatus !== 'present') {
-            // Only set to 100 if not already present
-            $data['percentage'] = 100;
-        } elseif ($this->status === 'absent' && $currentStatus !== 'absent') {
-            // Set to 0% if changing to absent and not already absent
-            $data['percentage'] = 0;
-        }
+        $changes = array_diff_assoc($this->attendance->only(['status', 'remarks', 'percentage']), $originalData);
 
-        // Update the attendance record
-        $this->attendance->update($data);
+        TransactionLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'model' => 'Attendance',
+            'model_id' => $this->attendance->id,
+            'details' => json_encode([
+                'user_id' => $this->userId,
+                'schedule_id' => $this->scheduleId,
+                'changes' => $changes,
+            ]),
+        ]);
 
-        notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
-        $this->dispatch('refresh-attendance-table');
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->success('Attendance updated successfully');
+    }
+
+    #[On('reset-modal')]
+    public function close()
+    {
+        $this->resetErrorBag();
         $this->reset();
     }
 }
