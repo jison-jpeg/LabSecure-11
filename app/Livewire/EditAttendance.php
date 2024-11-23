@@ -76,37 +76,38 @@ class EditAttendance extends Component
     }
 
     /**
-     * Update an existing Attendance record.
-     *
-     * @return void
-     */
-    public function update()
-    {
-        $this->validate([
-            'status' => 'required|in:present,absent,late,excused,incomplete',
-            'remarks' => 'nullable|string|max:255',
-        ]);
+ * Update an existing Attendance record.
+ *
+ * @return void
+ */
+public function update()
+{
+    $this->validate([
+        'status' => 'required|in:present,absent,late,excused,incomplete',
+        'remarks' => 'nullable|string|max:255',
+    ]);
 
-        // Prepare data for update
-        $data = [
-            'status' => $this->status,
-            'remarks' => $this->remarks,
-        ];
+    // Prepare data for update
+    $data = [
+        'status' => $this->status,
+        'remarks' => $this->remarks,
+    ];
 
-        // If status is 'present', set percentage to 100
-        if ($this->status === 'present') {
-            $data['percentage'] = 100;
+    // Check if the current status is already 'present'
+    if ($this->status === 'present') {
+        if ($this->attendance->status !== 'present') {
+            $data['percentage'] = 100; // Only set to 100% if not already 'present'
         }
-
+    } else {
         // Optionally, reset percentage if status is not 'present'
-        else {
-            $data['percentage'] = 0; // or any default value
-        }
-
-        $this->attendance->update($data);
-
-        notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
-        $this->dispatch('refresh-attendance-table');
-        $this->reset();
+        $data['percentage'] = 0; // or any default value
     }
+
+    $this->attendance->update($data);
+
+    notyf()->position('x', 'right')->position('y', 'top')->success('Attendance updated successfully');
+    $this->dispatch('refresh-attendance-table');
+    $this->reset();
+}
+
 }
