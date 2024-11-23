@@ -273,7 +273,7 @@
     
                 <!-- Month Filter -->
                 <div class="col-12 col-sm-6 col-md-2">
-                    <input type="month" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
+                    <input type="{{ $dateInputType }}" wire:model.live="selectedMonth" name="selectedMonth" class="form-control">
                 </div>
             </div>
         </div>

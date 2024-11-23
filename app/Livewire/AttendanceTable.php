@@ -37,6 +37,7 @@ class AttendanceTable extends Component
 
     // Date Filter
     public $selectedMonth;
+    public $dateInputType = 'month';
 
     // Filters
     public $selectedCollege = '';
@@ -83,9 +84,12 @@ class AttendanceTable extends Component
         $this->scheduleId = $scheduleId;
         $this->hideFilters = $userId !== null || $scheduleId !== null;
 
+        $this->dateInputType = $scheduleId ? 'date' : 'month';
 
         // Initialize the selected month to the current month
-        $this->selectedMonth = Carbon::now()->format('Y-m');
+        $this->selectedMonth = $scheduleId
+        ? Carbon::now()->format('Y-m-d') 
+        : Carbon::now()->format('Y-m');  
 
         // Initialize filter options based on user role
         $this->initializeFilters();
@@ -568,14 +572,18 @@ class AttendanceTable extends Component
         // Apply Month Filter
         if ($this->selectedMonth) {
             try {
-                $parsedMonth = Carbon::parse($this->selectedMonth);
-                $query->whereMonth('date', $parsedMonth->month)
-                    ->whereYear('date', $parsedMonth->year);
+                $parsedDate = Carbon::parse($this->selectedMonth);
+                if ($this->dateInputType === 'month') {
+                    $query->whereMonth('date', $parsedDate->month)
+                          ->whereYear('date', $parsedDate->year);
+                } else {
+                    $query->whereDate('date', $parsedDate);
+                }
             } catch (\Exception $e) {
                 // Handle invalid date format if necessary
             }
         }
-
+        
         // Paginate Results
         $attendances = $query->paginate($this->perPage);
 
