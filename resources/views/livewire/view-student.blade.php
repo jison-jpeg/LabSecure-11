@@ -7,26 +7,27 @@
             <div class="col-12 d-flex flex-column">
                 <div class="card h-100 card-info position-relative">
                     <div class="card-body text-white">
-                        @if(Auth::user()->isAdmin())
-                        <div class="action">
-                            <a class="icon" href="#" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots text-white"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                <li class="dropdown-header text-start">
-                                    <h6>Action</h6>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" wire:click="$dispatch('show-edit-user-modal')">Edit User</a>
+                        @if (Auth::user()->isAdmin())
+                            <div class="action">
+                                <a class="icon" href="#" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots text-white"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                    <li class="dropdown-header text-start">
+                                        <h6>Action</h6>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"
+                                            wire:click="$dispatch('show-edit-user-modal')">Edit User</a>
 
-                                </li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="#">
-                                        Delete User
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#">
+                                            Delete User
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         @endif
                         <div class="d-flex align-items-center">
                             <h5 class="card-title fs-3">{{ $student->full_name }}</h5>
@@ -68,89 +69,127 @@
                             <div class="col-12 col-md-4">
                                 <h6>Year and Section</h6>
                                 <p>
-                                    @if($student->section)
+                                    @if ($student->section)
                                         {{ $student->section->year_level }} - {{ $student->section->name }}
                                     @else
                                         N/A
                                     @endif
                                 </p>
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Enrolled Schedules -->
-            <div class="col-12 d-flex flex-column">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Enrolled Schedules</h5>
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Schedule Code</th>
-                                    <th>Subject</th>
-                                    <th>Instructor</th>
-                                    <th>Days</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($schedules as $schedule)
-                                    <tr>
-                                        <td>{{ $schedule->schedule_code }}</td>
-                                        <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
-                                        <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                        <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}</td>
-                                        <td>{{ $schedule->start_time }} - {{ $schedule->end_time }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+            <div class="col-lg-12">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">View User</h5>
+                                <!-- Bordered Tabs Justified -->
+                                <ul class="nav nav-tabs nav-tabs-bordered d-flex" id="borderedTabJustified"
+                                    role="tablist">
+                                    <li class="nav-item flex-fill" role="presentation">
+                                        <button class="nav-link w-100 active" id="home-tab" data-bs-toggle="tab"
+                                            data-bs-target="#bordered-justified-home" type="button" role="tab"
+                                            aria-controls="home" aria-selected="true">Attendances</button>
+                                    </li>
+                                    <li class="nav-item flex-fill" role="presentation">
+                                        <button class="nav-link w-100" id="profile-tab" data-bs-toggle="tab"
+                                            data-bs-target="#bordered-justified-profile" type="button" role="tab"
+                                            aria-controls="profile" aria-selected="false"
+                                            tabindex="-1">Schedules</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content pt-2" id="borderedTabJustifiedContent">
+                                    <div class="tab-pane fade active show" id="bordered-justified-home" role="tabpanel"
+                                        aria-labelledby="home-tab">
+                                        <!-- Attendance History -->
+                                        <div class="col-12 d-flex flex-column">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Subject</th>
+                                                        <th>Time In</th>
+                                                        <th>Time Out</th>
+                                                        <th class="text-center">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($attendanceRecords as $record)
+                                                        <tr>
+                                                            <td>{{ $record->date->format('m/d/Y') }}</td>
+                                                            <td>{{ $record->schedule->subject->name ?? 'N/A' }}
+                                                            </td>
+                                                            <td>{{ $record->formatted_time_in }}</td>
+                                                            <td>{{ $record->formatted_time_out }}</td>
+                                                            <td class="text-center">
+                                                                <span
+                                                                    class="badge rounded-pill 
+                            {{ $record->status == 'present'
+                                ? 'bg-success'
+                                : ($record->status == 'absent'
+                                    ? 'bg-danger'
+                                    : ($record->status == 'late'
+                                        ? 'bg-warning'
+                                        : 'bg-secondary')) }}">
+                                                                    {{ ucfirst($record->status) }}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="bordered-justified-profile" role="tabpanel"
+                                        aria-labelledby="profile-tab">
+                                        <!-- Enrolled Schedules -->
+                                        <div class="col-12 d-flex flex-column">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Schedule Code</th>
+                                                        <th>Subject</th>
+                                                        <th>Instructor</th>
+                                                        <th>Days</th>
+                                                        <th>Time</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($schedules as $schedule)
+                                                        <tr>
+                                                            <td>{{ $schedule->schedule_code }}</td>
+                                                            <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+                                                            <td>{{ $schedule->instructor->full_name ?? 'N/A' }}
+                                                            </td>
+                                                            <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}
+                                                            </td>
+                                                            <td>{{ $schedule->start_time }} -
+                                                                {{ $schedule->end_time }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div><!-- End Bordered Tabs Justified -->
+
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-            </div>
-            
-            <!-- Attendance History -->
-            <div class="col-12 d-flex flex-column">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Attendance History</h5>
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Subject</th>
-                                    <th>Time In</th>
-                                    <th>Time Out</th>
-                                    <th  class="text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($attendanceRecords as $record)
-                                    <tr>
-                                        <td>{{ $record->date->format('m/d/Y') }}</td>
-                                        <td>{{ $record->schedule->subject->name ?? 'N/A' }}</td>
-                                        <td>{{ $record->formatted_time_in }}</td>
-                                        <td>{{ $record->formatted_time_out }}</td>
-                                        <td class="text-center">
-                                            <span class="badge rounded-pill 
-                                                {{ $record->status == 'present' ? 'bg-success' : 
-                                                   ($record->status == 'absent' ? 'bg-danger' : 
-                                                   ($record->status == 'late' ? 'bg-warning' : 'bg-secondary')) }}">
-                                                {{ ucfirst($record->status) }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
             </div>
 
-            
+
+
+
+
         </div>
     </section>
 </div>
