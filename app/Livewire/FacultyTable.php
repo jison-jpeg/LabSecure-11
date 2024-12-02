@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Exports\FacultyExport;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\User;
 use App\Imports\FacultyImport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -38,7 +40,7 @@ class FacultyTable extends Component
 
     #[Url()]
     public $perPage = 10;
-    
+
     #[Url(history: true)]
     public $college = '';
 
@@ -110,13 +112,11 @@ class FacultyTable extends Component
                     $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
                 }
                 return;
-
             } elseif ($skippedCount > 0) {
                 // Partial success: Display summary with skipped details in modal
                 $skippedDetails = implode(", ", $import->skipped);
                 $this->importSummary = "$successCount out of $totalCount faculties imported successfully. $skippedCount faculties were skipped: $skippedDetails.";
                 $this->importErrors = [];
-
             } else {
                 // Full success: Show success message in Notyf if all records imported
                 $message = "$totalCount faculties imported successfully.";
@@ -129,7 +129,6 @@ class FacultyTable extends Component
                 $this->dispatch('close-import-modal');
                 $this->reset(['importErrors', 'importSummary']);
             }
-
         } catch (\Exception $e) {
             // Handle unexpected errors
             $this->importErrors = ['Error: ' . $e->getMessage()];
@@ -144,6 +143,41 @@ class FacultyTable extends Component
         $this->reset('facultyFile');
     }
 
+    public function exportAs($format)
+    {
+        $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
+        $fileName = "Faculty_Export_{$timestamp}";
+
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new FacultyExport($this->college, $this->department), "{$fileName}.csv");
+            case 'excel':
+                return Excel::download(new FacultyExport($this->college, $this->department), "{$fileName}.xlsx");
+            case 'pdf':
+                $faculties = User::where('role_id', 2)
+                    ->when($this->college, function ($query) {
+                        $query->where('college_id', $this->college);
+                    })
+                    ->when($this->department, function ($query) {
+                        $query->where('department_id', $this->department);
+                    })
+                    ->get();
+
+                $pdf = Pdf::loadView('exports.faculty_report', [
+                    'faculties' => $faculties,
+                ])->setPaper('a4', 'portrait');
+
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->output();
+                }, "{$fileName}.pdf");
+
+            default:
+                notyf()->error('Unsupported export format.');
+                break;
+        }
+    }
+
+
     public function updatedFacultyFile()
     {
         $this->reset(['importErrors', 'importSummary']);
@@ -152,22 +186,23 @@ class FacultyTable extends Component
     public function render()
     {
         $user = Auth::user();
-
+    
         // Initialize the query
-        $query = User::where('role_id', 2) // Assuming role_id 2 is for faculty
-            ->search($this->search);
-
+        $query = User::whereHas('role', function ($q) {
+            $q->where('name', 'instructor'); // Use the role name "instructor"
+        })->search($this->search);
+    
         // Apply role-based filters
         if ($user->isAdmin()) {
             // Admin can filter by college and department
             if ($this->college !== '') {
                 $query->where('college_id', $this->college);
             }
-
+    
             if ($this->department !== '') {
                 $query->where('department_id', $this->department);
             }
-
+    
             // Fetch departments based on selected college
             if ($this->college !== '') {
                 $this->filteredDepartments = Department::where('college_id', $this->college)->get();
@@ -177,12 +212,12 @@ class FacultyTable extends Component
         } elseif ($user->isDean()) {
             // Dean can only see faculties from their college
             $query->where('college_id', $user->college_id);
-
+    
             // Allow filtering by department within their college
             if ($this->department !== '') {
                 $query->where('department_id', $this->department);
             }
-
+    
             // Fetch departments within the dean's college
             $this->filteredDepartments = Department::where('college_id', $user->college_id)->get();
         } elseif ($user->isChairperson()) {
@@ -193,20 +228,21 @@ class FacultyTable extends Component
             // For other roles, default to no departments
             $this->filteredDepartments = collect();
         }
-
+    
         $faculties = $query->orderBy($this->sortBy, $this->sortDir)
             ->paginate($this->perPage);
-
+    
         // Determine which filters to show based on role
         $colleges = $user->isAdmin() ? College::all() : collect([]);
         // Departments are already handled above in $filteredDepartments
-
+    
         return view('livewire.faculty-table', [
             'faculties' => $faculties,
             'colleges' => $colleges,
             'departments' => $this->filteredDepartments,
         ]);
     }
+    
 
     #[On('refresh-faculty-table')]
     public function refreshFacultyTable()
