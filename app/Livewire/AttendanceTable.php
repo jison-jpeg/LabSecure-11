@@ -440,50 +440,57 @@ class AttendanceTable extends Component
      * Export Attendance Records
      */
     public function exportAs($format)
-    {
-        $user = Auth::user(); // Get the authenticated user
+{
+    $user = Auth::user(); // Get the authenticated user
 
-        // Instantiate the AttendanceExport with only selectedMonth, selectedSubject, and status
-        $export = new AttendanceExport(
-            $this->selectedMonth,
-            $this->selectedSubject,
-            $this->status
-        );
+    // Instantiate the AttendanceExport with the necessary filters
+    $export = new AttendanceExport(
+        $this->selectedMonth,
+        $this->selectedSubject,
+        $this->status
+    );
 
-        switch ($format) {
-            case 'csv':
-                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
-            case 'excel':
-                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
-            case 'pdf':
-                // Execute the query to get the data
-                $attendances = $export->query()->get();
+    switch ($format) {
+        case 'csv':
+            return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        case 'excel':
+            return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
+        case 'pdf':
+            // Fetch the data for the PDF export
+            $attendances = $export->query()->get();
 
-                // Group attendances by schedule name
-                $groupedAttendances = $attendances->groupBy(function ($item) {
-                    return $item->schedule->subject->name; // or another attribute as needed
-                });
+            // Group attendances by schedule name
+            $groupedAttendances = $attendances->groupBy(function ($item) {
+                return $item->schedule->subject->name; // Group by subject name or other relevant attributes
+            });
 
-                $pdf = Pdf::loadView('exports.attendance_report', [
-                    'user' => $user,
-                    'selectedMonth' => $this->selectedMonth,
-                    'groupedAttendances' => $groupedAttendances,
-                ])->setPaper('a4', 'portrait'); // Optional: set paper size and orientation
+            // Generate the PDF
+            $pdf = Pdf::loadView('exports.attendance_report', [
+                'user' => $user,
+                'selectedMonth' => $this->selectedMonth,
+                'groupedAttendances' => $groupedAttendances,
+            ])
+                ->setPaper('a4', 'portrait') // Set to portrait orientation
+                ->setOption('margin-top', '10mm') // Adjust margins for better spacing
+                ->setOption('margin-bottom', '10mm')
+                ->setOption('margin-left', '10mm')
+                ->setOption('margin-right', '10mm');
 
-                // Stream the PDF for download
-                return response()->streamDownload(function () use ($pdf) {
-                    echo $pdf->output();
-                }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+            // Stream the PDF for download
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
 
-            default:
-                // Handle unsupported formats
-                notyf()
-                    ->position('x', 'right')
-                    ->position('y', 'top')
-                    ->error('Unsupported export format.');
-                break;
-        }
+        default:
+            // Handle unsupported formats
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error('Unsupported export format.');
+            break;
     }
+}
+
 
     /**
      * Render the Component View

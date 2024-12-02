@@ -14,7 +14,7 @@
                 <!-- Modal Header -->
                 <div class="modal-header">
                     <h5 class="modal-title" id="exportModalLabel">Export Attendance Records</h5>
-                    <button wire:click="closeExportModal" type="button" class="btn-close" data-bs-dismiss="modal"
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
 
@@ -130,23 +130,18 @@
 
                 <!-- Modal Footer -->
                 <div class="modal-footer">
-                    <!-- Export As Dropdown -->
-                    <div class="dropdown me-auto">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            Export As
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>    
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            Export as
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a>
-                            </li>
-                            <li><a class="dropdown-item" href="#"
-                                    wire:click.prevent="exportAs('excel')">Excel</a></li>
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a>
-                            </li>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                          <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a></li>
+                          <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">Excel</a></li>
+                          <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a></li>
                         </ul>
-                    </div>
-                    <button wire:click="closeExportModal" type="button" class="btn btn-secondary"
-                        data-bs-dismiss="modal">Close</button>
+                      </div>
+                                    
                 </div>
             </div>
         </div>

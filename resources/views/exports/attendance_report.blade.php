@@ -1,4 +1,5 @@
-div<!DOCTYPE html>
+div
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,36 +9,38 @@ div<!DOCTYPE html>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            font-size: 10px;
+            margin: 10px;
+            font-size: 9px;
             /* Set font size to 10 points */
         }
 
         .pdf-wrapper {
-            transform: scale(0.9);
-            transform-origin: top left;
-            width: 111.11%;
+            width: 100%;
+            /* Ensure full utilization of the width */
         }
 
         .header {
-    display: flex;
-    align-items: center; /* Vertically centers items */
-    justify-content: center; /* Horizontally centers header text */
-    position: relative;
-    margin-bottom: 20px;
-    height: 100px; /* Adjust as needed */
-}
+            display: flex;
+            align-items: center;
+            /* Vertically centers items */
+            justify-content: center;
+            /* Horizontally centers header text */
+            position: relative;
+            margin-bottom: 10px;
+            height: 80px;
+            /* Adjust as needed */
+        }
 
-.header .logo {
-    position: absolute;
-    left: 0;
-    width: 60px;
-    height: auto;
-}
+        .header .logo {
+            position: absolute;
+            left: 0;
+            width: 60px;
+            height: auto;
+        }
 
-.header-text {
-    text-align: center;
-}
+        .header-text {
+            text-align: center;
+        }
 
 
         .header-text h1,
@@ -91,7 +94,7 @@ div<!DOCTYPE html>
         .dtr-table th,
         .dtr-table td {
             border: 1px solid #000;
-            text-align: center;
+            text-align: left;
             padding: 2px;
             font-size: 10px;
         }
@@ -101,28 +104,35 @@ div<!DOCTYPE html>
         }
 
         .signatures {
-    display: flex;
-    justify-content: space-between; /* Space between the two sections */
-    align-items: center; /* Ensures vertical alignment */
-    /* width: 100%; Makes the container span the full width */
-}
+            display: flex;
+            justify-content: space-between;
+            /* Space between the two sections */
+            align-items: center;
+            /* Ensures vertical alignment */
+            /* width: 100%; Makes the container span the full width */
+        }
 
-.signature p,
-.dean p {
-    margin: 0; /* Removes any default margin that can cause misalignment */
-    line-height: 1; /* Ensures consistent line height for alignment */
-}
+        .signature p,
+        .dean p {
+            margin: 0;
+            /* Removes any default margin that can cause misalignment */
+            line-height: 1;
+            /* Ensures consistent line height for alignment */
+        }
 
-.signature {
-    text-align: left; /* Align text to the left for signature */
-    flex: 1; /* Allows it to grow evenly */
-}
+        .signature {
+            text-align: left;
+            /* Align text to the left for signature */
+            flex: 1;
+            /* Allows it to grow evenly */
+        }
 
-.dean {
-    text-align: right; /* Align text to the right for dean */
-    flex: 1; /* Allows it to grow evenly */
-}
-
+        .dean {
+            text-align: right;
+            /* Align text to the right for dean */
+            flex: 1;
+            /* Allows it to grow evenly */
+        }
     </style>
 </head>
 
@@ -130,7 +140,8 @@ div<!DOCTYPE html>
     <div class="pdf-wrapper">
         <div class="header">
             <!-- Embedded Logo Using Base64 Encoding -->
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}" alt="BukSU Logo" class="logo" />
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}"
+                alt="BukSU Logo" class="logo" />
             <div class="header-text">
                 <h1>Bukidnon State University</h1>
                 <p>Malaybalay City, Bukidnon 6700</p>
@@ -165,7 +176,7 @@ div<!DOCTYPE html>
                 $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
                 $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
                 // Extract the year from the schedule's start time
-                $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
+$scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
             @endphp
 
             <!-- Schedule Information -->
@@ -194,12 +205,12 @@ div<!DOCTYPE html>
                     @forelse($attendances as $attendance)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
-                            
+
                             @if ($user->isAdmin())
                                 <td>{{ $attendance->user->full_name }}</td>
                                 <td>{{ $attendance->user->role->name }}</td>
                             @endif
-                            
+
                             <td>{{ $attendance->formattedTimeIn }}</td>
                             <td>{{ $attendance->formattedTimeOut }}</td>
                             <td>{{ ucfirst($attendance->status) }}</td>
@@ -208,7 +219,8 @@ div<!DOCTYPE html>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $user->isAdmin() ? 8 : 6 }}">No attendance records found for this schedule.</td>
+                            <td colspan="{{ $user->isAdmin() ? 8 : 6 }}">No attendance records found for this schedule.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -224,7 +236,7 @@ div<!DOCTYPE html>
             <p>Dean/Director/Head of Office</p>
         </div>
     </div> --}}
-    
+
 </body>
 
 </html>

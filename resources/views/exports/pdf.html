@@ -7,111 +7,129 @@
         <style>
             body {
                 font-family: Arial, sans-serif;
-                margin: 20px;
-                font-size: 10px; /* Set font size to 10 points */
+                margin: 10px;
+                font-size: 9px;
+                /* Set font size to 10 points */
             }
+    
             .pdf-wrapper {
-                transform: scale(0.9);
-                transform-origin: top left;
+                width: 100%;
+                /* Ensure full utilization of the width */
             }
+    
             .header {
+                display: flex;
+                align-items: center;
+                /* Vertically centers items */
+                justify-content: center;
+                /* Horizontally centers header text */
                 position: relative;
-                text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
+                height: 80px;
+                /* Adjust as needed */
             }
-            .header img {
+    
+            .header .logo {
                 position: absolute;
-                top: 50%;
                 left: 0;
-                transform: translateY(-50%);
                 width: 60px;
                 height: auto;
             }
+    
             .header-text {
-                display: inline-block;
                 text-align: center;
             }
+    
+    
             .header-text h1,
             .header-text p {
                 margin: 0;
-                font-size: 15px; /* Equal font size for all elements */
-            }
-            .sub-header h1,
-            .sub-header p,
-            .sub-header strong,
-            .sub-header span,
-            .sub-header div,
-            .sub-header td,
-            .sub-header th {
-                margin: 0;
                 font-size: 15px;
+                /* Equal font size for all elements */
             }
-            .sub-header {
-                text-align: center;
-                font-size: 1rem;
-                margin-bottom: 10px;
-            }
+    
             .sub-header {
                 text-align: center;
                 font-size: 15px;
                 margin-bottom: 10px;
             }
+    
             .info {
                 margin-bottom: 20px;
             }
+    
             .info-box {
                 border: 1px solid #000;
                 padding: 5px;
                 margin-bottom: 5px;
             }
+    
             .info-box table {
                 width: 100%;
                 border-collapse: collapse;
             }
+    
             .info-box td {
                 padding: 2px;
             }
+    
             .schedule {
                 margin-top: 10px;
                 margin-bottom: 5px;
                 text-align: left;
             }
+    
             .schedule strong {
                 display: block;
             }
+    
             .dtr-table {
                 width: 100%;
                 border-collapse: collapse;
                 margin-bottom: 20px;
             }
+    
             .dtr-table th,
             .dtr-table td {
                 border: 1px solid #000;
-                text-align: center;
+                text-align: left;
                 padding: 2px;
                 font-size: 10px;
             }
+    
             .dtr-table th {
                 background-color: #f2f2f2;
             }
+    
             .signatures {
-                margin-top: 20px;
                 display: flex;
-                justify-content: space-between; /* Align items evenly across the row */
-                align-items: center; /* Vertically align both items */
+                justify-content: space-between;
+                /* Space between the two sections */
+                align-items: center;
+                /* Ensures vertical alignment */
+                /* width: 100%; Makes the container span the full width */
             }
-
-            .signatures div {
-                text-align: center;
-                width: 45%; /* Ensures equal width for both signature sections */
+    
+            .signature p,
+            .dean p {
+                margin: 0;
+                /* Removes any default margin that can cause misalignment */
+                line-height: 1;
+                /* Ensures consistent line height for alignment */
             }
-
-            .signature-line {
-                border-top: 1px solid #000;
-                margin-top: 10px;
-                width: 80%; /* Keeps the line at a reasonable width */
-                margin-left: auto;
-                margin-right: auto; /* Center the signature line */
+    
+            .signature {
+                text-align: left;
+                /* Align text to the left for signature */
+                flex: 1;
+                /* Allows it to grow evenly */
+            }
+    
+            .dean {
+                text-align: right;
+                /* Align text to the right for dean */
+                flex: 1;
+                /* Allows it to grow evenly */
             }
         </style>
     </head>
@@ -165,6 +183,622 @@
                 </thead>
                 <tbody>
                     <!-- Example rows -->
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>TUE - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>THU - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>FRI - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>MON - 07/01/2024</td>
+                        <td>08:00 AM</td>
+                        <td>12:00 PM</td>
+                        <td>Present</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
                     <tr>
                         <td>MON - 07/01/2024</td>
                         <td>08:00 AM</td>

@@ -11,25 +11,26 @@ use Maatwebsite\Excel\Events\AfterSheet;
 
 class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
-    protected $search;
     protected $role;
+    protected $status;
     protected $rowNumber = 0; // Initialize a row counter
 
-    public function __construct($search, $role)
+    public function __construct($role, $status)
     {
-        $this->search = $search;
         $this->role = $role;
+        $this->status = $status;
     }
 
     public function query()
     {
         return User::query()
-            ->when($this->search, function ($query) {
-                $query->where('username', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%');
-            })
             ->when($this->role, function ($query) {
-                $query->where('role_id', $this->role);
+                $query->whereHas('role', function ($q) {
+                    $q->where('name', $this->role);
+                });
+            })
+            ->when($this->status, function ($query) {
+                $query->where('status', $this->status);
             })
             ->select([
                 'username',
@@ -41,7 +42,8 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                 'role_id',
                 'college_id',
                 'department_id',
-            ]); // Select only the required columns
+                'status',
+            ]);
     }
 
     public function headings(): array
@@ -57,7 +59,8 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             'Role',
             'College',
             'Department',
-        ]; // Updated headings to match your requirements
+            'Status',
+        ];
     }
 
     public function map($user): array
@@ -75,60 +78,53 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             optional($user->role)->name,
             optional($user->college)->name,
             optional($user->department)->name,
+            ucfirst($user->status),
         ];
     }
 
-    // Add the WithEvents interface to apply styles
     public function registerEvents(): array
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Styling the header row
                 $headerStyle = [
                     'font' => [
                         'bold' => true,
-                        'color' => ['argb' => 'FFFFFFFF'], // White font color
+                        'color' => ['argb' => 'FFFFFFFF'],
                     ],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FF4F81BD'], // Dark blue background
+                        'startColor' => ['argb' => 'FF4F81BD'],
                     ],
                     'alignment' => [
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, // Left alignment
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
                         'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     ],
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            'color' => ['argb' => 'FF000000'], // Black borders
                         ],
                     ],
                 ];
 
-                // Apply the header style (A1:J1)
-                $event->sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+                $event->sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
 
-                // Apply borders and left alignment to the content
-                $highestRow = $event->sheet->getHighestRow(); // e.g. row 50
-                $highestColumn = $event->sheet->getHighestColumn(); // e.g. column J
                 $contentStyle = [
                     'alignment' => [
-                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, // Left alignment
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
                         'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     ],
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            'color' => ['argb' => 'FF000000'], // Black borders for all content
                         ],
                     ],
                 ];
 
-                // Apply the content style from A2 to the last row/column
-                $event->sheet->getStyle('A2:' . $highestColumn . $highestRow)->applyFromArray($contentStyle);
+                $highestRow = $event->sheet->getHighestRow();
+                $highestColumn = $event->sheet->getHighestColumn();
+                $event->sheet->getStyle("A2:{$highestColumn}{$highestRow}")->applyFromArray($contentStyle);
 
-                // Auto-size the columns to fit the content
-                foreach (range('A', 'J') as $columnID) {
+                foreach (range('A', 'K') as $columnID) {
                     $event->sheet->getDelegate()->getColumnDimension($columnID)->setAutoSize(true);
                 }
             },

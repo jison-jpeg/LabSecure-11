@@ -6,6 +6,7 @@ use App\Exports\CollegeExport;
 use App\Imports\CollegeImport;
 use App\Models\College;
 use App\Models\TransactionLog;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Url;
@@ -141,17 +142,35 @@ class CollegeTable extends Component
     }
 
     public function exportAs($format)
-    {
-        switch ($format) {
-            case 'csv':
-                return Excel::download(new CollegeExport(), 'College and Departments.csv', \Maatwebsite\Excel\Excel::CSV);
-            case 'excel':
-                return Excel::download(new CollegeExport(), 'College and Departments.xlsx');
-            case 'pdf':
-                // You can implement a PDF export logic if needed.
-                break;
-        }
+{
+    $timestamp = now()->format('Y_m_d_H_i_s'); // Current date and time
+    $fileName = "College_and_Departments_{$timestamp}";
+
+    switch ($format) {
+        case 'csv':
+            return Excel::download(new CollegeExport(), "{$fileName}.csv", \Maatwebsite\Excel\Excel::CSV);
+        case 'excel':
+            return Excel::download(new CollegeExport(), "{$fileName}.xlsx");
+        case 'pdf':
+            $colleges = College::with(['departments.users'])->get();
+
+            $pdf = Pdf::loadView('exports.college_report', [
+                'colleges' => $colleges,
+            ])->setPaper('a4', 'portrait')
+              ->setOption('margin-top', '10mm')
+              ->setOption('margin-bottom', '10mm')
+              ->setOption('margin-left', '10mm')
+              ->setOption('margin-right', '10mm');
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, "{$fileName}.pdf");
+
+        default:
+            notyf()->position('x', 'right')->position('y', 'top')->error('Unsupported export format.');
+            break;
     }
+}
 
     public function render()
     {

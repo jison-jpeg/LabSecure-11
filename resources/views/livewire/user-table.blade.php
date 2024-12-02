@@ -52,6 +52,65 @@
         </div>
     </div>
 
+    {{-- User Export Modal --}}
+    <div wire:ignore.self class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportModalLabel">Export Users</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form class="row g-2">
+                        <!-- Role Filter -->
+                        <div class="col-12 col-sm-6 col-md-6">
+                            <label for="role" class="form-label">Role</label>
+                            <select wire:model.live="role" name="role" class="form-select">
+                                <option value="">All Roles</option>
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="col-12 col-sm-6 col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select wire:model.live="status" name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Export as
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">Excel</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- User Table Livewire --}}
     <div class="row mb-4">
         <div class="col-md-10">
@@ -61,18 +120,10 @@
                     <li class="dropdown-header text-start">
                         <h6>Option</h6>
                     </li>
-                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">Import Users</a>
-                    {{-- <li class="dropdown-submenu position-relative">
-                        <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
-                        <ul class="dropdown-menu position-absolute">
-                            <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('excel')" href="#" class="dropdown-item">Excel</a>
-                            </li>
-                            <li><a wire:click.prevent="exportAs('pdf')" href="#" class="dropdown-item">PDF</a>
-                            </li>
-                        </ul>
-                    </li> --}}
+                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                        data-bs-target="#importModal">Import Users</a>
+                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                        data-bs-target="#exportModal">Export Users</a>
                     <li>
                         @if ($selected_user_id)
                             <a wire:click.prevent="deleteSelected"
@@ -98,8 +149,8 @@
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search users...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search"
+                        class="form-control" placeholder="Search users...">
                 </div>
 
                 <div class="col-12 col-md-2">
