@@ -131,48 +131,47 @@ class SubjectTable extends Component
     }
 
     public function exportAs($format)
-{
-    $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
-    $fileName = "Subject_Export_{$timestamp}";
+    {
+        $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
+        $fileName = "Subject_Export_{$timestamp}";
 
-    switch ($format) {
-        case 'csv':
-            return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.csv");
-        case 'excel':
-            return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.xlsx");
-        case 'pdf':
-            // Group subjects by colleges and departments
-            $colleges = College::with(['departments.subjects' => function ($query) {
-                $query->when($this->college !== '', function ($query) {
-                    $query->where('college_id', $this->college);
-                })
-                ->when($this->department !== '', function ($query) {
-                    $query->where('department_id', $this->department);
-                });
-            }])
-            ->when($this->college !== '', function ($query) {
-                $query->where('id', $this->college);
-            })
-            ->get();
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.csv");
+            case 'excel':
+                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.xlsx");
+            case 'pdf':
+                // Fetch colleges with filtered departments and subjects
+                $colleges = College::with(['departments' => function ($query) {
+                    $query->when($this->department !== '', function ($query) {
+                        $query->where('id', $this->department); // Filter by department
+                    })->with(['subjects' => function ($query) {
+                        $query->when($this->college !== '', function ($query) {
+                            $query->where('college_id', $this->college); // Filter by college
+                        });
+                    }]);
+                }])->when($this->college !== '', function ($query) {
+                    $query->where('id', $this->college); // Filter by college
+                })->get();
 
-            // Generate the PDF view
-            $pdf = Pdf::loadView('exports.subject_report', [
-                'colleges' => $colleges,
-                'collegeFilter' => $this->college ? College::find($this->college)->name : 'All',
-                'departmentFilter' => $this->department ? Department::find($this->department)->name : 'All',
-                'generatedBy' => Auth::user()->full_name,
-            ])->setPaper('a4', 'portrait');
+                // Generate the PDF view
+                $pdf = Pdf::loadView('exports.subject_report', [
+                    'colleges' => $colleges,
+                    'collegeFilter' => $this->college ? College::find($this->college)->name : 'All Colleges',
+                    'departmentFilter' => $this->department ? Department::find($this->department)->name : 'All Departments',
+                    'generatedBy' => Auth::user()->full_name,
+                ])->setPaper('a4', 'portrait');
 
-            // Stream the PDF download
-            return response()->streamDownload(function () use ($pdf) {
-                echo $pdf->output();
-            }, "{$fileName}.pdf");
+                // Stream the PDF download
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->output();
+                }, "{$fileName}.pdf");
 
-        default:
-            notyf()->error('Unsupported export format.');
-            break;
+            default:
+                notyf()->error('Unsupported export format.');
+                break;
+        }
     }
-}
 
 
     public function render()
