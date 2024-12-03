@@ -212,30 +212,44 @@ class ScheduleTable extends Component
     {
         $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
         $fileName = "Schedule_Export_{$timestamp}";
-    
-        // Retrieve filtered colleges, departments, and schedules based on the current filters
+
+        // Retrieve filtered colleges, departments, and schedules
         $colleges = College::with(['departments' => function ($query) {
             $query->when($this->department, function ($query) {
                 $query->where('id', $this->department);
             })->with(['schedules' => function ($query) {
-                $query->when($this->college, function ($query) {
-                    $query->where('college_id', $this->college);
+                // Filter schedules for a specific department or college
+                $query->when($this->department, function ($query) {
+                    $query->where('department_id', $this->department);
                 })
-                ->when($this->yearLevel, function ($query) {
-                    $query->whereHas('section', function ($q) {
-                        $q->where('year_level', $this->yearLevel);
-                    });
-                })
-                ->when($this->section, function ($query) {
-                    $query->where('section_id', $this->section);
-                });
+                    ->when($this->college, function ($query) {
+                        $query->where('college_id', $this->college);
+                    })
+                    ->when($this->yearLevel, function ($query) {
+                        $query->whereHas('section', function ($q) {
+                            $q->where('year_level', $this->yearLevel);
+                        });
+                    })
+                    ->when($this->section, function ($query) {
+                        $query->where('section_id', $this->section);
+                    })
+                    ->with(['section', 'subject', 'instructor']);
             }]);
         }])
-        ->when($this->college, function ($query) {
-            $query->where('id', $this->college);
-        })
-        ->get();
-    
+            ->when($this->college, function ($query) {
+                $query->where('id', $this->college);
+            })
+            ->when($this->department && !$this->college, function ($query) {
+                // Ensure that the query includes the college related to the specified department
+                $query->whereHas('departments', function ($subQuery) {
+                    $subQuery->where('id', $this->department);
+                });
+            })
+            ->get();
+
+        $selectedCollegeName = $this->college ? College::find($this->college)->name : null;
+        $isSpecificExport = $this->college || $this->department;
+
         switch ($format) {
             case 'csv':
                 return Excel::download(new ScheduleExport($colleges), "{$fileName}.csv");
@@ -244,23 +258,25 @@ class ScheduleTable extends Component
             case 'pdf':
                 $pdf = Pdf::loadView('exports.schedule_report', [
                     'colleges' => $colleges,
-                    'collegeFilter' => $this->college ? College::find($this->college)->name : 'All',
+                    'selectedCollegeName' => $selectedCollegeName,
+                    'isSpecificExport' => $isSpecificExport,
                     'departmentFilter' => $this->department ? Department::find($this->department)->name : 'All',
                     'yearLevelFilter' => $this->yearLevel ?: 'All',
                     'sectionFilter' => $this->section ? Section::find($this->section)->name : 'All',
                     'generatedBy' => Auth::user()->full_name,
                 ])->setPaper('a4', 'portrait');
-    
+
                 return response()->streamDownload(function () use ($pdf) {
                     echo $pdf->output();
                 }, "{$fileName}.pdf");
-    
+
             default:
                 notyf()->error('Unsupported export format.');
                 break;
         }
     }
-    
+
+
     /**
      * Get export filters based on current filters
      */
