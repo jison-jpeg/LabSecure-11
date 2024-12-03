@@ -163,8 +163,8 @@
                     <li class="dropdown-header text-start">
                         <h6>Options</h6>
                     </li>
-                    <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
-                            data-bs-target="#importModal">Import</a></li>
+                    {{-- <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
+                            data-bs-target="#importModal">Import</a></li> --}}
                     <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
                             data-bs-target="#exportModal">Export</a></li>
 

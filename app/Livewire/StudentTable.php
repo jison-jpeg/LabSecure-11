@@ -2,12 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Exports\StudentExport;
 use App\Imports\StudentImport;
 use App\Models\User;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Schedule;
 use App\Models\Section;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
@@ -180,6 +182,59 @@ class StudentTable extends Component
 
         $this->reset('studentFile');
     }
+
+    public function exportAs($format)
+{
+    $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
+    $fileName = "Student_Export_{$timestamp}";
+
+    switch ($format) {
+        case 'csv':
+            return Excel::download(new StudentExport($this->college, $this->department, $this->yearLevel, $this->section), "{$fileName}.csv");
+
+        case 'excel':
+            return Excel::download(new StudentExport($this->college, $this->department, $this->yearLevel, $this->section), "{$fileName}.xlsx");
+
+        case 'pdf':
+            $students = User::whereHas('role', function ($query) {
+                $query->where('name', 'student'); // Use role name for students
+            })
+            ->when($this->college, function ($query) {
+                $query->where('college_id', $this->college);
+            })
+            ->when($this->department, function ($query) {
+                $query->where('department_id', $this->department);
+            })
+            ->when($this->yearLevel, function ($query) {
+                $query->whereHas('section', function ($q) {
+                    $q->where('year_level', $this->yearLevel);
+                });
+            })
+            ->when($this->section, function ($query) {
+                $query->where('section_id', $this->section);
+            })
+            ->with(['college', 'department', 'section', 'role'])
+            ->get();
+
+            $pdf = Pdf::loadView('exports.student_report', [
+                'students' => $students,
+                'collegeFilter' => College::find($this->college),
+                'departmentFilter' => Department::find($this->department),
+                'sectionFilter' => Section::find($this->section),
+                'yearLevelFilter' => $this->yearLevel,
+                'generatedBy' => Auth::user(),
+            ])->setPaper('a4', 'portrait');
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, "{$fileName}.pdf");
+
+        default:
+            notyf()->error('Unsupported export format.');
+            break;
+    }
+}
+
 
     public function updatedStudentFile()
     {

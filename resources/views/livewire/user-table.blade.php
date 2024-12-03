@@ -55,7 +55,7 @@
     {{-- User Export Modal --}}
     <div wire:ignore.self class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-dialog modal modal-dialog-centered">
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">
@@ -65,9 +65,9 @@
 
                 <!-- Modal Body -->
                 <div class="modal-body">
-                    <form class="row g-2">
+                    <form class="row g-3">
                         <!-- Role Filter -->
-                        <div class="col-12 col-sm-6 col-md-6">
+                        <div class="col-12">
                             <label for="role" class="form-label">Role</label>
                             <select wire:model.live="role" name="role" class="form-select">
                                 <option value="">All Roles</option>
@@ -78,7 +78,7 @@
                         </div>
 
                         <!-- Status Filter -->
-                        <div class="col-12 col-sm-6 col-md-6">
+                        <div class="col-12">
                             <label for="status" class="form-label">Status</label>
                             <select wire:model.live="status" name="status" class="form-select">
                                 <option value="">All Statuses</option>

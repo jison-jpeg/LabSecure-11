@@ -102,7 +102,7 @@
         </table>
     @endforeach
 
-    <h3>Grand Total: 
+    <h3>Total Users: 
         @php
             $grandTotal = $colleges->reduce(function ($carry, $college) {
                 return $carry + $college->departments->sum(fn($department) => $department->users->count());

@@ -151,20 +151,28 @@ class FacultyTable extends Component
         switch ($format) {
             case 'csv':
                 return Excel::download(new FacultyExport($this->college, $this->department), "{$fileName}.csv");
+
             case 'excel':
                 return Excel::download(new FacultyExport($this->college, $this->department), "{$fileName}.xlsx");
+
             case 'pdf':
-                $faculties = User::where('role_id', 2)
+                $faculties = User::whereHas('role', function ($query) {
+                    $query->where('name', 'instructor'); // Use role name instead of role_id
+                })
                     ->when($this->college, function ($query) {
                         $query->where('college_id', $this->college);
                     })
                     ->when($this->department, function ($query) {
                         $query->where('department_id', $this->department);
                     })
+                    ->with(['college', 'department', 'role'])
                     ->get();
 
                 $pdf = Pdf::loadView('exports.faculty_report', [
                     'faculties' => $faculties,
+                    'collegeFilter' => College::find($this->college),
+                    'departmentFilter' => Department::find($this->department),
+                    'generatedBy' => Auth::user(),
                 ])->setPaper('a4', 'portrait');
 
                 return response()->streamDownload(function () use ($pdf) {
@@ -177,7 +185,6 @@ class FacultyTable extends Component
         }
     }
 
-
     public function updatedFacultyFile()
     {
         $this->reset(['importErrors', 'importSummary']);
@@ -186,23 +193,23 @@ class FacultyTable extends Component
     public function render()
     {
         $user = Auth::user();
-    
+
         // Initialize the query
         $query = User::whereHas('role', function ($q) {
             $q->where('name', 'instructor'); // Use the role name "instructor"
         })->search($this->search);
-    
+
         // Apply role-based filters
         if ($user->isAdmin()) {
             // Admin can filter by college and department
             if ($this->college !== '') {
                 $query->where('college_id', $this->college);
             }
-    
+
             if ($this->department !== '') {
                 $query->where('department_id', $this->department);
             }
-    
+
             // Fetch departments based on selected college
             if ($this->college !== '') {
                 $this->filteredDepartments = Department::where('college_id', $this->college)->get();
@@ -212,12 +219,12 @@ class FacultyTable extends Component
         } elseif ($user->isDean()) {
             // Dean can only see faculties from their college
             $query->where('college_id', $user->college_id);
-    
+
             // Allow filtering by department within their college
             if ($this->department !== '') {
                 $query->where('department_id', $this->department);
             }
-    
+
             // Fetch departments within the dean's college
             $this->filteredDepartments = Department::where('college_id', $user->college_id)->get();
         } elseif ($user->isChairperson()) {
@@ -228,21 +235,21 @@ class FacultyTable extends Component
             // For other roles, default to no departments
             $this->filteredDepartments = collect();
         }
-    
+
         $faculties = $query->orderBy($this->sortBy, $this->sortDir)
             ->paginate($this->perPage);
-    
+
         // Determine which filters to show based on role
         $colleges = $user->isAdmin() ? College::all() : collect([]);
         // Departments are already handled above in $filteredDepartments
-    
+
         return view('livewire.faculty-table', [
             'faculties' => $faculties,
             'colleges' => $colleges,
             'departments' => $this->filteredDepartments,
         ]);
     }
-    
+
 
     #[On('refresh-faculty-table')]
     public function refreshFacultyTable()

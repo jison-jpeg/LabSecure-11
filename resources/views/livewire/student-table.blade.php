@@ -1,6 +1,6 @@
 <div>
     <!-- Student Import Modal -->
-    <div wire:ignore.self class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel"
+    <div wire:ignore.self class="modal fade" id="studentImportModal" tabindex="-1" aria-labelledby="importModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -52,6 +52,89 @@
         </div>
     </div>
 
+    {{-- Student Export Modal --}}
+    <div wire:ignore.self class="modal fade" id="studentExportModal" tabindex="-1"
+        aria-labelledby="studentExportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentExportModalLabel">Export Students</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form class="row g-3">
+                        <!-- College Filter -->
+                        <div class="col-6">
+                            <label for="college" class="form-label">College</label>
+                            <select wire:model.live="college" name="college" class="form-select">
+                                <option value="">All Colleges</option>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Department Filter -->
+                        <div class="col-6">
+                            <label for="department" class="form-label">Department</label>
+                            <select wire:model.live="department" name="department" class="form-select">
+                                <option value="">All Departments</option>
+                                @foreach ($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Year Level Filter -->
+                        <div class="col-6">
+                            <label for="yearLevel" class="form-label">Year Level</label>
+                            <select wire:model.live="yearLevel" name="yearLevel" class="form-select">
+                                <option value="">All Year Levels</option>
+                                @foreach ($availableYearLevels as $yearLevel)
+                                    <option value="{{ $yearLevel }}">{{ $yearLevel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Section Filter -->
+                        <div class="col-6">
+                            <label for="section" class="form-label">Section</label>
+                            <select wire:model.live="section" name="section" class="form-select">
+                                <option value="">All Sections</option>
+                                @foreach ($sections as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Export as
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a>
+                            </li>
+                            <li><a class="dropdown-item" href="#"
+                                    wire:click.prevent="exportAs('excel')">Excel</a></li>
+                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="row mb-4">
         <div class="col-md-10">
             <div class="filter">
@@ -60,7 +143,13 @@
                     <li class="dropdown-header text-start">
                         <h6>Option</h6>
                     </li>
-                    <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">Import
+                    @if (Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson())
+                        <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                            data-bs-target="#studentImportModal">Import
+                            Student</a>
+                    @endif
+                    <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                        data-bs-target="#studentExportModal">Export
                         Student</a>
                     {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
@@ -90,8 +179,8 @@
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search students...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search"
+                        class="form-control" placeholder="Search students...">
                 </div>
 
                 {{-- Conditionally Display College Filter --}}
@@ -130,7 +219,8 @@
                         <select wire:model.live="scheduleCode" name="scheduleCode" class="form-select">
                             <option value="">Select Schedule Code</option>
                             @forelse ($schedules as $schedule)
-                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}</option>
+                                <option value="{{ $schedule->schedule_code }}">{{ $schedule->schedule_code }}
+                                </option>
                             @empty
                                 <option value="" disabled>No schedules available</option>
                             @endforelse

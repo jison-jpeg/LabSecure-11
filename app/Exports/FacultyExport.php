@@ -3,49 +3,40 @@
 namespace App\Exports;
 
 use App\Models\User;
-use Maatwebsite\Excel\Concerns\FromQuery;
+use App\Models\College;
+use App\Models\Department;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\FromQuery;
 
-class FacultyExport implements FromQuery, WithHeadings, WithMapping, WithEvents
+class FacultyExport implements FromQuery, WithHeadings, WithMapping
 {
     protected $college;
     protected $department;
 
-    public function __construct($college, $department)
+    public function __construct($college = null, $department = null)
     {
         $this->college = $college;
         $this->department = $department;
     }
 
     public function query()
-{
-    return User::query()
-        ->whereHas('role', function ($q) {
-            $q->where('name', 'instructor'); // Use role name "instructor"
+    {
+        return User::whereHas('role', function ($query) {
+            $query->where('name', 'instructor'); // Use role name
         })
-        ->when($this->college, function ($query) {
-            $query->where('college_id', $this->college);
-        })
-        ->when($this->department, function ($query) {
-            $query->where('department_id', $this->department);
-        });
-}
-
+            ->when($this->college, function ($query) {
+                $query->where('college_id', $this->college);
+            })
+            ->when($this->department, function ($query) {
+                $query->where('department_id', $this->department);
+            })
+            ->with(['college', 'department', 'role']);
+    }
 
     public function headings(): array
     {
-        return [
-            '#',
-            'Username',
-            'First Name',
-            'Last Name',
-            'Email',
-            'College',
-            'Department',
-        ];
+        return ['#', 'Username', 'First Name', 'Last Name', 'Email', 'Role', 'College', 'Department', 'Status'];
     }
 
     public function map($faculty): array
@@ -56,27 +47,10 @@ class FacultyExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             $faculty->first_name,
             $faculty->last_name,
             $faculty->email,
+            optional($faculty->role)->name,
             optional($faculty->college)->name,
             optional($faculty->department)->name,
-        ];
-    }
-
-    public function registerEvents(): array
-    {
-        return [
-            AfterSheet::class => function (AfterSheet $event) {
-                $event->sheet->getStyle('A1:G1')->applyFromArray([
-                    'font' => ['bold' => true],
-                    'fill' => [
-                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FF4F81BD'],
-                    ],
-                ]);
-
-                foreach (range('A', 'G') as $columnID) {
-                    $event->sheet->getColumnDimension($columnID)->setAutoSize(true);
-                }
-            },
+            ucfirst($faculty->status),
         ];
     }
 }

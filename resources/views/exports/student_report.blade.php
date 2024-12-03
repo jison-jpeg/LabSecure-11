@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Report</title>
+    <title>Student Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -53,21 +53,21 @@
             padding: 2px;
         }
 
-        .faculty-table {
+        .student-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
 
-        .faculty-table th,
-        .faculty-table td {
+        .student-table th,
+        .student-table td {
             border: 1px solid #000;
             text-align: center;
             padding: 4px;
             font-size: 9px;
         }
 
-        .faculty-table th {
+        .student-table th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
@@ -102,10 +102,20 @@
                     <td colspan="2"><strong>Department Filter:</strong> {{ $departmentFilter->name }}</td>
                 </tr>
             @endif
+            @if ($sectionFilter)
+                <tr>
+                    <td colspan="2"><strong>Section Filter:</strong> {{ $sectionFilter->name }}</td>
+                </tr>
+            @endif
+            @if ($yearLevelFilter)
+                <tr>
+                    <td colspan="2"><strong>Year Level Filter:</strong> {{ $yearLevelFilter }}</td>
+                </tr>
+            @endif
         </table>
     </div>
 
-    <table class="faculty-table">
+    <table class="student-table">
         <thead>
             <tr>
                 <th>#</th>
@@ -116,25 +126,29 @@
                 <th>Role</th>
                 <th>College</th>
                 <th>Department</th>
+                <th>Section</th>
+                <th>Year Level</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($faculties as $index => $faculty)
+            @forelse ($students as $index => $student)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $faculty->username }}</td>
-                    <td>{{ $faculty->first_name }}</td>
-                    <td>{{ $faculty->last_name }}</td>
-                    <td>{{ $faculty->email }}</td>
-                    <td>{{ optional($faculty->role)->name }}</td>
-                    <td>{{ optional($faculty->college)->name }}</td>
-                    <td>{{ optional($faculty->department)->name }}</td>
-                    <td>{{ ucfirst($faculty->status) }}</td>
+                    <td>{{ $student->username }}</td>
+                    <td>{{ $student->first_name }}</td>
+                    <td>{{ $student->last_name }}</td>
+                    <td>{{ $student->email }}</td>
+                    <td>{{ optional($student->role)->name }}</td>
+                    <td>{{ optional($student->college)->name }}</td>
+                    <td>{{ optional($student->department)->name }}</td>
+                    <td>{{ optional($student->section)->name }}</td>
+                    <td>{{ optional($student->section)->year_level }}</td>
+                    <td>{{ ucfirst($student->status) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9">No faculties found.</td>
+                    <td colspan="11">No students found.</td>
                 </tr>
             @endforelse
         </tbody>
