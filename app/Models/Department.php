@@ -35,21 +35,27 @@ class Department extends Model
         return $this->hasMany(User::class);
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+
     public function chairperson()
-{
-    return $this->hasOne(User::class)->whereHas('role', function($query){
-        $query->where('name', 'chairperson');
-    });
-}
+    {
+        return $this->hasOne(User::class)->whereHas('role', function ($query) {
+            $query->where('name', 'chairperson');
+        });
+    }
 
 
     // Scope Search
     public function scopeSearch($query, $value)
     {
         return $query->where('name', 'like', '%' . $value . '%')
-                     ->orWhere('description', 'like', '%' . $value . '%')
-                     ->orWhereHas('college', function($q) use ($value) {
-                         $q->where('name', 'like', '%' . $value . '%');
-                     });
+            ->orWhere('description', 'like', '%' . $value . '%')
+            ->orWhereHas('college', function ($q) use ($value) {
+                $q->where('name', 'like', '%' . $value . '%');
+            });
     }
 }

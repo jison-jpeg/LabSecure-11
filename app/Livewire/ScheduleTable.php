@@ -8,6 +8,7 @@ use App\Models\Schedule;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Section;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -171,13 +172,11 @@ class ScheduleTable extends Component
                     $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
                 }
                 return;
-
             } elseif ($skippedCount > 0) {
                 // Partial success: Display summary with skipped details in modal
                 $skippedDetails = implode(", ", $import->skipped);
                 $this->importSummary = "$successCount out of $totalCount schedules imported successfully. $skippedCount schedules were skipped: $skippedDetails.";
                 $this->importErrors = [];
-
             } else {
                 // Full success: Show success message in Notyf if all records imported
                 $message = "$totalCount schedules imported successfully.";
@@ -190,7 +189,6 @@ class ScheduleTable extends Component
                 $this->dispatch('close-import-modal');
                 $this->reset(['importErrors', 'importSummary']);
             }
-
         } catch (\Exception $e) {
             // Handle unexpected errors
             $this->importErrors = ['Error: ' . $e->getMessage()];
@@ -212,22 +210,57 @@ class ScheduleTable extends Component
 
     public function exportAs($format)
     {
+        $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
+        $fileName = "Schedule_Export_{$timestamp}";
+    
+        // Retrieve filtered colleges, departments, and schedules based on the current filters
+        $colleges = College::with(['departments' => function ($query) {
+            $query->when($this->department, function ($query) {
+                $query->where('id', $this->department);
+            })->with(['schedules' => function ($query) {
+                $query->when($this->college, function ($query) {
+                    $query->where('college_id', $this->college);
+                })
+                ->when($this->yearLevel, function ($query) {
+                    $query->whereHas('section', function ($q) {
+                        $q->where('year_level', $this->yearLevel);
+                    });
+                })
+                ->when($this->section, function ($query) {
+                    $query->where('section_id', $this->section);
+                });
+            }]);
+        }])
+        ->when($this->college, function ($query) {
+            $query->where('id', $this->college);
+        })
+        ->get();
+    
         switch ($format) {
             case 'csv':
-                return Excel::download(new ScheduleExport($this->getExportFilters()), 'schedules.csv', \Maatwebsite\Excel\Excel::CSV);
+                return Excel::download(new ScheduleExport($colleges), "{$fileName}.csv");
             case 'excel':
-                return Excel::download(new ScheduleExport($this->getExportFilters()), 'schedules.xlsx');
+                return Excel::download(new ScheduleExport($colleges), "{$fileName}.xlsx");
             case 'pdf':
-                // Implement PDF export if needed
-                // Example:
-                // return Excel::download(new ScheduleExport($this->getExportFilters()), 'schedules.pdf', \Maatwebsite\Excel\Excel::DOMPDF);
-                break;
+                $pdf = Pdf::loadView('exports.schedule_report', [
+                    'colleges' => $colleges,
+                    'collegeFilter' => $this->college ? College::find($this->college)->name : 'All',
+                    'departmentFilter' => $this->department ? Department::find($this->department)->name : 'All',
+                    'yearLevelFilter' => $this->yearLevel ?: 'All',
+                    'sectionFilter' => $this->section ? Section::find($this->section)->name : 'All',
+                    'generatedBy' => Auth::user()->full_name,
+                ])->setPaper('a4', 'portrait');
+    
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->output();
+                }, "{$fileName}.pdf");
+    
             default:
-                // Handle unsupported formats if necessary
+                notyf()->error('Unsupported export format.');
                 break;
         }
     }
-
+    
     /**
      * Get export filters based on current filters
      */
@@ -354,7 +387,7 @@ class ScheduleTable extends Component
 
             if ($this->department !== '') {
                 $query->whereIn('id', $instructorSections)
-                      ->where('department_id', $this->department);
+                    ->where('department_id', $this->department);
             } else {
                 $query->whereIn('id', $instructorSections);
             }
@@ -437,18 +470,18 @@ class ScheduleTable extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('schedule_code', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('subject', function ($q2) {
-                      $q2->where('name', 'like', '%' . $this->search . '%')
-                         ->orWhere('code', 'like', '%' . $this->search . '%');
-                  })
-                  ->orWhereHas('instructor', function ($q2) {
-                      $q2->where('first_name', 'like', '%' . $this->search . '%')
-                         ->orWhere('last_name', 'like', '%' . $this->search . '%');
-                  })
-                  ->orWhereHas('section', function ($q2) {
-                      $q2->where('name', 'like', '%' . $this->search . '%')
-                         ->orWhere('year_level', 'like', '%' . $this->search . '%');
-                  });
+                    ->orWhereHas('subject', function ($q2) {
+                        $q2->where('name', 'like', '%' . $this->search . '%')
+                            ->orWhere('code', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('instructor', function ($q2) {
+                        $q2->where('first_name', 'like', '%' . $this->search . '%')
+                            ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('section', function ($q2) {
+                        $q2->where('name', 'like', '%' . $this->search . '%')
+                            ->orWhere('year_level', 'like', '%' . $this->search . '%');
+                    });
                 // Add more searchable fields as needed
             });
         }
@@ -456,8 +489,8 @@ class ScheduleTable extends Component
         // Apply sorting
         if ($this->sortBy === 'section.year_level') {
             $query->join('sections', 'schedules.section_id', '=', 'sections.id')
-                  ->orderBy('sections.year_level', $this->sortDir)
-                  ->select('schedules.*'); // Ensure you select schedules.* to avoid column conflicts
+                ->orderBy('sections.year_level', $this->sortDir)
+                ->select('schedules.*'); // Ensure you select schedules.* to avoid column conflicts
         } else {
             // Handle sorting for related fields if necessary
             // For example, 'instructor.full_name', 'subject.name', etc.
