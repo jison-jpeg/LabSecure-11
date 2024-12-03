@@ -52,55 +52,90 @@
         </div>
     </div>
 
-<!-- Export Section Modal -->
-<div wire:ignore.self class="modal fade" id="exportSectionModal" tabindex="-1" aria-labelledby="exportSectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportSectionModalLabel">Export Sections</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form class="row g-3">
-                    <!-- College Filter -->
-                    <div class="col-12">
-                        <label for="selectedCollege" class="form-label">Filter by College</label>
-                        <select wire:model="college" id="selectedCollege" class="form-select">
-                            <option value="">All Colleges</option>
-                            @foreach ($colleges as $college)
-                                <option value="{{ $college->id }}">{{ $college->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Department Filter -->
-                    <div class="col-12">
-                        <label for="selectedDepartment" class="form-label">Filter by Department</label>
-                        <select wire:model="department" id="selectedDepartment" class="form-select">
-                            <option value="">All Departments</option>
-                            @foreach ($availableDepartments as $department)
-                                <option value="{{ $department->id }}">{{ $department->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        Export as
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportSections('csv')">CSV</a></li>
-                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportSections('excel')">Excel</a></li>
-                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportSections('pdf')">PDF</a></li>
-                    </ul>
+    <!-- Export Section Modal -->
+    <div wire:ignore.self class="modal fade" id="exportSectionModal" tabindex="-1"
+        aria-labelledby="exportSectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportSectionModalLabel">Export Sections</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <div class="modal-body">
+                    <form class="row g-3">
+                        <!-- College Filter -->
+                        <div class="col-12">
+                            <label for="selectedCollege" class="form-label">Filter by College</label>
+                            <select wire:model="college" id="selectedCollege" class="form-select">
+                                <option value="">All Colleges</option>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Department Filter -->
+                        <div class="col-12">
+                            <label for="selectedDepartment" class="form-label">Filter by Department</label>
+                            <select wire:model="department" id="selectedDepartment" class="form-select">
+                                <option value="">All Departments</option>
+                                @foreach ($availableDepartments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle="dropdown" aria-expanded="false" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="exportAs">Export as</span>
+                            <span wire:loading wire:target="exportAs">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Exporting...
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">
+                                    <span wire:loading.remove wire:target="exportAs('csv')">CSV</span>
+                                    <span wire:loading wire:target="exportAs('csv')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting CSV...
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">
+                                    <span wire:loading.remove wire:target="exportAs('excel')">Excel</span>
+                                    <span wire:loading wire:target="exportAs('excel')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting Excel...
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">
+                                    <span wire:loading.remove wire:target="exportAs('pdf')">PDF</span>
+                                    <span wire:loading wire:target="exportAs('pdf')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting PDF...
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
-</div>
 
 
     <div class="row mb-4">

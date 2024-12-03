@@ -160,7 +160,7 @@ class SectionTable extends Component
         $this->reset('sectionFile');
     }
 
-    public function exportSections($format)
+    public function exportAs($format)
     {
         $timestamp = now()->format('Y_m_d_H_i_s');
         $fileName = "Section_Export_{$timestamp}";

@@ -52,44 +52,79 @@
         </div>
     </div>
 
-<!-- Export College Modal -->
-<div wire:ignore.self class="modal fade" id="exportCollegeModal" tabindex="-1" aria-labelledby="exportCollegeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportCollegeModalLabel">Export Colleges</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form class="row g-3">
-                    <!-- College Filter -->
-                    <div class="col-12">
-                        <label for="selectedCollege" class="form-label">Filter by College</label>
-                        <select wire:model="selectedCollege" id="selectedCollege" class="form-select">
-                            <option value="">All Colleges</option>
-                            @foreach ($colleges as $college)
-                                <option value="{{ $college->id }}">{{ $college->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        Export as
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a></li>
-                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">Excel</a></li>
-                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a></li>
-                    </ul>
+    <!-- Export College Modal -->
+    <div wire:ignore.self class="modal fade" id="exportCollegeModal" tabindex="-1"
+        aria-labelledby="exportCollegeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportCollegeModalLabel">Export Colleges</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <div class="modal-body">
+                    <form class="row g-3">
+                        <!-- College Filter -->
+                        <div class="col-12">
+                            <label for="selectedCollege" class="form-label">Filter by College</label>
+                            <select wire:model="selectedCollege" id="selectedCollege" class="form-select">
+                                <option value="">All Colleges</option>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle="dropdown" aria-expanded="false" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="exportAs">Export as</span>
+                            <span wire:loading wire:target="exportAs">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Exporting...
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">
+                                    <span wire:loading.remove wire:target="exportAs('csv')">CSV</span>
+                                    <span wire:loading wire:target="exportAs('csv')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting CSV...
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">
+                                    <span wire:loading.remove wire:target="exportAs('excel')">Excel</span>
+                                    <span wire:loading wire:target="exportAs('excel')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting Excel...
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">
+                                    <span wire:loading.remove wire:target="exportAs('pdf')">PDF</span>
+                                    <span wire:loading wire:target="exportAs('pdf')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting PDF...
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
-</div>
 
     <div class="row mb-4 mt-4">
         <div class="col-md-10">
@@ -132,8 +167,8 @@
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search colleges...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search"
+                        class="form-control" placeholder="Search colleges...">
                 </div>
 
                 <div class="col-12 col-md-2">
@@ -180,9 +215,10 @@
                                 </a>
                                 <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
                                     onclick="event.stopPropagation()">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button></li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $college->id }}})" type="button"
-                                            class="dropdown-item" data-bs-toggle="modal"
+                                    <li><button type="button" class="dropdown-item" href="#">View</button>
+                                    </li>
+                                    <li><button @click="$dispatch('edit-mode',{id:{{ $college->id }}})"
+                                            type="button" class="dropdown-item" data-bs-toggle="modal"
                                             data-bs-target="#verticalycentered">Edit</button></li>
                                     <li><button wire:click="delete({{ $college->id }})"
                                             wire:confirm="Are you sure you want to delete '{{ $college->name }}'"

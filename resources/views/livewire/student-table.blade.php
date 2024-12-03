@@ -117,19 +117,48 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <div class="dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            Export as
+                            data-bs-toggle="dropdown" aria-expanded="false" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="exportAs">Export as</span>
+                            <span wire:loading wire:target="exportAs">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Exporting...
+                            </span>
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">CSV</a>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('csv')">
+                                    <span wire:loading.remove wire:target="exportAs('csv')">CSV</span>
+                                    <span wire:loading wire:target="exportAs('csv')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting CSV...
+                                    </span>
+                                </a>
                             </li>
-                            <li><a class="dropdown-item" href="#"
-                                    wire:click.prevent="exportAs('excel')">Excel</a></li>
-                            <li><a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">PDF</a>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('excel')">
+                                    <span wire:loading.remove wire:target="exportAs('excel')">Excel</span>
+                                    <span wire:loading wire:target="exportAs('excel')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting Excel...
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" wire:click.prevent="exportAs('pdf')">
+                                    <span wire:loading.remove wire:target="exportAs('pdf')">PDF</span>
+                                    <span wire:loading wire:target="exportAs('pdf')">
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        Exporting PDF...
+                                    </span>
+                                </a>
                             </li>
                         </ul>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
