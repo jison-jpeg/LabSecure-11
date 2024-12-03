@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Exports\SectionExport;
 use App\Models\Section;
 use App\Models\College;
 use App\Models\Department;
@@ -177,6 +178,10 @@ class SectionTable extends Component
             ->get();
 
         switch ($format) {
+            case 'csv':
+                return Excel::download(new SectionExport($this->search, $this->college, $this->department), "{$fileName}.csv");
+            case 'excel':
+                return Excel::download(new SectionExport($this->search, $this->college, $this->department), "{$fileName}.xlsx");
             case 'pdf':
                 $pdf = Pdf::loadView('exports.section_report', [
                     'colleges' => $colleges,
