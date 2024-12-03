@@ -52,6 +52,56 @@
         </div>
     </div>
 
+<!-- Export Section Modal -->
+<div wire:ignore.self class="modal fade" id="exportSectionModal" tabindex="-1" aria-labelledby="exportSectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportSectionModalLabel">Export Sections</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row g-3">
+                    <!-- College Filter -->
+                    <div class="col-12">
+                        <label for="selectedCollege" class="form-label">Filter by College</label>
+                        <select wire:model="college" id="selectedCollege" class="form-select">
+                            <option value="">All Colleges</option>
+                            @foreach ($colleges as $college)
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Department Filter -->
+                    <div class="col-12">
+                        <label for="selectedDepartment" class="form-label">Filter by Department</label>
+                        <select wire:model="department" id="selectedDepartment" class="form-select">
+                            <option value="">All Departments</option>
+                            @foreach ($availableDepartments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Export as
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportSections('csv')">CSV</a></li>
+                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportSections('excel')">Excel</a></li>
+                        <li><a class="dropdown-item" href="#" wire:click.prevent="exportSections('pdf')">PDF</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <div class="row mb-4">
         <div class="col-md-10">
@@ -63,6 +113,8 @@
                     </li>
                     <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
                             data-bs-target="#importModal">Import Section</a></li>
+                    <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
+                            data-bs-target="#exportSectionModal">Export Section</a></li>
                     {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
@@ -91,8 +143,8 @@
                 </div>
 
                 <div class="col-12 col-md-3">
-                    <input wire:model.live.debounce.300ms="search" type="text" name="search" class="form-control"
-                        placeholder="Search sections...">
+                    <input wire:model.live.debounce.300ms="search" type="text" name="search"
+                        class="form-control" placeholder="Search sections...">
                 </div>
 
                 {{-- Conditionally Display College Filter for Admin --}}
@@ -172,8 +224,8 @@
                         'name' => 'created_at',
                         'displayName' => 'Created At',
                     ])
-                    @if(Auth::user()->isAdmin())
-                    <th scope="col" class="text-center">Action</th>
+                    @if (Auth::user()->isAdmin())
+                        <th scope="col" class="text-center">Action</th>
                     @endif
                 </tr>
             </thead>
@@ -190,27 +242,27 @@
                         <td>{{ $section->semester }}</td>
                         <td>{{ $section->school_year }}</td>
                         <td>{{ $section->created_at->diffForHumans() }}</td>
-                        @if(Auth::user()->isAdmin())
-                        <td class="text-center">
-                            <div class="btn-group dropstart">
-                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
-                                    onclick="event.stopPropagation()">
-                                    <i class="bi bi-three-dots"></i>
-                                </a>
-                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
-                                    onclick="event.stopPropagation()">
-                                    <li><button type="button" class="dropdown-item" href="#">View</button>
-                                    </li>
-                                    <li><button @click="$dispatch('edit-mode',{id:{{ $section->id }}})"
-                                            type="button" class="dropdown-item" data-bs-toggle="modal"
-                                            data-bs-target="#verticalycenteredsection">Edit</button></li>
-                                    <li><button wire:click="delete({{ $section->id }})"
-                                            wire:confirm="Are you sure you want to delete '{{ $section->name }}'"
-                                            type="button" class="dropdown-item text-danger"
-                                            href="#">Delete</button>
-                                </ul>
-                            </div>
-                        </td>
+                        @if (Auth::user()->isAdmin())
+                            <td class="text-center">
+                                <div class="btn-group dropstart">
+                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                        onclick="event.stopPropagation()">
+                                        <i class="bi bi-three-dots"></i>
+                                    </a>
+                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                        onclick="event.stopPropagation()">
+                                        <li><button type="button" class="dropdown-item" href="#">View</button>
+                                        </li>
+                                        <li><button @click="$dispatch('edit-mode',{id:{{ $section->id }}})"
+                                                type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#verticalycenteredsection">Edit</button></li>
+                                        <li><button wire:click="delete({{ $section->id }})"
+                                                wire:confirm="Are you sure you want to delete '{{ $section->name }}'"
+                                                type="button" class="dropdown-item text-danger"
+                                                href="#">Delete</button>
+                                    </ul>
+                                </div>
+                            </td>
                         @endif
                     </tr>
                 @endforeach

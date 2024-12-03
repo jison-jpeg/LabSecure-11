@@ -55,7 +55,7 @@
     {{-- Student Export Modal --}}
     <div wire:ignore.self class="modal fade" id="studentExportModal" tabindex="-1"
         aria-labelledby="studentExportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">

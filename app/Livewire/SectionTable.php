@@ -6,6 +6,7 @@ use App\Models\Section;
 use App\Models\College;
 use App\Models\Department;
 use App\Imports\SectionImport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -128,13 +129,11 @@ class SectionTable extends Component
                     $this->importErrors[] = "Row {$failure->row()}: " . implode(", ", $failure->errors());
                 }
                 return;
-
             } elseif ($skippedCount > 0) {
                 // Partial success: Display summary with skipped details in modal
                 $skippedDetails = implode(", ", $import->skipped);
                 $this->importSummary = "$successCount out of $totalCount sections imported successfully. $skippedCount sections were skipped: $skippedDetails.";
                 $this->importErrors = [];
-
             } else {
                 // Full success: Show success message in Notyf if all records imported
                 $message = "$totalCount sections imported successfully.";
@@ -147,7 +146,6 @@ class SectionTable extends Component
                 $this->dispatch('close-import-modal');
                 $this->reset(['importErrors', 'importSummary']);
             }
-
         } catch (\Exception $e) {
             // Handle unexpected errors
             $this->importErrors = ['Error: ' . $e->getMessage()];
@@ -161,6 +159,40 @@ class SectionTable extends Component
 
         $this->reset('sectionFile');
     }
+
+    public function exportSections($format)
+    {
+        $timestamp = now()->format('Y_m_d_H_i_s');
+        $fileName = "Section_Export_{$timestamp}";
+
+        // Retrieve filtered colleges, departments, sections, and students
+        $colleges = College::with(['departments.sections.students' => function ($query) {
+            $query->when($this->department, function ($query) {
+                $query->where('department_id', $this->department);
+            });
+        }])
+            ->when($this->college, function ($query) {
+                $query->where('id', $this->college);
+            })
+            ->get();
+
+        switch ($format) {
+            case 'pdf':
+                $pdf = Pdf::loadView('exports.section_report', [
+                    'colleges' => $colleges,
+                    'generatedBy' => Auth::user()->full_name,
+                ])->setPaper('a4', 'portrait');
+
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->output();
+                }, "{$fileName}.pdf");
+
+            default:
+                notyf()->error('Unsupported export format.');
+                break;
+        }
+    }
+
 
     public function updatedSectionFile()
     {
@@ -176,8 +208,8 @@ class SectionTable extends Component
 
         if ($user->isAdmin()) {
             // Admin can filter by any College and Department
-            $this->availableDepartments = $this->college 
-                ? Department::where('college_id', $this->college)->get() 
+            $this->availableDepartments = $this->college
+                ? Department::where('college_id', $this->college)->get()
                 : Department::all();
         } elseif ($user->isDean()) {
             // Dean sees Departments within their College
@@ -260,7 +292,7 @@ class SectionTable extends Component
 
         // Apply sorting and pagination
         $sections = $query->orderBy($this->sortBy, $this->sortDir)
-                          ->paginate($this->perPage);
+            ->paginate($this->perPage);
 
         // Determine available Colleges (Admin only)
         $colleges = $user->isAdmin() ? College::all() : collect();
