@@ -7,6 +7,7 @@ use App\Imports\SubjectImport;
 use App\Models\Subject;
 use App\Models\College;
 use App\Models\Department;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
@@ -98,11 +99,9 @@ class SubjectTable extends Component
                     $this->importErrors[] = "Row {$failure->row()}: {$failure->errors()[0]}";
                 }
                 return;
-
             } elseif ($skippedCount > 0) {
                 $this->importSummary = "$successCount out of $totalCount subjects imported successfully. $skippedCount subjects were skipped as they already exist.";
                 $this->importErrors = [];
-
             } else {
                 $message = "$totalCount subjects imported successfully.";
                 notyf()
@@ -113,11 +112,10 @@ class SubjectTable extends Component
                 $this->dispatch('close-import-modal');
                 $this->reset(['importErrors', 'importSummary']);
             }
-
         } catch (\Exception $e) {
             $this->importErrors = ['Error: ' . $e->getMessage()];
             $this->importSummary = '';
-            
+
             notyf()
                 ->position('x', 'right')
                 ->position('y', 'top')
@@ -126,24 +124,56 @@ class SubjectTable extends Component
 
         $this->reset('subjectFile');
     }
-    
+
     public function updatedSubjectFile()
     {
         $this->reset(['importErrors', 'importSummary']);
     }
 
     public function exportAs($format)
-    {
-        switch ($format) {
-            case 'csv':
-                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), 'subjects.csv', \Maatwebsite\Excel\Excel::CSV);
-            case 'excel':
-                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), 'subjects.xlsx');
-            case 'pdf':
-                // Implement PDF export if needed
-                break;
-        }
+{
+    $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
+    $fileName = "Subject_Export_{$timestamp}";
+
+    switch ($format) {
+        case 'csv':
+            return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.csv");
+        case 'excel':
+            return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.xlsx");
+        case 'pdf':
+            // Group subjects by colleges and departments
+            $colleges = College::with(['departments.subjects' => function ($query) {
+                $query->when($this->college !== '', function ($query) {
+                    $query->where('college_id', $this->college);
+                })
+                ->when($this->department !== '', function ($query) {
+                    $query->where('department_id', $this->department);
+                });
+            }])
+            ->when($this->college !== '', function ($query) {
+                $query->where('id', $this->college);
+            })
+            ->get();
+
+            // Generate the PDF view
+            $pdf = Pdf::loadView('exports.subject_report', [
+                'colleges' => $colleges,
+                'collegeFilter' => $this->college ? College::find($this->college)->name : 'All',
+                'departmentFilter' => $this->department ? Department::find($this->department)->name : 'All',
+                'generatedBy' => Auth::user()->full_name,
+            ])->setPaper('a4', 'portrait');
+
+            // Stream the PDF download
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, "{$fileName}.pdf");
+
+        default:
+            notyf()->error('Unsupported export format.');
+            break;
     }
+}
+
 
     public function render()
     {
