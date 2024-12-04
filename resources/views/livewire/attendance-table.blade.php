@@ -383,7 +383,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($attendances as $attendance)
+                @forelse  ($attendances as $attendance)
                     <tr wire:key="{{ $attendance->id }}"
                         onclick="window.location='{{ route('attendance.user.view', ['user' => $attendance->user->id]) }}';"
                         style="cursor: pointer;">
@@ -459,7 +459,17 @@
                             </td>
                         @endif
                     </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="13" class="text-center">
+                        @if (!empty($scheduleId) && $students->isEmpty())
+                            No students are assigned to this section.
+                        @else
+                            No attendance records available.
+                        @endif
+                    </td>
+                </tr>
+                @endforelse 
             </tbody>
         </table>
     </div>

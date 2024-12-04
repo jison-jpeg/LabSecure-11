@@ -497,55 +497,50 @@ class AttendanceTable extends Component
      */
     public function render()
     {
-        $query = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
+        $attendanceQuery = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
             ->orderBy($this->sortBy, $this->sortDir);
-
+    
         $user = Auth::user();
-
+    
         // Role-Based Access Control
         if ($user->isAdmin()) {
-            // Admin: See all attendances
             if ($this->selectedCollege) {
-                $query->whereHas('user', function ($q) {
+                $attendanceQuery->whereHas('user', function ($q) {
                     $q->where('college_id', $this->selectedCollege);
                 });
             }
             if ($this->selectedDepartment) {
-                $query->whereHas('user', function ($q) {
+                $attendanceQuery->whereHas('user', function ($q) {
                     $q->where('department_id', $this->selectedDepartment);
                 });
             }
         } elseif ($user->isDean()) {
-            // Dean: See attendances within their college
-            $query->whereHas('user', function ($q) use ($user) {
+            $attendanceQuery->whereHas('user', function ($q) use ($user) {
                 $q->where('college_id', $user->college_id);
             });
         } elseif ($user->isChairperson()) {
-            // Chairperson: See attendances within their department
-            $query->whereHas('user', function ($q) use ($user) {
+            $attendanceQuery->whereHas('user', function ($q) use ($user) {
                 $q->where('department_id', $user->department_id);
             });
         } elseif ($user->isInstructor()) {
-            // Instructor: See attendances of their schedule's students
-            $query->whereHas('schedule', function ($q) use ($user) {
+            $attendanceQuery->whereHas('schedule', function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             });
         } elseif ($user->isStudent()) {
-            // Student: See their own attendances
-            $query->where('user_id', $user->id);
+            $attendanceQuery->where('user_id', $user->id);
         }
-
-        // Apply additional filters
+    
+        // Additional Filters
         if ($this->userId) {
-            $query->where('user_id', $this->userId);
+            $attendanceQuery->where('user_id', $this->userId);
         }
-
+    
         if ($this->scheduleId) {
-            $query->where('schedule_id', $this->scheduleId);
+            $attendanceQuery->where('schedule_id', $this->scheduleId);
         }
-
+    
         if (!empty($this->search)) {
-            $query->where(function ($q) {
+            $attendanceQuery->where(function ($q) {
                 $q->whereHas('user', function ($q) {
                     $q->where('first_name', 'like', '%' . $this->search . '%')
                         ->orWhere('middle_name', 'like', '%' . $this->search . '%')
@@ -555,74 +550,62 @@ class AttendanceTable extends Component
                 });
             });
         }
-
+    
         if (!empty($this->status)) {
-            $query->where('status', strtolower($this->status));
+            $attendanceQuery->where('status', strtolower($this->status));
         }
-
+    
         if (!empty($this->selectedSubject)) {
-            $query->whereHas('schedule.subject', function ($q) {
+            $attendanceQuery->whereHas('schedule.subject', function ($q) {
                 $q->where('id', $this->selectedSubject);
             });
         }
-
+    
         if (!empty($this->selectedSection)) {
-            $query->whereHas('schedule.section', function ($q) {
+            $attendanceQuery->whereHas('schedule.section', function ($q) {
                 $q->where('id', $this->selectedSection);
             });
         }
-
-        // Apply month/date filter
+    
+        // Date/Month Filter
         if ($this->selectedMonth) {
             try {
                 $parsedDate = Carbon::parse($this->selectedMonth);
                 if ($this->dateInputType === 'month') {
-                    $query->whereMonth('date', $parsedDate->month)
+                    $attendanceQuery->whereMonth('date', $parsedDate->month)
                         ->whereYear('date', $parsedDate->year);
                 } else {
-                    $query->whereDate('date', $parsedDate);
+                    $attendanceQuery->whereDate('date', $parsedDate);
                 }
             } catch (\Exception $e) {
                 // Handle invalid date format
             }
         }
-
-        $attendanceRecords = $query->get();
-
-        // Handle students without attendance records if a schedule is selected
-        $attendances = collect();
+    
+        // Retrieve Attendance Records
+        $attendanceRecords = $attendanceQuery->get();
+    
+        // Retrieve Students for the Section
+        $students = collect();
         if ($this->scheduleId) {
             $schedule = Schedule::with('section.students')->findOrFail($this->scheduleId);
             $students = $schedule->section->students;
-
-            $attendances = $students->map(function ($student) use ($attendanceRecords, $schedule, $parsedDate) {
-                $attendance = $attendanceRecords->firstWhere('user_id', $student->id);
-
-                return $attendance ?: new Attendance([
-                    'user_id' => $student->id,
-                    'schedule_id' => $schedule->id,
-                    'date' => $parsedDate->toDateString(),
-                    'status' => 'absent',
-                    'remarks' => 'No record',
-                ]);
-            });
-        } else {
-            $attendances = $attendanceRecords;
         }
-
-        // Paginate the resulting collection
+    
+        // Paginate Attendance Records
         $perPage = $this->perPage;
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $paginatedAttendances = new LengthAwarePaginator(
-            $attendances->forPage($currentPage, $perPage),
-            $attendances->count(),
+            $attendanceRecords->forPage($currentPage, $perPage),
+            $attendanceRecords->count(),
             $perPage,
             $currentPage,
             ['path' => LengthAwarePaginator::resolveCurrentPath()]
         );
-
+    
         return view('livewire.attendance-table', [
             'attendances' => $paginatedAttendances,
+            'students' => $students,
             'subjects' => $this->subjects,
             'sections' => $this->sections,
             'departments' => $this->departments,
