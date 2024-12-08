@@ -139,44 +139,49 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4">
-                            <label for="days_of_week" class="form-label">Days of Week</label>
-                            <select wire:model.lazy="days_of_week" multiple
-                                class="form-select @error('days_of_week') is-invalid @enderror" name="days_of_week">
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                                <option value="Saturday">Saturday</option>
-                                <option value="Sunday">Sunday</option>
-                            </select>
-                            @error('days_of_week')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
+                         <!-- Days of Week Selection -->
+                    <div class="col-md-12">
+                        <label class="form-label">Days of Week</label>
+                        <div class="d-flex flex-wrap justify-content-between">
+                            @php
+                                $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                            @endphp
+                            @foreach ($days as $day)
+                                <div class="form-check">
+                                    <input class="form-check-input @error('days_of_week') is-invalid @enderror"
+                                        type="checkbox" value="{{ $day }}" id="day_{{ strtolower($day) }}"
+                                        wire:model.lazy="days_of_week">
+                                    <label class="form-check-label" for="day_{{ strtolower($day) }}">
+                                        {{ $day }}
+                                    </label>
+                                </div>
+                            @endforeach
                         </div>
-                        <div class="col-md-4">
-                            <label for="start_time" class="form-label">Start Time</label>
-                            <input wire:model.lazy="start_time" type="time"
-                                class="form-control @error('start_time') is-invalid @enderror" name="start_time">
-                            @error('start_time')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label for="end_time" class="form-label">End Time</label>
-                            <input wire:model.lazy="end_time" type="time"
-                                class="form-control @error('end_time') is-invalid @enderror" name="end_time">
-                            @error('end_time')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
+                        @error('days_of_week')
+                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <!-- Start Time -->
+                    <div class="col-md-6">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <input type="time" wire:model.lazy="start_time"
+                            class="form-control @error('start_time') is-invalid @enderror">
+                        @error('start_time')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <!-- End Time -->
+                    <div class="col-md-6">
+                        <label for="end_time" class="form-label">End Time</label>
+                        <input type="time" wire:model.lazy="end_time"
+                            class="form-control @error('end_time') is-invalid @enderror">
+                        @error('end_time')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     @if ($editForm)

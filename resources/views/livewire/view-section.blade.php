@@ -4,7 +4,6 @@
 
 <div>
     <livewire:edit-section :section="$section" />
-    <livewire:edit-user />
     <section class="section dashboard">
         <div class="row">
             <!-- Section Overview -->
@@ -105,12 +104,14 @@
                                                                 <th>Username</th>
                                                                 <th>Email</th>
                                                                 <th>Status</th>
-                                                                <th class="text-center">Actions</th>
+                                                                {{-- <th class="text-center">Actions</th> --}}
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             @forelse ($students as $key => $student)
-                                                                <tr>
+                                                                <tr wire:key="{{ $student->id }}"
+                                                                    onclick="window.location='{{ route('student.view', ['student' => $student->id]) }}';"
+                                                                    style="cursor: pointer;">
                                                                     <th>{{ $key + 1 }}</th>
                                                                     <td>{{ $student->full_name }}</td>
                                                                     <td>{{ $student->username }}</td>
@@ -121,7 +122,7 @@
                                                                             {{ $student->status ? 'Active' : 'Inactive' }}
                                                                         </span>
                                                                     </td>
-                                                                    <td class="text-center">
+                                                                    {{-- <td class="text-center">
                                                                         <div class="btn-group dropstart">
                                                                             <a class="icon" href="#"
                                                                                 data-bs-toggle="dropdown"
@@ -159,7 +160,7 @@
                                                                                 </li>
                                                                             </ul>
                                                                         </div>
-                                                                    </td>
+                                                                    </td> --}}
 
                                                                 </tr>
                                                             @empty
@@ -192,12 +193,14 @@
                                                                 <th>Days of Week</th>
                                                                 <th>Start Time</th>
                                                                 <th>End Time</th>
-                                                                <th class="text-center">Actions</th>
+                                                                {{-- <th class="text-center">Actions</th> --}}
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             @foreach ($schedules as $key => $schedule)
-                                                                <tr>
+                                                                <tr wire:key="{{ $schedule->id }}"
+                                                                    onclick="window.location='{{ Auth::user()->isAdmin() || Auth::user()->isChairperson() || Auth::user()->isDean() ? route('schedule.view', $schedule->id) : route('class.view', $schedule->id) }}';"
+                                                                    style="cursor: pointer;">
                                                                     <th>{{ $key + 1 }}</th>
                                                                     <td>{{ $schedule->schedule_code }}</td>
                                                                     <td>{{ $schedule->instructor->full_name ?? 'N/A' }}
@@ -208,7 +211,7 @@
                                                                     </td>
                                                                     <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}
                                                                     </td>
-                                                                    <td class="text-center">
+                                                                    {{-- <td class="text-center">
                                                                         <div class="btn-group dropstart">
                                                                             <a class="icon" href="#"
                                                                                 data-bs-toggle="dropdown"
@@ -248,7 +251,7 @@
                                                                                 </li>
                                                                             </ul>
                                                                         </div>
-                                                                    </td>
+                                                                    </td> --}}
 
                                                                 </tr>
                                                             @endforeach
