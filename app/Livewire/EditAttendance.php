@@ -39,25 +39,35 @@ class EditAttendance extends Component
         $this->userId = $userId;
         $this->scheduleId = $scheduleId;
 
-        $this->attendance = Attendance::firstOrCreate(
-            [
+        // Fetch existing attendance or initialize a new instance without saving
+        $this->attendance = Attendance::where('user_id', $userId)
+            ->where('schedule_id', $scheduleId)
+            ->where('date', $date)
+            ->first();
+
+        if ($this->attendance) {
+            // Existing record found
+            $this->formTitle = 'Edit Attendance';
+            $this->editForm = true;
+
+            $this->status = $this->attendance->status;
+            $this->remarks = $this->attendance->remarks;
+        } else {
+            // No existing record, prepare for creation
+            $this->attendance = new Attendance([
                 'user_id' => $userId,
                 'schedule_id' => $scheduleId,
                 'date' => $date,
-            ],
-            [
-                'status' => $this->status,
-                'remarks' => 'No records',
-                'percentage' => 0,
-            ]
-        );
+                'status' => $this->status, // Default status
+                'remarks' => 'No records', // Default remarks
+                'percentage' => 0,         // Default percentage
+            ]);
 
-        $this->formTitle = $this->attendance->wasRecentlyCreated ? 'Create Attendance' : 'Edit Attendance';
-        $this->editForm = !$this->attendance->wasRecentlyCreated;
-
-        $this->status = $this->attendance->status;
-        $this->remarks = $this->attendance->remarks;
+            $this->formTitle = 'Create Attendance';
+            $this->editForm = false;
+        }
     }
+
 
     public function save()
     {
@@ -69,12 +79,19 @@ class EditAttendance extends Component
         if ($this->editForm) {
             $this->update();
         } else {
-            $this->attendance->update([
+            // Ensure all required fields are set before saving
+            $this->attendance->fill([
+                'user_id' => $this->userId, // Set the user_id
+                'schedule_id' => $this->scheduleId, // Set the schedule_id
+                'date' => $this->attendance->date ?? now()->toDateString(), // Set the date if not already set
                 'status' => $this->status,
                 'remarks' => $this->remarks,
                 'percentage' => $this->status === 'present' ? 100 : ($this->status === 'absent' ? 0 : $this->attendance->percentage),
             ]);
 
+            $this->attendance->save(); // Save the record with all required fields
+
+            // Log the creation action
             TransactionLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'create',
@@ -97,6 +114,7 @@ class EditAttendance extends Component
         $this->dispatch('refresh-attendance-table');
         $this->reset();
     }
+
 
     public function update()
     {
@@ -131,6 +149,9 @@ class EditAttendance extends Component
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Attendance updated successfully');
+
+        $this->dispatch('refresh-attendance-table');
+        $this->reset();
     }
 
     #[On('reset-modal')]

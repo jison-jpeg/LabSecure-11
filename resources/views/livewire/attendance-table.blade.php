@@ -390,6 +390,8 @@
                         onclick="window.location='{{ route('attendance.user.view', [
                             'user' => $attendance->user->id,
                             'selectedMonth' => Carbon::parse($attendance->date)->format('Y-m'),
+                            'selectedSubject' => $attendance->schedule->subject->id ?? null, // Include subject ID
+
                         ]) }}';"
                         style="cursor: pointer;">
 
