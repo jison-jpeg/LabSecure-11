@@ -385,8 +385,12 @@
             <tbody>
                 @forelse  ($attendances as $attendance)
                     <tr wire:key="{{ $attendance->id }}"
-                        onclick="window.location='{{ route('attendance.user.view', ['user' => $attendance->user->id]) }}';"
+                        onclick="window.location='{{ route('attendance.user.view', [
+                            'user' => $attendance->user->id,
+                            'selectedMonth' => Carbon::parse($attendance->date)->format('Y-m'),
+                        ]) }}';"
                         style="cursor: pointer;">
+
                         <th scope="row">{{ $loop->iteration }}</th>
                         <td>{{ Carbon::parse($attendance->date)->format('m/d/Y') }}</td>
                         <td>{{ $attendance->user->username }}</td>
@@ -460,16 +464,16 @@
                         @endif
                     </tr>
                 @empty
-                <tr>
-                    <td colspan="13" class="text-center">
-                        @if (!empty($scheduleId) && $students->isEmpty())
-                            No students are assigned to this section.
-                        @else
-                            No attendance records available.
-                        @endif
-                    </td>
-                </tr>
-                @endforelse 
+                    <tr>
+                        <td colspan="13" class="text-center">
+                            @if (!empty($scheduleId) && $students->isEmpty())
+                                No students are assigned to this section.
+                            @else
+                                No attendance records available.
+                            @endif
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

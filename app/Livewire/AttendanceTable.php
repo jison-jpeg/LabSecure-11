@@ -80,21 +80,19 @@ class AttendanceTable extends Component
      * Component Mounting
      */
     public function mount($userId = null, $scheduleId = null, $hideFilters = [])
-    {
-        $this->userId = $userId;
-        $this->scheduleId = $scheduleId;
-        $this->hideFilters = $hideFilters;
+{
+    $this->userId = $userId;
+    $this->scheduleId = $scheduleId;
+    $this->hideFilters = $hideFilters;
 
-        $this->dateInputType = $scheduleId ? 'date' : 'month';
+    $this->dateInputType = $scheduleId ? 'date' : 'month';
 
-        // Initialize the selected month to the current month
-        $this->selectedMonth = $scheduleId
-            ? Carbon::now()->format('Y-m-d')
-            : Carbon::now()->format('Y-m');
+    // Initialize selectedMonth from query string or default to the current month
+    $this->selectedMonth = request()->query('selectedMonth', Carbon::now()->format('Y-m'));
 
-        // Initialize filter options based on user role
-        $this->initializeFilters();
-    }
+    // Initialize filter options based on user role
+    $this->initializeFilters();
+}
 
     /**
      * Initialize filter options based on user role.
@@ -556,20 +554,20 @@ class AttendanceTable extends Component
         }
     
         // Date/Month Filter
-        if ($this->selectedMonth) {
-            try {
-                $parsedDate = Carbon::parse($this->selectedMonth);
-                if ($this->dateInputType === 'month') {
-                    $attendanceQuery->whereMonth('date', $parsedDate->month)
-                        ->whereYear('date', $parsedDate->year);
-                } else {
-                    $attendanceQuery->whereDate('date', $parsedDate);
-                }
-            } catch (\Exception $e) {
-                // Handle invalid date format
-            }
+if ($this->selectedMonth) {
+    try {
+        $parsedDate = Carbon::parse($this->selectedMonth);
+        if ($this->dateInputType === 'month') {
+            $attendanceQuery->whereMonth('date', $parsedDate->month)
+                            ->whereYear('date', $parsedDate->year);
+        } else {
+            $attendanceQuery->whereDate('date', $parsedDate);
         }
-    
+    } catch (\Exception $e) {
+        // Handle invalid date format
+    }
+}
+
         // Retrieve Attendance Records
         $attendanceRecords = $attendanceQuery->get();
     
