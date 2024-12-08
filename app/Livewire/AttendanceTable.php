@@ -439,47 +439,69 @@ class AttendanceTable extends Component
     }
 
     /**
-     * Export Attendance Records
-     */
-    public function exportAs($format)
-    {
-        $user = Auth::user();
+ * Export Attendance Records
+ */
+public function exportAs($format)
+{
+    $user = Auth::user();
 
-        $export = new AttendanceExport(
-            $this->selectedMonth,
-            $this->selectedSubject,
-            $this->status,
-            $this->userId // Pass the user ID filter
-        );
+    // Include schedule ID in the export filter if set
+    $export = new AttendanceExport(
+        $this->selectedMonth,
+        $this->selectedSubject,
+        $this->status,
+        $this->userId,
+        $this->scheduleId // Pass the schedule ID filter
+    );
 
-        switch ($format) {
-            case 'csv':
-                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
-            case 'excel':
-                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
+    switch ($format) {
+        case 'csv':
+            return Excel::download($export, 'attendance_schedule_' . $this->scheduleId . '_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        case 'excel':
+            return Excel::download($export, 'attendance_schedule_' . $this->scheduleId . '_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
             case 'pdf':
                 $attendances = $export->query()->get();
-
+            
+                // Sort attendances by name (Last name, First name, Middle name)
+                $attendances = $attendances->sortBy(function ($item) {
+                    $lastName = $item->user->last_name ?? '';
+                    $firstName = $item->user->first_name ?? '';
+                    $middleInitial = $item->user->middle_name ? substr($item->user->middle_name, 0, 1) . '.' : '';
+                    $suffix = $item->user->suffix ?? '';
+            
+                    return trim("$lastName, $firstName $middleInitial $suffix");
+                });
+            
                 $groupedAttendances = $attendances->groupBy(function ($item) {
                     return $item->schedule->subject->name;
                 });
-
+            
                 $pdf = Pdf::loadView('exports.attendance_report', [
                     'user' => $user,
                     'selectedMonth' => $this->selectedMonth,
                     'groupedAttendances' => $groupedAttendances,
+                    'formatName' => function ($user) {
+                        $lastName = $user->last_name ?? '';
+                        $firstName = $user->first_name ?? '';
+                        $middleInitial = $user->middle_name ? substr($user->middle_name, 0, 1) . '.' : '';
+                        $suffix = $user->suffix ?? '';
+            
+                        return trim("$lastName, $firstName $middleInitial $suffix");
+                    },
                 ])
                     ->setPaper('a4', 'portrait')
                     ->setOption('margin-top', '10mm')
                     ->setOption('margin-bottom', '10mm')
                     ->setOption('margin-left', '10mm')
                     ->setOption('margin-right', '10mm');
-
+            
                 return response()->streamDownload(function () use ($pdf) {
                     echo $pdf->output();
-                }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
-        }
+                }, 'attendance_schedule_' . $this->scheduleId . '_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+            
     }
+}
+
 
 
     /**

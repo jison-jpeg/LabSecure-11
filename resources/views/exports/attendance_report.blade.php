@@ -1,4 +1,3 @@
-div
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,24 +10,19 @@ div
             font-family: Arial, sans-serif;
             margin: 10px;
             font-size: 9px;
-            /* Set font size to 10 points */
         }
 
         .pdf-wrapper {
             width: 100%;
-            /* Ensure full utilization of the width */
         }
 
         .header {
             display: flex;
             align-items: center;
-            /* Vertically centers items */
             justify-content: center;
-            /* Horizontally centers header text */
             position: relative;
             margin-bottom: 10px;
             height: 80px;
-            /* Adjust as needed */
         }
 
         .header .logo {
@@ -42,22 +36,16 @@ div
             text-align: center;
         }
 
-
         .header-text h1,
         .header-text p {
             margin: 0;
             font-size: 15px;
-            /* Equal font size for all elements */
         }
 
         .sub-header {
             text-align: center;
             font-size: 15px;
             margin-bottom: 10px;
-        }
-
-        .info {
-            margin-bottom: 20px;
         }
 
         .info-box {
@@ -102,44 +90,12 @@ div
         .dtr-table th {
             background-color: #f2f2f2;
         }
-
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            /* Space between the two sections */
-            align-items: center;
-            /* Ensures vertical alignment */
-            /* width: 100%; Makes the container span the full width */
-        }
-
-        .signature p,
-        .dean p {
-            margin: 0;
-            /* Removes any default margin that can cause misalignment */
-            line-height: 1;
-            /* Ensures consistent line height for alignment */
-        }
-
-        .signature {
-            text-align: left;
-            /* Align text to the left for signature */
-            flex: 1;
-            /* Allows it to grow evenly */
-        }
-
-        .dean {
-            text-align: right;
-            /* Align text to the right for dean */
-            flex: 1;
-            /* Allows it to grow evenly */
-        }
     </style>
 </head>
 
 <body>
     <div class="pdf-wrapper">
         <div class="header">
-            <!-- Embedded Logo Using Base64 Encoding -->
             <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}"
                 alt="BukSU Logo" class="logo" />
             <div class="header-text">
@@ -150,7 +106,6 @@ div
             </div>
         </div>
 
-        <!-- Conditional Display of Info Box -->
         @unless ($user->isAdmin())
             <div class="info-box">
                 <table>
@@ -170,22 +125,27 @@ div
 
         @foreach ($groupedAttendances as $scheduleName => $attendances)
             @php
-                // Retrieve the schedule from the first attendance record in the group
+                // Sort attendances alphabetically by user name (Last, First, Middle Initial Suffix)
+                $sortedAttendances = $attendances->sortBy(function ($attendance) {
+                    $lastName = $attendance->user->last_name ?? '';
+                    $firstName = $attendance->user->first_name ?? '';
+                    $middleInitial = $attendance->user->middle_name ? substr($attendance->user->middle_name, 0, 1) . '.' : '';
+                    $suffix = $attendance->user->suffix ?? '';
+                    return trim("$lastName, $firstName $middleInitial $suffix");
+                });
+
+                // Schedule Details
                 $schedule = $attendances->first()->schedule;
-                // Format the schedule times
                 $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
                 $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
-                // Extract the year from the schedule's start time
-$scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
+                $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
             @endphp
 
-            <!-- Schedule Information -->
             <div class="schedule">
                 <strong>SCHEDULE:</strong> {{ $scheduleName }} ({{ $schedule->schedule_code }}) {{ $scheduleYear }} M-F
-                {{ $scheduleStart }} - {{ $scheduleEnd }} : {{ $scheduleStart }} - {{ $scheduleEnd }}
+                {{ $scheduleStart }} - {{ $scheduleEnd }}
             </div>
 
-            <!-- Attendance Table -->
             <table class="dtr-table">
                 <thead>
                     <tr>
@@ -202,12 +162,21 @@ $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($attendances as $attendance)
+                    @forelse($sortedAttendances as $attendance)
+                        @php
+                            // Format user name
+                            $lastName = $attendance->user->last_name ?? '';
+                            $firstName = $attendance->user->first_name ?? '';
+                            $middleInitial = $attendance->user->middle_name ? substr($attendance->user->middle_name, 0, 1) . '.' : '';
+                            $suffix = $attendance->user->suffix ?? '';
+                            $formattedName = trim("$lastName, $firstName $middleInitial $suffix");
+                        @endphp
+
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
 
                             @if ($user->isAdmin())
-                                <td>{{ $attendance->user->full_name }}</td>
+                                <td>{{ $formattedName }}</td>
                                 <td>{{ $attendance->user->role->name }}</td>
                             @endif
 
@@ -226,17 +195,7 @@ $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
                 </tbody>
             </table>
         @endforeach
-
     </div>
-    {{-- <div class="signatures">
-        <div class="signature">
-            <p>Signature</p>
-        </div>
-        <div class="dean">
-            <p>Dean/Director/Head of Office</p>
-        </div>
-    </div> --}}
-
 </body>
 
 </html>
