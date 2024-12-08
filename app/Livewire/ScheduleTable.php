@@ -222,78 +222,29 @@ class ScheduleTable extends Component
     $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
     $fileName = "Schedule_Export_{$timestamp}";
 
-    // Retrieve filtered colleges, departments, and schedules
-    $colleges = College::with(['departments' => function ($query) {
-        $query->when($this->department, function ($query) {
-            $query->where('id', $this->department);
-        })->with(['schedules' => function ($query) {
-            // Filter schedules for a specific department or college
-            $query->when($this->department, function ($query) {
-                $query->where('department_id', $this->department);
-            })
-                ->when($this->college, function ($query) {
-                    $query->where('college_id', $this->college);
-                })
-                ->when($this->yearLevel, function ($query) {
-                    $query->whereHas('section', function ($q) {
-                        $q->where('year_level', $this->yearLevel);
-                    });
-                })
-                ->when($this->section, function ($query) {
-                    $query->where('section_id', $this->section);
-                });
-
-            // Role-based filtering
-            $user = Auth::user();
-            if ($user->isDean()) {
-                $query->where('college_id', $user->college_id); // Filter schedules by the Dean's college
-            } elseif ($user->isChairperson()) {
-                $query->where('department_id', $user->department_id); // Filter schedules by the Chairperson's department
-            } elseif ($user->isInstructor()) {
-                $query->where('instructor_id', $user->id); // Filter schedules by the Instructor's ID
-            } elseif ($user->isStudent()) {
-                $query->where('section_id', $user->section_id); // Filter schedules by the Student's section
-            }
-        }]);
-    }])
-        ->when($this->college, function ($query) {
-            $query->where('id', $this->college);
-        })
-        ->when($this->department && !$this->college, function ($query) {
-            // Ensure that the query includes the college related to the specified department
-            $query->whereHas('departments', function ($subQuery) {
-                $subQuery->where('id', $this->department);
-            });
-        })
-        ->get();
-
-    $selectedCollegeName = $this->college ? College::find($this->college)->name : null;
-    $isSpecificExport = $this->college || $this->department;
-
     switch ($format) {
         case 'csv':
-            return Excel::download(new ScheduleExport($colleges), "{$fileName}.csv");
+            return Excel::download(new ScheduleExport($this->search, Auth::user()), "{$fileName}.csv");
         case 'excel':
-            return Excel::download(new ScheduleExport($colleges), "{$fileName}.xlsx");
-            case 'pdf':
-                $user = Auth::user(); // Get authenticated user
-                $schedules = Schedule::query()
-                    ->when($user->isInstructor(), fn($q) => $q->where('instructor_id', $user->id))
-                    ->when($user->isStudent(), fn($q) => $q->where('section_id', $user->section_id))
-                    ->get();
-            
-                $pdf = Pdf::loadView('exports.schedule_report', [
-                    'user' => $user,
-                    'schedules' => $schedules,
-                    'colleges' => !$user->isStudent() && !$user->isInstructor() ? $colleges : [],
-                    'selectedMonth' => now(),
-                    'generatedBy' => $user->full_name,
-                ])->setPaper('a4', 'portrait');
-            
-                return response()->streamDownload(function () use ($pdf) {
-                    echo $pdf->output();
-                }, "{$fileName}.pdf");
-            
+            return Excel::download(new ScheduleExport($this->search, Auth::user()), "{$fileName}.xlsx");
+        case 'pdf':
+            $user = Auth::user();
+            $schedules = Schedule::query()
+                ->when($user->isInstructor(), fn($q) => $q->where('instructor_id', $user->id))
+                ->when($user->isStudent(), fn($q) => $q->where('section_id', $user->section_id))
+                ->get();
+
+            $pdf = Pdf::loadView('exports.schedule_report', [
+                'user' => $user,
+                'schedules' => $schedules,
+                'colleges' => !$user->isStudent() && !$user->isInstructor() ? $this->getColleges() : [],
+                'selectedMonth' => now(),
+                'generatedBy' => $user->full_name,
+            ])->setPaper('a4', 'portrait');
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, "{$fileName}.pdf");
 
         default:
             notyf()->error('Unsupported export format.');
