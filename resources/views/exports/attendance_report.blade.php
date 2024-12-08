@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daily Time Record</title>
+    <title>Schedule Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,16 +42,10 @@
             font-size: 15px;
         }
 
-        .sub-header {
-            text-align: center;
-            font-size: 15px;
-            margin-bottom: 10px;
-        }
-
         .info-box {
             border: 1px solid #000;
             padding: 5px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .info-box table {
@@ -63,31 +57,31 @@
             padding: 2px;
         }
 
-        .schedule {
+        .schedule-details {
             margin-top: 10px;
             margin-bottom: 5px;
             text-align: left;
         }
 
-        .schedule strong {
+        .schedule-details strong {
             display: block;
         }
 
-        .dtr-table {
+        .schedule-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
 
-        .dtr-table th,
-        .dtr-table td {
+        .schedule-table th,
+        .schedule-table td {
             border: 1px solid #000;
             text-align: left;
             padding: 2px;
             font-size: 10px;
         }
 
-        .dtr-table th {
+        .schedule-table th {
             background-color: #f2f2f2;
         }
     </style>
@@ -95,6 +89,7 @@
 
 <body>
     <div class="pdf-wrapper">
+        <!-- Header Section -->
         <div class="header">
             <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}"
                 alt="BukSU Logo" class="logo" />
@@ -106,7 +101,8 @@
             </div>
         </div>
 
-        @unless ($user->isAdmin())
+        <!-- Info Box -->
+        @unless ($user->isStudent() || $user->isInstructor())
             <div class="info-box">
                 <table>
                     <tr>
@@ -123,78 +119,84 @@
             </div>
         @endunless
 
-        @foreach ($groupedAttendances as $scheduleName => $attendances)
-            @php
-                // Sort attendances alphabetically by user name (Last, First, Middle Initial Suffix)
-                $sortedAttendances = $attendances->sortBy(function ($attendance) {
-                    $lastName = $attendance->user->last_name ?? '';
-                    $firstName = $attendance->user->first_name ?? '';
-                    $middleInitial = $attendance->user->middle_name ? substr($attendance->user->middle_name, 0, 1) . '.' : '';
-                    $suffix = $attendance->user->suffix ?? '';
-                    return trim("$lastName, $firstName $middleInitial $suffix");
-                });
-
-                // Schedule Details
-                $schedule = $attendances->first()->schedule;
-                $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
-                $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
-                $scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
-            @endphp
-
-            <div class="schedule">
-                <strong>SCHEDULE:</strong> {{ $scheduleName }} ({{ $schedule->schedule_code }}) {{ $scheduleYear }} M-F
-                {{ $scheduleStart }} - {{ $scheduleEnd }}
+        <!-- Schedule Details -->
+        @if ($user->isStudent() || $user->isInstructor())
+            <div class="schedule-details">
+                <strong>Your Schedules:</strong>
             </div>
-
-            <table class="dtr-table">
+            <table class="schedule-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        @if ($user->isAdmin())
-                            <th>Name</th>
-                            <th>Role</th>
-                        @endif
-                        <th>Time In</th>
-                        <th>Time Out</th>
-                        <th>Status</th>
-                        <th>Percentage</th>
-                        <th>Remarks</th>
+                        <th>Schedule Code</th>
+                        <th>Section</th>
+                        <th>Year Level</th>
+                        <th>Subject</th>
+                        <th>Instructor</th>
+                        <th>Days</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($sortedAttendances as $attendance)
-                        @php
-                            // Format user name
-                            $lastName = $attendance->user->last_name ?? '';
-                            $firstName = $attendance->user->first_name ?? '';
-                            $middleInitial = $attendance->user->middle_name ? substr($attendance->user->middle_name, 0, 1) . '.' : '';
-                            $suffix = $attendance->user->suffix ?? '';
-                            $formattedName = trim("$lastName, $firstName $middleInitial $suffix");
-                        @endphp
-
+                    @forelse ($schedules as $schedule)
                         <tr>
-                            <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
-
-                            @if ($user->isAdmin())
-                                <td>{{ $formattedName }}</td>
-                                <td>{{ $attendance->user->role->name }}</td>
-                            @endif
-
-                            <td>{{ $attendance->formattedTimeIn }}</td>
-                            <td>{{ $attendance->formattedTimeOut }}</td>
-                            <td>{{ ucfirst($attendance->status) }}</td>
-                            <td>{{ $attendance->percentage ?? 'N/A' }}</td>
-                            <td>{{ $attendance->remarks ?? '' }}</td>
+                            <td>{{ $schedule->schedule_code }}</td>
+                            <td>{{ $schedule->section->name ?? 'N/A' }}</td>
+                            <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
+                            <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+                            <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
+                            <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $user->isAdmin() ? 8 : 6 }}">No attendance records found for this schedule.
-                            </td>
+                            <td colspan="8">No schedules found.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        @endforeach
+        @else
+            @foreach ($colleges as $college)
+                @foreach ($college->departments as $department)
+                    <div class="schedule-details">
+                        <strong>Department: {{ $department->name }}</strong>
+                    </div>
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Schedule Code</th>
+                                <th>Section</th>
+                                <th>Year Level</th>
+                                <th>Subject</th>
+                                <th>Instructor</th>
+                                <th>Days</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($department->schedules as $schedule)
+                                <tr>
+                                    <td>{{ $schedule->schedule_code }}</td>
+                                    <td>{{ $schedule->section->name ?? 'N/A' }}</td>
+                                    <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
+                                    <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+                                    <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
+                                    <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8">No schedules found for this department.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                @endforeach
+            @endforeach
+        @endif
     </div>
 </body>
 

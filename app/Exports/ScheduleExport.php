@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Schedule;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -13,10 +14,12 @@ use Carbon\Carbon;
 class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     protected $search;
+    protected $user;
 
-    public function __construct($search)
+    public function __construct($search, $user)
     {
         $this->search = $search;
+        $this->user = $user;
     }
 
     public function query()
@@ -24,50 +27,52 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
         return Schedule::with(['subject', 'instructor', 'section.users', 'laboratory', 'college', 'department'])
             ->when($this->search, function ($query) {
                 $query->search($this->search);
+            })
+            ->when($this->user->isAdmin(), function ($query) {
+                // Admin sees all schedules
+            })
+            ->when($this->user->isDean(), function ($query) {
+                $query->where('college_id', $this->user->college_id); // Filter by Dean's college
+            })
+            ->when($this->user->isChairperson(), function ($query) {
+                $query->where('department_id', $this->user->department_id); // Filter by Chairperson's department
+            })
+            ->when($this->user->isInstructor(), function ($query) {
+                $query->where('instructor_id', $this->user->id); // Filter by Instructor's schedules
+            })
+            ->when($this->user->isStudent(), function ($query) {
+                $query->where('section_id', $this->user->section_id); // Filter by Student's section
             });
     }
 
     public function headings(): array
     {
         return [
-            'Code',            // schedule_code
-            'Section',         // section name
-            'Subject Code',    // subject code
-            'Subject Name',    // subject name
-            'Instructor',      // instructor name
-            'College',         // college name
-            'Department',      // department name
-            'Laboratory',      // laboratory name
-            'Schedule',        // formatted days and time
-            'Total Students'   // count of students in the section
+            'Code',
+            'Section',
+            'Year Level',
+            'Subject',
+            'Instructor',
+            'Days',
+            'Start Time',
+            'End Time',
         ];
     }
 
     public function map($schedule): array
-{
-    $studentsCount = $schedule->section ? $schedule->section->users->count() : 0;
-    $studentsCount = $studentsCount ?: '0';  // Ensure it's always "0" if no students
+    {
+        return [
+            $schedule->schedule_code,
+            optional($schedule->section)->name,
+            optional($schedule->section)->year_level,
+            optional($schedule->subject)->name,
+            optional($schedule->instructor)->full_name,
+            $this->getShortenedDays(json_decode($schedule->days_of_week)),
+            Carbon::parse($schedule->start_time)->format('h:i A'),
+            Carbon::parse($schedule->end_time)->format('h:i A'),
+        ];
+    }
 
-    // Format the schedule to show days as "Mon, Wed" and times like "(7:00 AM - 8:30 AM)"
-    $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
-    $daysOfWeek = $this->getShortenedDays(json_decode($schedule->days_of_week));
-    $formattedSchedule = $daysOfWeek . ' (' . $scheduleTime . ')';
-
-    return [
-        $schedule->schedule_code,                      // Code
-        optional($schedule->section)->name,            // Section
-        optional($schedule->subject)->code,            // Subject Code
-        optional($schedule->subject)->name,            // Subject Name
-        optional($schedule->instructor)->full_name,    // Instructor
-        optional($schedule->college)->name,            // College
-        optional($schedule->department)->name,         // Department
-        optional($schedule->laboratory)->name,         // Laboratory
-        $formattedSchedule,                            // Schedule (shortened days and time)
-        $studentsCount,                                // Total Students
-    ];
-}
-
-    // Helper function to shorten days of the week
     protected function getShortenedDays($days)
     {
         $shortDays = [
@@ -89,41 +94,19 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Apply header style with the specified color and white font
                 $headerStyle = [
-                    'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], // White font
-                    'fill' => [
-                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FF4F81BD'], // Blue background
-                    ],
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        ],
-                    ],
+                    'font' => ['bold' => true],
+                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
                 ];
-
-                // Style for the data cells
-                $contentStyle = [
-                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT],
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        ],
-                    ],
-                ];
-
-                // Apply header style
-                $event->sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
-
-                // Apply content style
-                $highestRow = $event->sheet->getHighestRow();
-                $event->sheet->getStyle('A2:J' . $highestRow)->applyFromArray($contentStyle);
-
-                // Auto-size columns
-                foreach (range('A', 'J') as $columnID) {
-                    $event->sheet->getColumnDimension($columnID)->setAutoSize(true);
-                }
+                $event->sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+                $event->sheet->getColumnDimension('A')->setAutoSize(true);
+                $event->sheet->getColumnDimension('B')->setAutoSize(true);
+                $event->sheet->getColumnDimension('C')->setAutoSize(true);
+                $event->sheet->getColumnDimension('D')->setAutoSize(true);
+                $event->sheet->getColumnDimension('E')->setAutoSize(true);
+                $event->sheet->getColumnDimension('F')->setAutoSize(true);
+                $event->sheet->getColumnDimension('G')->setAutoSize(true);
+                $event->sheet->getColumnDimension('H')->setAutoSize(true);
             },
         ];
     }

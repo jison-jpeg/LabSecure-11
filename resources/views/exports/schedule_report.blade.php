@@ -2,15 +2,14 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedule Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 10px;
             font-size: 9px;
-            page-break-inside: avoid;
         }
 
         .pdf-wrapper {
@@ -23,7 +22,7 @@
             justify-content: center;
             position: relative;
             margin-bottom: 10px;
-            height: 100px;
+            height: 80px;
         }
 
         .header .logo {
@@ -43,16 +42,25 @@
             font-size: 15px;
         }
 
-        .header-text .college-name {
-            margin-top: 5px;
-            font-size: 13px;
-            font-weight: bold;
+        .info-box {
+            border: 1px solid #000;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .info-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-box td {
+            padding: 2px;
         }
 
         .schedule-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-bottom: 20px;
         }
 
         .schedule-table th,
@@ -66,101 +74,115 @@
         .schedule-table th {
             background-color: #f2f2f2;
         }
-
-        .department-header {
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 10px;
-            text-transform: uppercase;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 10px;
-            left: 0;
-            right: 0;
-            font-size: 9px;
-            text-align: right;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
-
-        .page-break {
-            page-break-after: always;
-        }
-
-        .last-page-break {
-            page-break-after: auto;
-        }
     </style>
 </head>
 
 <body>
     <div class="pdf-wrapper">
-        @foreach ($colleges as $index => $college)
-            <!-- Header Section -->
-            <div class="header">
-                <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}"
-                    alt="Logo" class="logo">
-                <div class="header-text">
-                    <h1>Bukidnon State University</h1>
-                    <h1>{{ $college->name }}</h1>
-                    <p>Malaybalay City, Bukidnon 6700</p>
-                    <p>Tel: (088) 813-5661 to 5663, Telefax: (088) 813-2717</p>
-                    <p>www.buksu.edu.ph</p>
-                </div>
+        <!-- Header Section -->
+        <div class="header">
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}"
+                alt="BukSU Logo" class="logo" />
+            <div class="header-text">
+                <h1>Bukidnon State University</h1>
+                <p>Malaybalay City, Bukidnon 6700</p>
+                <p>Tel: (088) 813-5661 to 5663, Telefax: (088) 813-2717</p>
+                <p>www.buksu.edu.ph</p>
             </div>
+        </div>
 
-            <!-- Content Section -->
-            <div class="content">
-                @foreach ($college->departments as $department)
-                    <div class="department-header">Department: {{ $department->name }}</div>
-                    <table class="schedule-table">
-                        <thead>
+        <!-- Info Box -->
+        @if ($user->isStudent() || $user->isInstructor())
+            <div class="info-box">
+                <table>
+                    <tr>
+                        <td><strong>Name:</strong> {{ $user->full_name }}</td>
+                        <td><strong>Position:</strong> {{ $user->role->name }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>College:</strong> {{ optional($user->college)->name }}
+                        </td>
+                        <td><strong>Year Level - Semester:</strong> {{ optional($user->section)->year_level }} - {{ optional($user->section)->semester }}</td>
+                    </tr>
+                </table>
+            </div>
+        @endif
+
+        <!-- Schedule Details -->
+        <div class="schedule-table-wrapper">
+            @if ($user->isStudent() || $user->isInstructor())
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Schedule Code</th>
+                            <th>Section</th>
+                            <th>Year Level</th>
+                            <th>Subject</th>
+                            <th>Instructor</th>
+                            <th>Days</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($schedules as $schedule)
                             <tr>
-                                <th>Schedule Code</th>
-                                <th>Section</th>
-                                <th>Year Level</th>
-                                <th>Subject</th>
-                                <th>Instructor</th>
-                                <th>Days</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
+                                <td>{{ $schedule->schedule_code }}</td>
+                                <td>{{ $schedule->section->name ?? 'N/A' }}</td>
+                                <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
+                                <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+                                <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
+                                <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($department->schedules as $schedule)
-                                <tr>
-                                    <td>{{ $schedule->schedule_code }}</td>
-                                    <td>{{ $schedule->section->name ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                    <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8">No schedules found for this department.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                @endforeach
-            </div>
-
-            <!-- Page Break -->
-            @if ($loop->remaining > 0)
-                <div class="page-break"></div>
+                        @empty
+                            <tr>
+                                <td colspan="8">No schedules found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             @else
-                <div class="last-page-break"></div>
+                @foreach ($colleges as $college)
+                    @foreach ($college->departments as $department)
+                        <h3>Department: {{ $department->name }}</h3>
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Schedule Code</th>
+                                    <th>Section</th>
+                                    <th>Year Level</th>
+                                    <th>Subject</th>
+                                    <th>Instructor</th>
+                                    <th>Days</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($department->schedules as $schedule)
+                                    <tr>
+                                        <td>{{ $schedule->schedule_code }}</td>
+                                        <td>{{ $schedule->section->name ?? 'N/A' }}</td>
+                                        <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
+                                        <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
+                                        <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
+                                        <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8">No schedules found for this department.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    @endforeach
+                @endforeach
             @endif
-        @endforeach
-
-        <!-- Footer Section -->
-        <div class="footer">
-            Generated By: {{ $generatedBy }} | Date: {{ now()->format('F d, Y h:i A') }}
         </div>
     </div>
 </body>
