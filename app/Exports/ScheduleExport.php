@@ -44,28 +44,28 @@ class ScheduleExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     }
 
     public function map($schedule): array
-    {
-        $studentsCount = $schedule->section ? $schedule->section->users->count() : 0;
-        $studentsCount = $studentsCount ?: '0';  // Ensure it's always "0" if no students
+{
+    $studentsCount = $schedule->section ? $schedule->section->users->count() : 0;
+    $studentsCount = $studentsCount ?: '0';  // Ensure it's always "0" if no students
 
-        // Format the schedule to show days as "M, T, W" and times like "(7:00 AM - 8:30 AM)"
-        $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
-        $daysOfWeek = $this->getShortenedDays(json_decode($schedule->days_of_week));
-        $formattedSchedule = $daysOfWeek . ' (' . $scheduleTime . ')';
+    // Format the schedule to show days as "Mon, Wed" and times like "(7:00 AM - 8:30 AM)"
+    $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
+    $daysOfWeek = $this->getShortenedDays(json_decode($schedule->days_of_week));
+    $formattedSchedule = $daysOfWeek . ' (' . $scheduleTime . ')';
 
-        return [
-            $schedule->schedule_code,                      // Code
-            optional($schedule->section)->name,            // Section
-            optional($schedule->subject)->code,            // Subject Code
-            optional($schedule->subject)->name,            // Subject Name
-            optional($schedule->instructor)->full_name,    // Instructor
-            optional($schedule->college)->name,            // College
-            optional($schedule->department)->name,         // Department
-            optional($schedule->laboratory)->name,         // Laboratory
-            $formattedSchedule,                            // Schedule (shortened days and time)
-            $studentsCount,                                // Total Students
-        ];
-    }
+    return [
+        $schedule->schedule_code,                      // Code
+        optional($schedule->section)->name,            // Section
+        optional($schedule->subject)->code,            // Subject Code
+        optional($schedule->subject)->name,            // Subject Name
+        optional($schedule->instructor)->full_name,    // Instructor
+        optional($schedule->college)->name,            // College
+        optional($schedule->department)->name,         // Department
+        optional($schedule->laboratory)->name,         // Laboratory
+        $formattedSchedule,                            // Schedule (shortened days and time)
+        $studentsCount,                                // Total Students
+    ];
+}
 
     // Helper function to shorten days of the week
     protected function getShortenedDays($days)

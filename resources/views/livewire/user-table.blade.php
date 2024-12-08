@@ -265,9 +265,17 @@
                         <td>{{ $user->middle_name }}</td>
                         <td>{{ $user->last_name }}</td>
                         <td>{{ $user->suffix }}</td>
-                        <td><span
-                                class="badge rounded-pill {{ $user->role->name == 'admin' ? 'bg-danger' : ($user->role->name == 'instructor' ? 'bg-info text-black' : 'bg-dark') }}">{{ $user->role->name }}</span>
+                        <td>
+                            <span class="badge rounded-pill 
+                                {{ $user->role->name == 'admin' ? 'bg-danger' : 
+                                   ($user->role->name == 'dean' ? 'bg-dark' : 
+                                   ($user->role->name == 'instructor' ? 'bg-info text-dark' : 
+                                   ($user->role->name == 'student' ? 'bg-secondary' : 
+                                   ($user->role->name == 'chairperson' ? 'bg-warning text-dark' : 'bg-secondary')))) }}">
+                                {{ ucfirst($user->role->name) }}
+                            </span>
                         </td>
+                        
                         <td class="text-center">
                             <span
                                 class="badge rounded-pill {{ $user->status ? 'bg-success' : 'bg-secondary' }}">{{ $user->status ? 'Active' : 'Inactive' }}</span>

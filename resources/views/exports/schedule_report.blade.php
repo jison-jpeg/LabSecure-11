@@ -136,7 +136,7 @@
                                     <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
                                     <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
                                     <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->days_of_week }}</td>
+                                    <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
                                     <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                                 </tr>
