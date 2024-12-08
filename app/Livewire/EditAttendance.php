@@ -47,7 +47,7 @@ class EditAttendance extends Component
             ],
             [
                 'status' => $this->status,
-                'remarks' => 'No attendance record yet',
+                'remarks' => 'No records',
                 'percentage' => 0,
             ]
         );

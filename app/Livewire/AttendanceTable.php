@@ -490,6 +490,9 @@ class AttendanceTable extends Component
     $paginatedAttendances = collect();
     $students = collect();
 
+    // Determine the selected date from the input (defaults to today if not set)
+    $selectedDate = $this->selectedMonth ? Carbon::parse($this->selectedMonth) : Carbon::today();
+
     if ($this->scheduleId) {
         // Viewing a specific schedule's attendance
 
@@ -499,15 +502,12 @@ class AttendanceTable extends Component
         // Fetch students associated with the schedule's section
         $students = $schedule->section->students()->paginate($this->perPage);
 
-        // Define the current date
-        $today = Carbon::today();
-
-        // Map each student to their attendance record for the selected schedule and today's date
-        $attendances = $students->getCollection()->map(function ($student) use ($today, $schedule) {
-            // Fetch the attendance record for the specific schedule and today's date
+        // Map each student to their attendance record for the selected schedule and date
+        $attendances = $students->getCollection()->map(function ($student) use ($selectedDate, $schedule) {
+            // Fetch the attendance record for the specific schedule and selected date
             $attendance = Attendance::where('user_id', $student->id)
                 ->where('schedule_id', $schedule->id)
-                ->whereDate('date', $today)
+                ->whereDate('date', $selectedDate)
                 ->first();
 
             if ($attendance) {
@@ -517,9 +517,9 @@ class AttendanceTable extends Component
                 // Create a default attendance object for students without attendance
                 return (object)[
                     'user' => $student,
-                    'date' => $today,
+                    'date' => $selectedDate,
                     'status' => 'absent',
-                    'remarks' => 'No Records',
+                    'remarks' => 'No records',
                     'schedule' => $schedule,
                     'sessions' => collect(), // Empty sessions
                     'percentage' => 0, // Default percentage
@@ -540,9 +540,8 @@ class AttendanceTable extends Component
         $attendanceQuery = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
             ->orderBy($this->sortBy, $this->sortDir);
 
-        // Role-Based Access Control
+        // Apply role-based access control and additional filters
         $user = Auth::user();
-
         if ($user->isAdmin()) {
             if ($this->selectedCollege) {
                 $attendanceQuery->whereHas('user', function ($q) {
@@ -570,15 +569,13 @@ class AttendanceTable extends Component
             $attendanceQuery->where('user_id', $user->id);
         }
 
-        // Additional Filters
+        // Additional filters
         if ($this->userId) {
             $attendanceQuery->where('user_id', $this->userId);
         }
-
         if ($this->scheduleId) {
             $attendanceQuery->where('schedule_id', $this->scheduleId);
         }
-
         if (!empty($this->search)) {
             $attendanceQuery->where(function ($q) {
                 $q->whereHas('user', function ($q) {
@@ -590,38 +587,22 @@ class AttendanceTable extends Component
                 });
             });
         }
-
         if (!empty($this->status)) {
             $attendanceQuery->where('status', strtolower($this->status));
         }
-
         if (!empty($this->selectedSubject)) {
             $attendanceQuery->whereHas('schedule.subject', function ($q) {
                 $q->where('id', $this->selectedSubject);
             });
         }
-
         if (!empty($this->selectedSection)) {
             $attendanceQuery->whereHas('schedule.section', function ($q) {
                 $q->where('id', $this->selectedSection);
             });
         }
 
-        // Date/Month Filter
-        if ($this->selectedMonth) {
-            try {
-                $parsedDate = Carbon::parse($this->selectedMonth);
-                if ($this->dateInputType === 'month') {
-                    $attendanceQuery->whereMonth('date', $parsedDate->month)
-                        ->whereYear('date', $parsedDate->year);
-                } else {
-                    $attendanceQuery->whereDate('date', $parsedDate);
-                }
-            } catch (\Exception $e) {
-                // Log or handle invalid date formats gracefully
-                logger()->error("Invalid date format for selectedMonth: " . $this->selectedMonth);
-            }
-        }
+        // Filter attendance by the selected date
+        $attendanceQuery->whereDate('date', $selectedDate);
 
         // Retrieve and paginate attendance records
         $paginatedAttendances = $attendanceQuery->paginate($this->perPage);
