@@ -20,7 +20,7 @@ class ViewSection extends Component
     public $searchStudents = '';
     public $searchSchedules = '';
     public $perPageStudents = 10;
-    public $perPageSchedules = 1;
+    public $perPageSchedules = 10;
 
     public function mount(Section $section)
     {

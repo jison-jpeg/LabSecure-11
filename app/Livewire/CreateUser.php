@@ -340,7 +340,7 @@ class CreateUser extends Component
             Mail::to($user->email)->queue(new UserCredentials($user, $generatedPassword));
 
             // Notify frontend to refresh the user table
-            $this->dispatchBrowserEvent('refresh-user-table');
+            $this->dispatch('refresh-user-table');
 
             // Show success notification
             notyf()
