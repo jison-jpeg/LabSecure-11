@@ -80,19 +80,22 @@ class AttendanceTable extends Component
      * Component Mounting
      */
     public function mount($userId = null, $scheduleId = null, $hideFilters = [])
-{
-    $this->userId = $userId;
-    $this->scheduleId = $scheduleId;
-    $this->hideFilters = $hideFilters;
+    {
+        $this->userId = $userId;
+        $this->scheduleId = $scheduleId;
+        $this->hideFilters = $hideFilters;
 
-    $this->dateInputType = $scheduleId ? 'date' : 'month';
+        $this->dateInputType = $scheduleId ? 'date' : 'month';
 
-    // Initialize selectedMonth from query string or default to the current month
-    $this->selectedMonth = request()->query('selectedMonth', Carbon::now()->format('Y-m'));
+        // Initialize selectedMonth from query string or default to the current month
+        $this->selectedMonth = request()->query(
+            'selectedMonth',
+            $this->dateInputType === 'date' ? Carbon::now()->format('Y-m-d') : Carbon::now()->format('Y-m')
+        );
 
-    // Initialize filter options based on user role
-    $this->initializeFilters();
-}
+        // Initialize filter options based on user role
+        $this->initializeFilters();
+    }
 
     /**
      * Initialize filter options based on user role.
@@ -378,9 +381,10 @@ class AttendanceTable extends Component
         }
 
         // Reset `selectedMonth` based on the `dateInputType`
-        $this->selectedMonth = $this->dateInputType === 'month'
-            ? Carbon::now()->format('Y-m') // Reset to current month
-            : Carbon::now()->format('Y-m-d'); // Reset to current date
+        $this->selectedMonth = $this->dateInputType === 'date'
+            ? Carbon::now()->format('Y-m-d') // Reset to the current date
+            : Carbon::now()->format('Y-m'); // Reset to the current month
+
 
         // Re-initialize filters based on user role
         $this->initializeFilters();
@@ -438,44 +442,44 @@ class AttendanceTable extends Component
      * Export Attendance Records
      */
     public function exportAs($format)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    $export = new AttendanceExport(
-        $this->selectedMonth,
-        $this->selectedSubject,
-        $this->status,
-        $this->userId // Pass the user ID filter
-    );
+        $export = new AttendanceExport(
+            $this->selectedMonth,
+            $this->selectedSubject,
+            $this->status,
+            $this->userId // Pass the user ID filter
+        );
 
-    switch ($format) {
-        case 'csv':
-            return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
-        case 'excel':
-            return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
-        case 'pdf':
-            $attendances = $export->query()->get();
+        switch ($format) {
+            case 'csv':
+                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            case 'excel':
+                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
+            case 'pdf':
+                $attendances = $export->query()->get();
 
-            $groupedAttendances = $attendances->groupBy(function ($item) {
-                return $item->schedule->subject->name;
-            });
+                $groupedAttendances = $attendances->groupBy(function ($item) {
+                    return $item->schedule->subject->name;
+                });
 
-            $pdf = Pdf::loadView('exports.attendance_report', [
-                'user' => $user,
-                'selectedMonth' => $this->selectedMonth,
-                'groupedAttendances' => $groupedAttendances,
-            ])
-                ->setPaper('a4', 'portrait')
-                ->setOption('margin-top', '10mm')
-                ->setOption('margin-bottom', '10mm')
-                ->setOption('margin-left', '10mm')
-                ->setOption('margin-right', '10mm');
+                $pdf = Pdf::loadView('exports.attendance_report', [
+                    'user' => $user,
+                    'selectedMonth' => $this->selectedMonth,
+                    'groupedAttendances' => $groupedAttendances,
+                ])
+                    ->setPaper('a4', 'portrait')
+                    ->setOption('margin-top', '10mm')
+                    ->setOption('margin-bottom', '10mm')
+                    ->setOption('margin-left', '10mm')
+                    ->setOption('margin-right', '10mm');
 
-            return response()->streamDownload(function () use ($pdf) {
-                echo $pdf->output();
-            }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->output();
+                }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+        }
     }
-}
 
 
     /**
@@ -485,9 +489,9 @@ class AttendanceTable extends Component
     {
         $attendanceQuery = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
             ->orderBy($this->sortBy, $this->sortDir);
-    
+
         $user = Auth::user();
-    
+
         // Role-Based Access Control
         if ($user->isAdmin()) {
             if ($this->selectedCollege) {
@@ -515,16 +519,16 @@ class AttendanceTable extends Component
         } elseif ($user->isStudent()) {
             $attendanceQuery->where('user_id', $user->id);
         }
-    
+
         // Additional Filters
         if ($this->userId) {
             $attendanceQuery->where('user_id', $this->userId);
         }
-    
+
         if ($this->scheduleId) {
             $attendanceQuery->where('schedule_id', $this->scheduleId);
         }
-    
+
         if (!empty($this->search)) {
             $attendanceQuery->where(function ($q) {
                 $q->whereHas('user', function ($q) {
@@ -536,48 +540,49 @@ class AttendanceTable extends Component
                 });
             });
         }
-    
+
         if (!empty($this->status)) {
             $attendanceQuery->where('status', strtolower($this->status));
         }
-    
+
         if (!empty($this->selectedSubject)) {
             $attendanceQuery->whereHas('schedule.subject', function ($q) {
                 $q->where('id', $this->selectedSubject);
             });
         }
-    
+
         if (!empty($this->selectedSection)) {
             $attendanceQuery->whereHas('schedule.section', function ($q) {
                 $q->where('id', $this->selectedSection);
             });
         }
-    
+
         // Date/Month Filter
-if ($this->selectedMonth) {
-    try {
-        $parsedDate = Carbon::parse($this->selectedMonth);
-        if ($this->dateInputType === 'month') {
-            $attendanceQuery->whereMonth('date', $parsedDate->month)
-                            ->whereYear('date', $parsedDate->year);
-        } else {
-            $attendanceQuery->whereDate('date', $parsedDate);
+        if ($this->selectedMonth) {
+            try {
+                $parsedDate = Carbon::parse($this->selectedMonth);
+                if ($this->dateInputType === 'month') {
+                    $attendanceQuery->whereMonth('date', $parsedDate->month)
+                        ->whereYear('date', $parsedDate->year);
+                } else {
+                    $attendanceQuery->whereDate('date', $parsedDate);
+                }
+            } catch (\Exception $e) {
+                // Log or handle invalid date formats gracefully
+                logger()->error("Invalid date format for selectedMonth: " . $this->selectedMonth);
+            }
         }
-    } catch (\Exception $e) {
-        // Handle invalid date format
-    }
-}
 
         // Retrieve Attendance Records
         $attendanceRecords = $attendanceQuery->get();
-    
+
         // Retrieve Students for the Section
         $students = collect();
         if ($this->scheduleId) {
             $schedule = Schedule::with('section.students')->findOrFail($this->scheduleId);
             $students = $schedule->section->students;
         }
-    
+
         // Paginate Attendance Records
         $perPage = $this->perPage;
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -588,7 +593,7 @@ if ($this->selectedMonth) {
             $currentPage,
             ['path' => LengthAwarePaginator::resolveCurrentPath()]
         );
-    
+
         return view('livewire.attendance-table', [
             'attendances' => $paginatedAttendances,
             'students' => $students,
