@@ -106,76 +106,15 @@
                                 <div class="tab-content pt-2" id="borderedTabJustifiedContent">
                                     <div class="tab-pane fade active show" id="bordered-justified-home" role="tabpanel"
                                         aria-labelledby="home-tab">
-                                        <!-- Attendance History -->
-                                        <div class="col-12 d-flex flex-column">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Date</th>
-                                                        <th>Subject</th>
-                                                        <th>Time In</th>
-                                                        <th>Time Out</th>
-                                                        <th class="text-center">Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($attendanceRecords as $record)
-                                                        <tr>
-                                                            <td>{{ $record->date->format('m/d/Y') }}</td>
-                                                            <td>{{ $record->schedule->subject->name ?? 'N/A' }}
-                                                            </td>
-                                                            <td>{{ $record->formatted_time_in }}</td>
-                                                            <td>{{ $record->formatted_time_out }}</td>
-                                                            <td class="text-center">
-                                                                <span
-                                                                    class="badge rounded-pill 
-                            {{ $record->status == 'present'
-                                ? 'bg-success'
-                                : ($record->status == 'absent'
-                                    ? 'bg-danger'
-                                    : ($record->status == 'late'
-                                        ? 'bg-warning'
-                                        : 'bg-secondary')) }}">
-                                                                    {{ ucfirst($record->status) }}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                        @livewire('attendance-table', ['userId' => $student->id, 'hideFilters' => ['college', 'department', 'section', 'yearLevel']])
                                     </div>
                                     <div class="tab-pane fade" id="bordered-justified-profile" role="tabpanel"
                                         aria-labelledby="profile-tab">
-                                        <!-- Enrolled Schedules -->
-                                        <div class="col-12 d-flex flex-column">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Schedule Code</th>
-                                                        <th>Subject</th>
-                                                        <th>Instructor</th>
-                                                        <th>Days</th>
-                                                        <th>Time</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($schedules as $schedule)
-                                                        <tr>
-                                                            <td>{{ $schedule->schedule_code }}</td>
-                                                            <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
-                                                            <td>{{ $schedule->instructor->full_name ?? 'N/A' }}
-                                                            </td>
-                                                            <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek()) }}
-                                                            </td>
-                                                            <td>{{ $schedule->start_time }} -
-                                                                {{ $schedule->end_time }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                        @livewire('schedule-table', ['userId' => $student->id])
+
                                     </div>
+                                    {{-- Schedule Table --}}
+                                    
                                 </div><!-- End Bordered Tabs Justified -->
 
                             </div>

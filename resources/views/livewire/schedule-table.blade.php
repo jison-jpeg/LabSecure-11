@@ -218,14 +218,17 @@
 
                 {{-- Conditionally Display College Filter --}}
                 @if (auth()->user()->isAdmin())
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="college" name="college" class="form-select">
-                            <option value="">Select College</option>
-                            @foreach ($colleges as $college)
-                                <option value="{{ $college->id }}">{{ $college->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if (!in_array('college', $hideFilters))
+
+                        <div class="col-12 col-md-2">
+                            <select wire:model.live="college" name="college" class="form-select">
+                                <option value="">Select College</option>
+                                @foreach ($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 @elseif(auth()->user()->isDean())
                     {{-- For Dean, the college is fixed and hidden, so no select is needed --}}
                     <input type="hidden" wire:model="college" value="{{ auth()->user()->college_id }}">
@@ -233,45 +236,53 @@
 
                 {{-- Conditionally Display Department Filter --}}
                 @if (auth()->user()->isAdmin() || auth()->user()->isDean())
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="department" name="department" class="form-select"
-                            @if (auth()->user()->isAdmin() && !$college) disabled @endif>
-                            <option value="">Select Department</option>
-                            @forelse ($departments as $department)
-                                <option value="{{ $department->id }}">{{ $department->name }}</option>
-                            @empty
-                                <option value="" disabled>No departments available</option>
-                            @endforelse
-                        </select>
-                    </div>
+                    @if (!in_array('college', $hideFilters))
+
+                        <div class="col-12 col-md-2">
+                            <select wire:model.live="department" name="department" class="form-select"
+                                @if (auth()->user()->isAdmin() && !$college) disabled @endif>
+                                <option value="">Select Department</option>
+                                @forelse ($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @empty
+                                    <option value="" disabled>No departments available</option>
+                                @endforelse
+                            </select>
+                        </div>
+                    @endif
                 @endif
 
                 {{-- New Year Level Filter --}}
-                <div class="col-12 col-md-2">
-                    <select wire:model.live="yearLevel" name="yearLevel" class="form-select">
-                        <option value="">All Year Levels</option>
-                        @foreach ($availableYearLevels as $level)
-                            <option value="{{ $level }}">{{ $level }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @if (!in_array('college', $hideFilters))
+
+                    <div class="col-12 col-md-2">
+                        <select wire:model.live="yearLevel" name="yearLevel" class="form-select">
+                            <option value="">All Year Levels</option>
+                            @foreach ($availableYearLevels as $level)
+                                <option value="{{ $level }}">{{ $level }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 {{-- Conditionally Display Section Filter --}}
                 @if (auth()->user()->isAdmin() ||
                         auth()->user()->isDean() ||
                         auth()->user()->isChairperson() ||
                         auth()->user()->isInstructor())
-                    <div class="col-12 col-md-2">
-                        <select wire:model.live="section" name="section" class="form-select"
-                            @if (!$yearLevel) disabled @endif>
-                            <option value="">Select Section</option>
-                            @forelse ($sections as $section)
-                                <option value="{{ $section->id }}">{{ $section->name }}</option>
-                            @empty
-                                <option value="" disabled>No sections available</option>
-                            @endforelse
-                        </select>
-                    </div>
+                    @if (!in_array('college', $hideFilters))
+                        <div class="col-12 col-md-2">
+                            <select wire:model.live="section" name="section" class="form-select"
+                                @if (!$yearLevel) disabled @endif>
+                                <option value="">Select Section</option>
+                                @forelse ($sections as $section)
+                                    <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                @empty
+                                    <option value="" disabled>No sections available</option>
+                                @endforelse
+                            </select>
+                        </div>
+                    @endif
                 @endif
 
                 {{-- Clear Filters Button --}}

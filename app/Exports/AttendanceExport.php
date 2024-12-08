@@ -17,57 +17,62 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
     protected $selectedSubject;
     protected $status;
 
-    public function __construct($selectedMonth, $selectedSubject, $status)
+    protected $userId;
+
+    public function __construct($selectedMonth, $selectedSubject, $status, $userId = null)
     {
         $this->selectedMonth = $selectedMonth;
         $this->selectedSubject = $selectedSubject;
         $this->status = $status;
+        $this->userId = $userId;
     }
+
 
     public function query()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        $query = Attendance::with(['user', 'schedule.subject'])
-            ->orderBy('date', 'ASC'); // Default ordering by date
+    $query = Attendance::with(['user', 'schedule.subject'])
+        ->orderBy('date', 'ASC'); // Default ordering by date
 
-        // Apply Role-Based Access Control
-        if ($user->isAdmin()) {
-            // Admin: All attendance records with optional Subject and Status filters
-            // No additional filtering needed unless specified
-        } elseif ($user->isInstructor()) {
-            // Instructor: Only their own attendance records
-            $query->where('user_id', $user->id);
-        } else {
-            // Other users: Only their own attendance records
-            $query->where('user_id', $user->id);
-        }
-
-        // Apply Status Filter
-        if (!empty($this->status)) {
-            $query->where('status', strtolower($this->status));
-        }
-
-        // Apply Subject Filter
-        if (!empty($this->selectedSubject)) {
-            $query->whereHas('schedule.subject', function ($q) {
-                $q->where('id', $this->selectedSubject);
-            });
-        }
-
-        // Apply Month Filter
-        if ($this->selectedMonth) {
-            try {
-                $parsedMonth = Carbon::parse($this->selectedMonth);
-                $query->whereMonth('date', $parsedMonth->month)
-                      ->whereYear('date', $parsedMonth->year);
-            } catch (\Exception $e) {
-                // Handle invalid date format if necessary
-            }
-        }
-
-        return $query;
+    // Role-Based Access Control
+    if ($user->isAdmin()) {
+        // Admin: All attendance records
+    } elseif ($user->isInstructor()) {
+        // Instructor: Their own attendance records
+        $query->where('user_id', $user->id);
+    } else {
+        // Other users: Their own attendance records
+        $query->where('user_id', $user->id);
     }
+
+    // Apply additional filters
+    if ($this->userId) {
+        $query->where('user_id', $this->userId);
+    }
+
+    if (!empty($this->status)) {
+        $query->where('status', strtolower($this->status));
+    }
+
+    if (!empty($this->selectedSubject)) {
+        $query->whereHas('schedule.subject', function ($q) {
+            $q->where('id', $this->selectedSubject);
+        });
+    }
+
+    if ($this->selectedMonth) {
+        try {
+            $parsedMonth = Carbon::parse($this->selectedMonth);
+            $query->whereMonth('date', $parsedMonth->month)
+                  ->whereYear('date', $parsedMonth->year);
+        } catch (\Exception $e) {
+            // Handle invalid date format
+        }
+    }
+
+    return $query;
+}
 
     public function headings(): array
     {
