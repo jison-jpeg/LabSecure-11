@@ -517,36 +517,46 @@ class AttendanceTable extends Component
         if ($this->scheduleId) {
             // Fetch the schedule along with its section and students
             $schedule = Schedule::with(['section.students', 'subject'])->findOrFail($this->scheduleId);
-        
+
             // Fetch all students for the schedule's section
             $students = $schedule->section->students()->paginate($this->perPage);
-        
+
             // Fetch all attendance records for the selected schedule and date
             $attendanceRecords = Attendance::where('schedule_id', $schedule->id)
                 ->whereDate('date', $selectedDate)
+                ->when($this->status, function ($query, $status) {
+                    $query->where('status', strtolower($status));
+                })
                 ->with(['sessions'])
                 ->get();
-        
+
+
             // Map students to their attendance records or create default records
-            $attendances = $students->getCollection()->map(function ($student) use ($attendanceRecords, $schedule, $selectedDate) {
-                // Find the attendance record for the current student
-                $attendance = $attendanceRecords->firstWhere('user_id', $student->id);
-                if ($attendance) {
-                    return $attendance;
-                }
-        
-                // If no attendance record exists, create a default record
-                return (object)[
-                    'user' => $student,
-                    'date' => $selectedDate,
-                    'status' => 'absent',
-                    'remarks' => 'No records',
-                    'schedule' => $schedule,
-                    'sessions' => collect(), // Empty sessions
-                    'percentage' => 0, // Default percentage
-                ];
-            });
-        
+$attendances = $students->getCollection()->map(function ($student) use ($attendanceRecords, $schedule, $selectedDate) {
+    // Find the attendance record for the current student
+    $attendance = $attendanceRecords->firstWhere('user_id', $student->id);
+    if ($attendance) {
+        return $attendance;
+    }
+
+    // If no attendance record exists, create a default record
+    return (object)[
+        'user' => $student,
+        'date' => $selectedDate,
+        'status' => 'absent', // Default status
+        'remarks' => 'No records',
+        'schedule' => $schedule,
+        'sessions' => collect(), // Empty sessions
+        'percentage' => 0, // Default percentage
+    ];
+})->filter(function ($attendance) {
+    // Apply the status filter to the combined records
+    if ($this->status) {
+        return strtolower($attendance->status) === strtolower($this->status);
+    }
+    return true; // Include all if no status filter is set
+});
+
             // Create a paginator for the attendance collection
             $paginatedAttendances = new LengthAwarePaginator(
                 $attendances,
@@ -555,9 +565,7 @@ class AttendanceTable extends Component
                 $students->currentPage(),
                 ['path' => LengthAwarePaginator::resolveCurrentPath()]
             );
-        }
-        
-         else {
+        } else {
             // General attendance view (all attendance records without grouping by user)
 
             $attendanceQuery = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
