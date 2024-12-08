@@ -486,13 +486,63 @@ class AttendanceTable extends Component
      * Render the Component View
      */
     public function render()
-    {
+{
+    $paginatedAttendances = collect();
+    $students = collect();
+
+    if ($this->scheduleId) {
+        // Viewing a specific schedule's attendance
+
+        // Fetch the selected schedule with its related section and students
+        $schedule = Schedule::with(['section.students', 'subject'])->findOrFail($this->scheduleId);
+
+        // Fetch students associated with the schedule's section
+        $students = $schedule->section->students()->paginate($this->perPage);
+
+        // Define the current date
+        $today = Carbon::today();
+
+        // Map each student to their attendance record for the selected schedule and today's date
+        $attendances = $students->getCollection()->map(function ($student) use ($today, $schedule) {
+            // Fetch the attendance record for the specific schedule and today's date
+            $attendance = Attendance::where('user_id', $student->id)
+                ->where('schedule_id', $schedule->id)
+                ->whereDate('date', $today)
+                ->first();
+
+            if ($attendance) {
+                // Return the attendance record if it exists
+                return $attendance;
+            } else {
+                // Create a default attendance object for students without attendance
+                return (object)[
+                    'user' => $student,
+                    'date' => $today,
+                    'status' => 'absent',
+                    'remarks' => 'No Records',
+                    'schedule' => $schedule,
+                    'sessions' => collect(), // Empty sessions
+                    'percentage' => 0, // Default percentage
+                ];
+            }
+        });
+
+        // Create a new paginator instance for the attendance collection
+        $paginatedAttendances = new LengthAwarePaginator(
+            $attendances,
+            $students->total(),
+            $this->perPage,
+            $students->currentPage(),
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+    } else {
+        // General attendance view (no specific schedule)
         $attendanceQuery = Attendance::with(['user', 'schedule.subject', 'schedule.section', 'sessions'])
             ->orderBy($this->sortBy, $this->sortDir);
 
+        // Role-Based Access Control
         $user = Auth::user();
 
-        // Role-Based Access Control
         if ($user->isAdmin()) {
             if ($this->selectedCollege) {
                 $attendanceQuery->whereHas('user', function ($q) {
@@ -573,37 +623,20 @@ class AttendanceTable extends Component
             }
         }
 
-        // Retrieve Attendance Records
-        $attendanceRecords = $attendanceQuery->get();
-
-        // Retrieve Students for the Section
-        $students = collect();
-        if ($this->scheduleId) {
-            $schedule = Schedule::with('section.students')->findOrFail($this->scheduleId);
-            $students = $schedule->section->students;
-        }
-
-        // Paginate Attendance Records
-        $perPage = $this->perPage;
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $paginatedAttendances = new LengthAwarePaginator(
-            $attendanceRecords->forPage($currentPage, $perPage),
-            $attendanceRecords->count(),
-            $perPage,
-            $currentPage,
-            ['path' => LengthAwarePaginator::resolveCurrentPath()]
-        );
-
-        return view('livewire.attendance-table', [
-            'attendances' => $paginatedAttendances,
-            'students' => $students,
-            'subjects' => $this->subjects,
-            'sections' => $this->sections,
-            'departments' => $this->departments,
-            'colleges' => $this->colleges,
-            'yearLevels' => $this->yearLevels,
-        ]);
+        // Retrieve and paginate attendance records
+        $paginatedAttendances = $attendanceQuery->paginate($this->perPage);
     }
+
+    return view('livewire.attendance-table', [
+        'attendances' => $paginatedAttendances,
+        'students' => $students,
+        'subjects' => $this->subjects,
+        'sections' => $this->sections,
+        'departments' => $this->departments,
+        'colleges' => $this->colleges,
+        'yearLevels' => $this->yearLevels,
+    ]);
+}
 
     /**
      * Refresh the Attendance Table

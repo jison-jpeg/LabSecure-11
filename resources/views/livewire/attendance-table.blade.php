@@ -333,154 +333,176 @@
 
 
     <!-- Attendance Table -->
-    <div class="overflow-auto">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'date',
-                        'displayName' => 'Date',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'user.username',
-                        'displayName' => 'Username',
-                    ]) @include('livewire.includes.table-sortable-th', [
-                        'name' => 'user.name',
-                        'displayName' => 'User',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'schedule.schedule_code',
-                        'displayName' => 'Section Code',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'subject.name',
-                        'displayName' => 'Subject',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'schedule.section.name',
-                        'displayName' => 'Section',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'time_in',
-                        'displayName' => 'Time In',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'time_out',
-                        'displayName' => 'Time Out',
-                    ])
-                    @include('livewire.includes.table-sortable-th', [
-                        'name' => 'percentage',
-                        'displayName' => 'Percentage',
-                    ]) @include('livewire.includes.table-sortable-th', [
-                        'name' => 'status',
-                        'displayName' => 'Status',
-                    ])
-                    <th scope="col" class="text-dark fw-semibold">Remarks</th>
-                    @if (Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
-                        <th scope="col" class="text-center text-dark fw-semibold">Action</th>
-                    @endif
-                </tr>
-            </thead>
-            <tbody>
-                @forelse  ($attendances as $attendance)
-                    <tr wire:key="{{ $attendance->id }}"
-                        onclick="window.location='{{ route('attendance.user.view', [
-                            'user' => $attendance->user->id,
-                            'selectedMonth' => Carbon::parse($attendance->date)->format('Y-m'),
-                        ]) }}';"
-                        style="cursor: pointer;">
+<div class="overflow-auto">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'date',
+                    'displayName' => 'Date',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'user.username',
+                    'displayName' => 'Username',
+                ]) 
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'user.name',
+                    'displayName' => 'User',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'schedule.schedule_code',
+                    'displayName' => 'Section Code',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'subject.name',
+                    'displayName' => 'Subject',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'schedule.section.name',
+                    'displayName' => 'Section',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'time_in',
+                    'displayName' => 'Time In',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'time_out',
+                    'displayName' => 'Time Out',
+                ])
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'percentage',
+                    'displayName' => 'Percentage',
+                ]) 
+                @include('livewire.includes.table-sortable-th', [
+                    'name' => 'status',
+                    'displayName' => 'Status',
+                ])
+                <th scope="col" class="text-dark fw-semibold">Remarks</th>
+                @if (Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
+                    <th scope="col" class="text-center text-dark fw-semibold">Action</th>
+                @endif
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($attendances as $attendance)
+                <tr wire:key="{{ $attendance->id ?? $attendance->user->id }}"
+                    onclick="window.location='{{ route('attendance.user.view', [
+                        'user' => $attendance->user->id,
+                        'selectedMonth' => Carbon::parse($attendance->date)->format('Y-m'),
+                    ]) }}';"
+                    style="cursor: pointer;">
 
-                        <th scope="row">{{ $loop->iteration }}</th>
-                        <td>{{ Carbon::parse($attendance->date)->format('m/d/Y') }}</td>
-                        <td>{{ $attendance->user->username }}</td>
-                        <td>{{ $attendance->user->full_name }}</td>
-                        <td>{{ $attendance->schedule->schedule_code }}</td>
-                        <td>{{ $attendance->schedule->subject->name }}</td>
-                        <td>{{ $attendance->schedule->section->name }}</td>
-                        <td>{{ optional($attendance->sessions->first())->time_in ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A') : '-' }}
-                        </td>
-                        <td>{{ optional($attendance->sessions->last())->time_out ? Carbon::parse($attendance->sessions->last()->time_out)->format('h:i A') : '-' }}
-                        </td>
-                        <td class="text-center">
-                            <div class="progress mt-progress">
-                                <div class="progress-bar 
-                                    {{ $attendance->percentage < 50 ? 'bg-danger' : ($attendance->percentage < 70 ? 'bg-warning' : 'bg-success') }}"
-                                    role="progressbar" style="width: {{ $attendance->percentage }}%;"
-                                    aria-valuenow="{{ $attendance->percentage }}" aria-valuemin="0"
-                                    aria-valuemax="100">
-                                    {{ $attendance->percentage }}%
-                                </div>
+                    <th scope="row">{{ $loop->iteration }}</th>
+                    <td>{{ isset($attendance->date) ? Carbon::parse($attendance->date)->format('m/d/Y') : 'N/A' }}</td>
+                    <td>{{ $attendance->user->username }}</td>
+                    <td>{{ $attendance->user->full_name }}</td>
+                    <td>{{ $attendance->schedule->schedule_code ?? 'N/A' }}</td>
+                    <td>{{ $attendance->schedule->subject->name ?? 'N/A' }}</td>
+                    <td>{{ $attendance->schedule->section->name ?? 'N/A' }}</td>
+                    <td>
+                        @if(isset($attendance->sessions) && $attendance->sessions->isNotEmpty())
+                            {{ optional($attendance->sessions->first())->time_in ? Carbon::parse($attendance->sessions->first()->time_in)->format('h:i A') : '-' }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td>
+                        @if(isset($attendance->sessions) && $attendance->sessions->isNotEmpty())
+                            {{ optional($attendance->sessions->last())->time_out ? Carbon::parse($attendance->sessions->last()->time_out)->format('h:i A') : '-' }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="text-center">
+                        <div class="progress mt-progress">
+                            <div class="progress-bar 
+                                {{ $attendance->percentage < 50 ? 'bg-danger' : ($attendance->percentage < 70 ? 'bg-warning' : 'bg-success') }}"
+                                role="progressbar" style="width: {{ $attendance->percentage }}%;"
+                                aria-valuenow="{{ $attendance->percentage }}" aria-valuemin="0"
+                                aria-valuemax="100">
+                                {{ $attendance->percentage }}%
                             </div>
-                        </td>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span
+                            class="badge rounded-pill 
+                            {{ $attendance->status == 'present'
+                                ? 'bg-success'
+                                : ($attendance->status == 'late'
+                                    ? 'bg-warning'
+                                    : ($attendance->status == 'absent'
+                                        ? 'bg-danger'
+                                        : ($attendance->status == 'incomplete'
+                                            ? 'bg-secondary'
+                                            : 'bg-secondary'))) }}">
+                            {{ ucfirst($attendance->status) }}
+                        </span>
+                    </td>
+                    <td>{{ $attendance->remarks }}</td>
+                    @if (Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
                         <td class="text-center">
-                            <span
-                                class="badge rounded-pill 
-                                {{ $attendance->status == 'present'
-                                    ? 'bg-success'
-                                    : ($attendance->status == 'late'
-                                        ? 'bg-warning'
-                                        : ($attendance->status == 'absent'
-                                            ? 'bg-danger'
-                                            : ($attendance->status == 'incomplete'
-                                                ? 'bg-secondary'
-                                                : 'bg-secondary'))) }}">
-                                {{ ucfirst($attendance->status) }}
-                            </span>
-                        </td>
-                        <td>{{ $attendance->remarks }}</td>
-                        @if (Auth::user()->isAdmin() || Auth::user()->isDean() || Auth::user()->isChairperson() || Auth::user()->isInstructor())
-                            <td class="text-center">
-                                <div class="btn-group dropstart">
-                                    <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
-                                        onclick="event.stopPropagation()">
-                                        <i class="bi bi-three-dots"></i>
-                                    </a>
-                                    <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
-                                        onclick="event.stopPropagation()">
-                                        <li>
-                                            <button type="button" class="dropdown-item">View</button>
-                                        </li>
-                                        <li>
-                                            <button
-                                                @click="$dispatch('edit-mode', {
-                                                    userId: {{ $attendance->user->id }},
-                                                    scheduleId: {{ $attendance->schedule->id }},
-                                                    date: '{{ $attendance->date }}'
-                                                })"
-                                                type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#verticalycentered">
-                                                Edit
-                                            </button>
-                                        </li>
-                                        <li>
+                            <div class="btn-group dropstart">
+                                <a class="icon" href="#" data-bs-toggle="dropdown" aria-expanded="false"
+                                    onclick="event.stopPropagation()">
+                                    <i class="bi bi-three-dots"></i>
+                                </a>
+                                <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
+                                    onclick="event.stopPropagation()">
+                                    <li>
+                                        <button type="button" class="dropdown-item">View</button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            @click="$dispatch('edit-mode', {
+                                                userId: {{ $attendance->user->id }},
+                                                scheduleId: {{ $attendance->schedule->id ?? 'null' }},
+                                                date: '{{ $attendance->date ?? Carbon::today()->format('Y-m-d') }}'
+                                            })"
+                                            type="button" class="dropdown-item" data-bs-toggle="modal"
+                                            data-bs-target="#verticalycentered">
+                                            Edit
+                                        </button>
+                                    </li>
+                                    <li>
+                                        @if(isset($attendance->id))
                                             <button wire:click="delete({{ $attendance->id }})"
                                                 wire:confirm="Are you sure you want to delete this record?"
                                                 type="button" class="dropdown-item text-danger">Delete</button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        @endif
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="13" class="text-center">
+                                        @else
+                                            <!-- Optionally handle delete for default records if needed -->
+                                            <button type="button" class="dropdown-item text-danger" disabled>Delete</button>
+                                        @endif
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    @endif
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="13" class="text-center">
+                        @if ($this->scheduleId)
+                            No students are assigned to this schedule.
+                        @else
                             @if (!empty($scheduleId) && $students->isEmpty())
                                 No students are assigned to this section.
                             @else
                                 No attendance records available.
                             @endif
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                        @endif
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
-    <div class="mt-4">
-        {{ $attendances->links() }}
-    </div>
+<div class="mt-4">
+    {{ $attendances->links() }}
+</div>
+
 
 </div>
 
