@@ -433,7 +433,7 @@ class CreateUser extends Component
                 ->success('User updated successfully');
 
             // Notify frontend to refresh the user table
-            $this->dispatchBrowserEvent('refresh-user-table');
+            $this->dispatch('refresh-user-table');
 
             // Reset form fields
             $this->resetFields();
