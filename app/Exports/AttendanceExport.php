@@ -17,42 +17,53 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, WithEven
     protected $selectedSubject;
     protected $status;
 
-    protected $userId;
-    protected $scheduleId;
-
-    public function __construct($selectedMonth, $selectedSubject, $status, $userId = null, $scheduleId = null)
+    public function __construct($selectedMonth, $selectedSubject, $status)
     {
         $this->selectedMonth = $selectedMonth;
         $this->selectedSubject = $selectedSubject;
         $this->status = $status;
-        $this->userId = $userId;
-        $this->scheduleId = $scheduleId; // Add schedule ID to the constructor
     }
 
     public function query()
     {
-        $query = Attendance::query();
+        $user = Auth::user();
 
-        if ($this->userId) {
-            $query->where('user_id', $this->userId);
+        $query = Attendance::with(['user', 'schedule.subject'])
+            ->orderBy('date', 'ASC'); // Default ordering by date
+
+        // Apply Role-Based Access Control
+        if ($user->isAdmin()) {
+            // Admin: All attendance records with optional Subject and Status filters
+            // No additional filtering needed unless specified
+        } elseif ($user->isInstructor()) {
+            // Instructor: Only their own attendance records
+            $query->where('user_id', $user->id);
+        } else {
+            // Other users: Only their own attendance records
+            $query->where('user_id', $user->id);
         }
 
-        if ($this->scheduleId) {
-            $query->where('schedule_id', $this->scheduleId); // Filter by schedule ID
+        // Apply Status Filter
+        if (!empty($this->status)) {
+            $query->where('status', strtolower($this->status));
         }
 
-        if ($this->selectedMonth) {
-            $query->whereDate('date', 'like', $this->selectedMonth . '%');
-        }
-
-        if ($this->selectedSubject) {
+        // Apply Subject Filter
+        if (!empty($this->selectedSubject)) {
             $query->whereHas('schedule.subject', function ($q) {
                 $q->where('id', $this->selectedSubject);
             });
         }
 
-        if ($this->status) {
-            $query->where('status', strtolower($this->status));
+        // Apply Month Filter
+        if ($this->selectedMonth) {
+            try {
+                $parsedMonth = Carbon::parse($this->selectedMonth);
+                $query->whereMonth('date', $parsedMonth->month)
+                      ->whereYear('date', $parsedMonth->year);
+            } catch (\Exception $e) {
+                // Handle invalid date format if necessary
+            }
         }
 
         return $query;

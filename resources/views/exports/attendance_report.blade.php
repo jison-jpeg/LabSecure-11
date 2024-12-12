@@ -1,28 +1,34 @@
+div
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Schedule Report</title>
+    <title>Daily Time Record</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 10px;
             font-size: 9px;
+            /* Set font size to 10 points */
         }
 
         .pdf-wrapper {
             width: 100%;
+            /* Ensure full utilization of the width */
         }
 
         .header {
             display: flex;
             align-items: center;
+            /* Vertically centers items */
             justify-content: center;
+            /* Horizontally centers header text */
             position: relative;
             margin-bottom: 10px;
             height: 80px;
+            /* Adjust as needed */
         }
 
         .header .logo {
@@ -36,16 +42,28 @@
             text-align: center;
         }
 
+
         .header-text h1,
         .header-text p {
             margin: 0;
             font-size: 15px;
+            /* Equal font size for all elements */
+        }
+
+        .sub-header {
+            text-align: center;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .info {
+            margin-bottom: 20px;
         }
 
         .info-box {
             border: 1px solid #000;
             padding: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         .info-box table {
@@ -57,40 +75,71 @@
             padding: 2px;
         }
 
-        .schedule-details {
+        .schedule {
             margin-top: 10px;
             margin-bottom: 5px;
             text-align: left;
         }
 
-        .schedule-details strong {
+        .schedule strong {
             display: block;
         }
 
-        .schedule-table {
+        .dtr-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
 
-        .schedule-table th,
-        .schedule-table td {
+        .dtr-table th,
+        .dtr-table td {
             border: 1px solid #000;
             text-align: left;
             padding: 2px;
             font-size: 10px;
         }
 
-        .schedule-table th {
+        .dtr-table th {
             background-color: #f2f2f2;
+        }
+
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            /* Space between the two sections */
+            align-items: center;
+            /* Ensures vertical alignment */
+            /* width: 100%; Makes the container span the full width */
+        }
+
+        .signature p,
+        .dean p {
+            margin: 0;
+            /* Removes any default margin that can cause misalignment */
+            line-height: 1;
+            /* Ensures consistent line height for alignment */
+        }
+
+        .signature {
+            text-align: left;
+            /* Align text to the left for signature */
+            flex: 1;
+            /* Allows it to grow evenly */
+        }
+
+        .dean {
+            text-align: right;
+            /* Align text to the right for dean */
+            flex: 1;
+            /* Allows it to grow evenly */
         }
     </style>
 </head>
 
 <body>
     <div class="pdf-wrapper">
-        <!-- Header Section -->
         <div class="header">
+            <!-- Embedded Logo Using Base64 Encoding -->
             <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/img/logo.png'))) }}"
                 alt="BukSU Logo" class="logo" />
             <div class="header-text">
@@ -101,8 +150,8 @@
             </div>
         </div>
 
-        <!-- Info Box -->
-        @unless ($user->isStudent() || $user->isInstructor())
+        <!-- Conditional Display of Info Box -->
+        @unless ($user->isAdmin())
             <div class="info-box">
                 <table>
                     <tr>
@@ -119,85 +168,75 @@
             </div>
         @endunless
 
-        <!-- Schedule Details -->
-        @if ($user->isStudent() || $user->isInstructor())
-            <div class="schedule-details">
-                <strong>Your Schedules:</strong>
+        @foreach ($groupedAttendances as $scheduleName => $attendances)
+            @php
+                // Retrieve the schedule from the first attendance record in the group
+                $schedule = $attendances->first()->schedule;
+                // Format the schedule times
+                $scheduleStart = \Carbon\Carbon::parse($schedule->start_time)->format('h:i A');
+                $scheduleEnd = \Carbon\Carbon::parse($schedule->end_time)->format('h:i A');
+                // Extract the year from the schedule's start time
+$scheduleYear = \Carbon\Carbon::parse($schedule->start_time)->format('Y');
+            @endphp
+
+            <!-- Schedule Information -->
+            <div class="schedule">
+                <strong>SCHEDULE:</strong> {{ $scheduleName }} ({{ $schedule->schedule_code }}) {{ $scheduleYear }} M-F
+                {{ $scheduleStart }} - {{ $scheduleEnd }} : {{ $scheduleStart }} - {{ $scheduleEnd }}
             </div>
-            <table class="schedule-table">
+
+            <!-- Attendance Table -->
+            <table class="dtr-table">
                 <thead>
                     <tr>
-                        <th>Schedule Code</th>
-                        <th>Section</th>
-                        <th>Year Level</th>
-                        <th>Subject</th>
-                        <th>Instructor</th>
-                        <th>Days</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
+                        <th>Date</th>
+                        @if ($user->isAdmin())
+                            <th>Name</th>
+                            <th>Role</th>
+                        @endif
+                        <th>Time In</th>
+                        <th>Time Out</th>
+                        <th>Status</th>
+                        <th>Percentage</th>
+                        <th>Remarks</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($schedules as $schedule)
+                    @forelse($attendances as $attendance)
                         <tr>
-                            <td>{{ $schedule->schedule_code }}</td>
-                            <td>{{ $schedule->section->name ?? 'N/A' }}</td>
-                            <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
-                            <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
-                            <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                            <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
-                            <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($attendance->date)->format('D - m/d/Y') }}</td>
+
+                            @if ($user->isAdmin())
+                                <td>{{ $attendance->user->full_name }}</td>
+                                <td>{{ $attendance->user->role->name }}</td>
+                            @endif
+
+                            <td>{{ $attendance->formattedTimeIn }}</td>
+                            <td>{{ $attendance->formattedTimeOut }}</td>
+                            <td>{{ ucfirst($attendance->status) }}</td>
+                            <td>{{ $attendance->percentage ?? 'N/A' }}</td>
+                            <td>{{ $attendance->remarks ?? '' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">No schedules found.</td>
+                            <td colspan="{{ $user->isAdmin() ? 8 : 6 }}">No attendance records found for this schedule.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        @else
-            @foreach ($colleges as $college)
-                @foreach ($college->departments as $department)
-                    <div class="schedule-details">
-                        <strong>Department: {{ $department->name }}</strong>
-                    </div>
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>Schedule Code</th>
-                                <th>Section</th>
-                                <th>Year Level</th>
-                                <th>Subject</th>
-                                <th>Instructor</th>
-                                <th>Days</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($department->schedules as $schedule)
-                                <tr>
-                                    <td>{{ $schedule->schedule_code }}</td>
-                                    <td>{{ $schedule->section->name ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
-                                    <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                    <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8">No schedules found for this department.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                @endforeach
-            @endforeach
-        @endif
+        @endforeach
+
     </div>
+    {{-- <div class="signatures">
+        <div class="signature">
+            <p>Signature</p>
+        </div>
+        <div class="dean">
+            <p>Dean/Director/Head of Office</p>
+        </div>
+    </div> --}}
+
 </body>
 
 </html>

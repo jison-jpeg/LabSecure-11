@@ -443,65 +443,55 @@ class AttendanceTable extends Component
      */
     public function exportAs($format)
     {
-        $user = Auth::user();
-
-        // Include schedule ID in the export filter if set
+        $user = Auth::user(); // Get the authenticated user
+    
+        // Instantiate the AttendanceExport with the necessary filters
         $export = new AttendanceExport(
             $this->selectedMonth,
             $this->selectedSubject,
-            $this->status,
-            $this->userId,
-            $this->scheduleId // Pass the schedule ID filter
+            $this->status
         );
-
+    
         switch ($format) {
             case 'csv':
-                return Excel::download($export, 'attendance_schedule_' . $this->scheduleId . '_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
             case 'excel':
-                return Excel::download($export, 'attendance_schedule_' . $this->scheduleId . '_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
+                return Excel::download($export, 'attendance_' . now()->format('Y_m_d_H_i_s') . '.xlsx');
             case 'pdf':
+                // Fetch the data for the PDF export
                 $attendances = $export->query()->get();
-
-                // Sort attendances by name (Last name, First name, Middle name)
-                $attendances = $attendances->sortBy(function ($item) {
-                    $lastName = $item->user->last_name ?? '';
-                    $firstName = $item->user->first_name ?? '';
-                    $middleInitial = $item->user->middle_name ? substr($item->user->middle_name, 0, 1) . '.' : '';
-                    $suffix = $item->user->suffix ?? '';
-
-                    return trim("$lastName, $firstName $middleInitial $suffix");
-                });
-
+    
+                // Group attendances by schedule name
                 $groupedAttendances = $attendances->groupBy(function ($item) {
-                    return $item->schedule->subject->name;
+                    return $item->schedule->subject->name; // Group by subject name or other relevant attributes
                 });
-
+    
+                // Generate the PDF
                 $pdf = Pdf::loadView('exports.attendance_report', [
                     'user' => $user,
                     'selectedMonth' => $this->selectedMonth,
                     'groupedAttendances' => $groupedAttendances,
-                    'formatName' => function ($user) {
-                        $lastName = $user->last_name ?? '';
-                        $firstName = $user->first_name ?? '';
-                        $middleInitial = $user->middle_name ? substr($user->middle_name, 0, 1) . '.' : '';
-                        $suffix = $user->suffix ?? '';
-
-                        return trim("$lastName, $firstName $middleInitial $suffix");
-                    },
                 ])
-                    ->setPaper('a4', 'portrait')
-                    ->setOption('margin-top', '10mm')
+                    ->setPaper('a4', 'portrait') // Set to portrait orientation
+                    ->setOption('margin-top', '10mm') // Adjust margins for better spacing
                     ->setOption('margin-bottom', '10mm')
                     ->setOption('margin-left', '10mm')
                     ->setOption('margin-right', '10mm');
-
+    
+                // Stream the PDF for download
                 return response()->streamDownload(function () use ($pdf) {
                     echo $pdf->output();
-                }, 'attendance_schedule_' . $this->scheduleId . '_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+                }, 'attendance_report_' . now()->format('Y_m_d_H_i_s') . '.pdf');
+    
+            default:
+                // Handle unsupported formats
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->error('Unsupported export format.');
+                break;
         }
     }
-
-
 
     /**
      * Render the Component View
