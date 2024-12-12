@@ -25,9 +25,7 @@ class Schedule extends Model
 
     public function getShortenedDaysOfWeek()
     {
-        $daysOfWeek = json_decode($this->days_of_week, true);
-
-        // Mapping full day names to shortened versions
+        $daysOfWeek = json_decode($this->days_of_week, true) ?? [];
         $shortDays = [
             'Monday' => 'Mon',
             'Tuesday' => 'Tue',
@@ -38,10 +36,7 @@ class Schedule extends Model
             'Sunday' => 'Sun',
         ];
 
-        // Replace the full day names with their shortened versions
-        return array_map(function ($day) use ($shortDays) {
-            return $shortDays[$day] ?? $day;  // Fallback to the original day if not found in the map
-        }, $daysOfWeek);
+        return array_map(fn($day) => $shortDays[$day] ?? $day, $daysOfWeek);
     }
 
     public function subject()
@@ -87,8 +82,8 @@ class Schedule extends Model
     public function scopeSearch($query, $value)
     {
         return $query->whereHas('subject', function ($q) use ($value) {
-                $q->where('name', 'like', '%' . $value . '%');
-            })
+            $q->where('name', 'like', '%' . $value . '%');
+        })
             ->orWhereHas('instructor', function ($q) use ($value) {
                 $q->where('first_name', 'like', '%' . $value . '%')
                     ->orWhere('middle_name', 'like', '%' . $value . '%')
@@ -118,14 +113,14 @@ class Schedule extends Model
             $relation = explode('.', $sortBy)[0];
             $column = explode('.', $sortBy)[1];
             return $query->join($relation . 's', $relation . 's.id', '=', 'schedules.' . $relation . '_id')
-                         ->orderBy($relation . 's.' . $column, $sortDir)
-                         ->select('schedules.*');
+                ->orderBy($relation . 's.' . $column, $sortDir)
+                ->select('schedules.*');
         } elseif ($sortBy === 'instructor.full_name') {
             return $query->join('users as instructors', 'instructors.id', '=', 'schedules.instructor_id')
-                         ->orderBy('instructors.first_name', $sortDir)
-                         ->orderBy('instructors.middle_name', $sortDir)
-                         ->orderBy('instructors.last_name', $sortDir)
-                         ->select('schedules.*');
+                ->orderBy('instructors.first_name', $sortDir)
+                ->orderBy('instructors.middle_name', $sortDir)
+                ->orderBy('instructors.last_name', $sortDir)
+                ->select('schedules.*');
         } else {
             return $query->orderBy($sortBy, $sortDir);
         }

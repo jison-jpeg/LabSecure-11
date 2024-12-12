@@ -103,7 +103,8 @@
                         <td>
                             <strong>College:</strong> {{ optional($user->college)->name }}
                         </td>
-                        <td><strong>Year Level - Semester:</strong> {{ optional($user->section)->year_level }} - {{ optional($user->section)->semester }}</td>
+                        <td><strong>Year Level - Semester:</strong> {{ optional($user->section)->year_level }} -
+                            {{ optional($user->section)->semester }}</td>
                     </tr>
                 </table>
             </div>
@@ -133,7 +134,7 @@
                                 <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
                                 <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
                                 <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
+                                <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek() ?? ['N/A']) }}</td>
                                 <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                             </tr>
@@ -145,9 +146,10 @@
                     </tbody>
                 </table>
             @else
-                @foreach ($colleges as $college)
-                    @foreach ($college->departments as $department)
-                        <h3>Department: {{ $department->name }}</h3>
+                @forelse ($colleges as $college)
+                    <h3>College: {{ $college->name }}</h3>
+                    @forelse ($college->departments as $department)
+                        <h4>Department: {{ $department->name }}</h4>
                         <table class="schedule-table">
                             <thead>
                                 <tr>
@@ -169,7 +171,7 @@
                                         <td>{{ $schedule->section->year_level ?? 'N/A' }}</td>
                                         <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
                                         <td>{{ $schedule->instructor->full_name ?? 'N/A' }}</td>
-                                        <td>{{ implode(', ', array_map(fn($day) => substr($day, 0, 3), json_decode($schedule->days_of_week, true))) }}</td>
+                                        <td>{{ implode(', ', $schedule->getShortenedDaysOfWeek() ?? ['N/A']) }}</td>
                                         <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</td>
                                         <td>{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                                     </tr>
@@ -180,8 +182,12 @@
                                 @endforelse
                             </tbody>
                         </table>
-                    @endforeach
-                @endforeach
+                    @empty
+                        <p>No departments found for this college.</p>
+                    @endforelse
+                @empty
+                    <p>No colleges found.</p>
+                @endforelse
             @endif
         </div>
     </div>
