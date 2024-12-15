@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Lockable;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Laboratory extends Model
 {
-    use HasFactory;
+    use HasFactory, Lockable;
 
     protected $fillable = [
         'name',
@@ -69,6 +70,10 @@ class Laboratory extends Model
             ->first();  // Return the latest 'out' log
     }
 
+    public function lockedBy()
+    {
+        return $this->lock_user_id ? User::find($this->lock_user_id) : null;
+    }
 
 
     public function scopeSearch($query, $value)

@@ -11,6 +11,13 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
+
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-4">
                             <label for="name" class="form-label">Name</label>
@@ -24,7 +31,8 @@
                         </div>
                         <div class="col-md-4">
                             <label for="type" class="form-label">Type</label>
-                            <select wire:model="type" name="type" class="form-select form-control @error('location') is-invalid @enderror">
+                            <select wire:model="type" name="type"
+                                class="form-select form-control @error('location') is-invalid @enderror">
                                 <option value="">Laboratory Type</option>
                                 <option value="Computer Laboratory">Computer Laboratory</option>
                                 <option value="Multimedia Laboratory">Multimedia Laboratory</option>
@@ -49,11 +57,12 @@
                             @if ($editForm)
                                 <button wire:click="close" type="button" class="btn btn-secondary"
                                     data-bs-dismiss="modal">Close</button>
-                                <button wire:click="update" type="button" class="btn btn-primary">Save changes</button>
+                                <button type="submit" class="btn btn-primary"
+                                    @if ($lockError) disabled @endif>Save Changes</button>
                             @else
                                 <button wire:click="close" type="button" class="btn btn-secondary"
                                     data-bs-dismiss="modal">Close</button>
-                                <button wire:click="save" type="button" class="btn btn-primary">Create laboratory</button>
+                                <button type="submit" class="btn btn-primary">Create Laboratory</button>
                             @endif
                         </div>
                     </form>

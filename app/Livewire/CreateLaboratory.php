@@ -18,9 +18,12 @@ class CreateLaboratory extends Component
     public $location;
     public $type;
     public $status = 'Available';  // Default status to "Available"
-
-    protected $listeners = ['edit-mode' => 'edit'];
-
+    public $lockError = null;
+    protected $listeners = [
+        'edit-mode' => 'edit',
+        'externalModelLocked' => 'handleExternalLock',
+        'externalModelUnlocked' => 'handleExternalUnlock',
+    ];
     public function render()
     {
         return view('livewire.create-laboratory');
@@ -107,6 +110,24 @@ class CreateLaboratory extends Component
         $this->editForm = true;
         $this->formTitle = 'Edit Laboratory';
         $this->laboratory = Laboratory::findOrFail($id);
+
+        if ($this->laboratory->isLocked() && !$this->laboratory->isLockedBy(Auth::id())) {
+            $lockedByUser = $this->laboratory->lockedBy();
+            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+            $this->lockError = "This record is currently being edited by {$lockedByName}.";
+            return;
+        }
+
+        $this->laboratory->lock(Auth::id());
+        $this->lockError = null;
+
+        event(new \App\Events\ModelLocked(Laboratory::class, $this->laboratory->id, Auth::id(), Auth::user()->full_name));
+
+        $this->dispatch('subscribe-to-lock-channel', [
+            'modelClass' => base64_encode(Laboratory::class),
+            'modelId' => $this->laboratory->id
+        ]);
+
         $this->name = $this->laboratory->name;
         $this->location = $this->laboratory->location;
         $this->type = $this->laboratory->type;
@@ -118,6 +139,18 @@ class CreateLaboratory extends Component
      */
     public function update()
     {
+
+        if ($this->laboratory && $this->laboratory->isLocked() && !$this->laboratory->isLockedBy(Auth::id())) {
+            $lockedByUser = $this->laboratory->lockedBy();
+            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
+            return;
+        }
+
         $this->validate([
             'name' => [
                 'required',
@@ -168,12 +201,32 @@ class CreateLaboratory extends Component
         $this->reset();
     }
 
+    public function handleExternalLock($modelClass, $modelId, $lockedBy, $lockedByName)
+    {
+        if ($this->editForm && $this->laboratory && $this->laboratory->id == $modelId && $lockedBy != Auth::id()) {
+            $this->lockError = "This record is currently being edited by {$lockedByName}.";
+        }
+    }
+
+    public function handleExternalUnlock($modelClass, $modelId)
+    {
+        if ($this->editForm && $this->laboratory && $this->laboratory->id == $modelId) {
+            $this->lockError = null;
+        }
+    }
+
     /**
      * Close the modal and reset form data.
      */
     #[On('reset-modal')]
     public function close()
     {
+
+        if ($this->laboratory && $this->laboratory->isLockedBy(Auth::id())) {
+            $this->laboratory->unlock();
+            event(new \App\Events\ModelUnlocked(Laboratory::class, $this->laboratory->id));
+        }
+        
         $this->resetErrorBag();
         $this->reset();
     }
