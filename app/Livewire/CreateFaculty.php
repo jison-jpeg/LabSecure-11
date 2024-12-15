@@ -17,6 +17,7 @@ class CreateFaculty extends Component
 {
     public $formTitle = 'Create Faculty';
     public $editForm = false;
+    public $lockError = null;
     public $user;
     public $first_name;
     public $middle_name;
@@ -153,6 +154,11 @@ class CreateFaculty extends Component
     #[On('reset-modal')]
     public function close()
     {
+        if ($this->editForm && $this->user && $this->user->isLockedBy(Auth::id())) {
+            $this->user->unlock();
+            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+        }
+        
         $this->resetErrorBag();
         $this->resetForm();
     }
@@ -166,6 +172,18 @@ class CreateFaculty extends Component
         $this->formTitle = 'Edit Faculty';
         $this->editForm = true;
         $this->user = User::findOrFail($id);
+
+        if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+            $lockedByUser = User::find($this->user->currentLockUserId());
+            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+
+            $this->lockError = "This record is currently being edited by {$lockedByName}. Please try again later.";
+            return;
+        }
+
+        $this->user->lock(Auth::id());
+        $this->lockError = null;
+
         $this->first_name = $this->user->first_name;
         $this->middle_name = $this->user->middle_name;
         $this->last_name = $this->user->last_name;
@@ -177,6 +195,10 @@ class CreateFaculty extends Component
         $this->loadDepartments();
 
         $this->department_id = $this->user->department_id;
+        $this->dispatch('subscribe-to-lock-channel', [
+            'modelClass' => base64_encode(User::class),
+            'modelId' => $this->user->id,
+        ]);
     }
 
     /**
@@ -184,6 +206,17 @@ class CreateFaculty extends Component
      */
     public function update()
     {
+        if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+            $lockedByUser = User::find($this->user->currentLockUserId());
+            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
+            return;
+        }
+
         $rules = [
             'first_name' => 'required',
             'last_name' => 'required',
@@ -227,6 +260,11 @@ class CreateFaculty extends Component
                 'updated_by' => Auth::user()->full_name,
             ]),
         ]);
+
+        if ($this->user->isLockedBy(Auth::id())) {
+            $this->user->unlock();
+            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+        }
 
         notyf()
             ->position('x', 'right')

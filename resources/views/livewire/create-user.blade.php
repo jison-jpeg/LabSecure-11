@@ -11,11 +11,13 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+
                     @if ($lockError)
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ $lockError }}
                         </div>
                     @endif
+                    
                     <form wire:submit.prevent="{{ $editForm ? 'update' : 'save' }}" class="row g-3 needs-validation"
                         novalidate>
                         <!-- RFID Number  -->
