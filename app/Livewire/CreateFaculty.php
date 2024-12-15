@@ -90,7 +90,7 @@ class CreateFaculty extends Component
         $this->validate($rules);
 
         // Fetch the role ID by role name
-        $facultyRole = Role::where('name', 'faculty')->firstOrFail();
+        $facultyRole = Role::where('name', 'instructor')->firstOrFail();
 
         $faculty = User::create([
             'first_name' => $this->first_name,
