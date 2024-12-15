@@ -24,3 +24,8 @@ Broadcast::channel('laboratory-channel', function ($user) {
 Broadcast::channel('nfc-channel', function () {
     return true;
 });
+
+// Public channel for model locks
+Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+    return (int)$user->id === (int)$id;
+});

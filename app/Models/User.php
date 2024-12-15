@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Lockable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, Lockable;
 
     protected $fillable = [
         'rfid_number',
@@ -137,6 +138,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(TransactionLog::class);
     }
+
+    public function lockedBy()
+{
+    return $this->lock_user_id ? User::find($this->lock_user_id) : null;
+}
+
 
     public function scopeSearch($query, $value)
     {

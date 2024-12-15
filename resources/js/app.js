@@ -90,3 +90,31 @@ window.Echo.channel("nfc-channel").listen(".nfc.card.detected", (data) => {
         })
     );
 });
+
+// Listen for model lock events
+window.subscribeToLockChannel = function(modelClass, modelId) {
+    let channelName = "model-locks." + modelClass + "." + modelId;
+
+    // Subscribe to the channel
+    window.Echo.channel(channelName)
+        .listen('ModelLocked', (e) => {
+            console.log('Record locked:', e);
+            notyf.error(
+                `Record locked by ${e.lockedByName} (${e.lockedBy})`
+            );
+            // Optionally, notify Livewire or show a notification
+            // Livewire.emit('externalModelLocked', e.modelClass, e.modelId, e.lockedBy, e.lockedByName);
+
+            // Using a browser event if you prefer:
+            window.dispatchEvent(new CustomEvent('model-locked', { detail: e }));
+        })
+        .listen('ModelUnlocked', (e) => {
+            console.log('Record unlocked:', e);
+            // Notify Livewire or show a notification
+            // Livewire.emit('externalModelUnlocked', e.modelClass, e.modelId);
+
+            // Or a browser event:
+            window.dispatchEvent(new CustomEvent('model-unlocked', { detail: e }));
+        });
+}
+

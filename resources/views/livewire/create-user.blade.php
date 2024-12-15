@@ -11,6 +11,11 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
                     <form wire:submit.prevent="{{ $editForm ? 'update' : 'save' }}" class="row g-3 needs-validation"
                         novalidate>
                         <!-- RFID Number  -->
@@ -226,15 +231,37 @@
                     @if ($editForm)
                         <button wire:click="close" type="button" class="btn btn-secondary"
                             data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary"
+                            @if ($lockError) disabled @endif>Save Changes</button>
                     @else
                         <button wire:click="close" type="button" class="btn btn-secondary"
                             data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Create User</button>
                     @endif
+
                 </div>
                 </form>
             </div>
         </div>
     </div>
+
+    {{-- <script>
+        document.addEventListener('subscribe-to-lock-channel', function(event) {
+            let modelClass = event.detail.modelClass;
+            let modelId = event.detail.modelId;
+            
+            let channelName = "model-locks." + modelClass + "." + modelId;
+            Echo.channel(channelName)
+                .listen('ModelLocked', (e) => {
+                    console.log('Record locked:', e);
+                    Livewire.emit('externalModelLocked', e.modelClass, e.modelId, e.lockedBy, e.lockedByName);
+                })
+                .listen('ModelUnlocked', (e) => {
+                    console.log('Record unlocked:', e);
+                    Livewire.emit('externalModelUnlocked', e.modelClass, e.modelId);
+                });
+        });
+    </script> --}}
+
+
 </div>
