@@ -395,115 +395,116 @@ class CreateUser extends Component
      * Update an existing user with conditional validation.
      */
     public function update()
-{
-    // Before validating, check if the record is locked by someone else
-    if ($this->user && $this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
-        $lockedByUser = $this->user->lockedBy(); // Assuming `lockedBy()` returns the user who locked the record
-        $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+    {
+        // Before validating, check if the record is locked by someone else
+        if ($this->user && $this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+            // Retrieve the locking user
+            $lockedByUserId = $this->user->currentLockUserId();
+            $lockedByUser = User::find($lockedByUserId); // Fetch the user by their ID
+            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
 
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
-        return;
-    }
-
-    $this->validate($this->getValidationRules());
-
-    try {
-        // Prepare data for user update
-        $data = [
-            'first_name'    => $this->first_name,
-            'middle_name'   => $this->middle_name,
-            'last_name'     => $this->last_name,
-            'suffix'        => $this->suffix,
-            'username'      => $this->username,
-            'role_id'       => $this->role_id,
-            'email'         => $this->email,
-            'status'        => $this->status,
-            'rfid_number'   => $this->rfid_number, // Added RFID number
-        ];
-
-        // Update password if provided
-        if (!empty($this->password)) {
-            $data['password'] = Hash::make($this->password);
-        }
-
-        // Conditionally add or remove college
-        if (!$this->isRoleAdmin()) {
-            $data['college_id'] = $this->selectedCollege;
-        } else {
-            // If admin, remove college, department, and section
-            $data['college_id'] = null;
-        }
-
-        // Conditionally add or remove department
-        if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
-            $data['department_id'] = $this->selectedDepartment;
-        } else {
-            // For roles that don't require department (e.g., Dean and Admin)
-            $data['department_id'] = null;
-        }
-
-        // Conditionally add or remove year level and section for students
-        if ($this->isRoleStudent()) {
-            $data['section_id'] = $this->selectedSection;
-        } else {
-            $data['section_id'] = null;
-        }
-
-        // Update the user
-        $this->user->update($data);
-
-        // Log the transaction
-        TransactionLog::create([
-            'user_id' => Auth::id(),
-            'action'  => 'update',
-            'model'   => 'User',
-            'model_id' => $this->user->id,
-            'details' => json_encode([
-                'user'       => $this->user->full_name,
-                'username'   => $this->user->username,
-                'rfid_number' => $this->user->rfid_number,
-            ]),
-        ]);
-
-        // Unlock the record if currently locked by this user
-        if ($this->user && $this->user->isLockedBy(Auth::id())) {
-            $this->user->unlock();
-            // Broadcast that the user is unlocked
-            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
-        }
-
-        // Show success notification
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('User updated successfully');
-
-        // Notify frontend to refresh the user table
-        $this->dispatch('refresh-user-table');
-
-        // Reset form fields
-        $this->resetFields();
-    } catch (QueryException $e) {
-        // Handle duplicate RFID number at the database level
-        if ($e->errorInfo[1] == 1062) { // MySQL duplicate entry error code
+            // Notify the user that the record is locked
             notyf()
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->error('The RFID number has already been taken.');
-        } else {
-            // Handle other database exceptions
+                ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
+            return;
+        }
+
+        $this->validate($this->getValidationRules());
+
+        try {
+            // Prepare data for user update
+            $data = [
+                'first_name'    => $this->first_name,
+                'middle_name'   => $this->middle_name,
+                'last_name'     => $this->last_name,
+                'suffix'        => $this->suffix,
+                'username'      => $this->username,
+                'role_id'       => $this->role_id,
+                'email'         => $this->email,
+                'status'        => $this->status,
+                'rfid_number'   => $this->rfid_number, // Added RFID number
+            ];
+
+            // Update password if provided
+            if (!empty($this->password)) {
+                $data['password'] = Hash::make($this->password);
+            }
+
+            // Conditionally add or remove college
+            if (!$this->isRoleAdmin()) {
+                $data['college_id'] = $this->selectedCollege;
+            } else {
+                // If admin, remove college, department, and section
+                $data['college_id'] = null;
+            }
+
+            // Conditionally add or remove department
+            if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
+                $data['department_id'] = $this->selectedDepartment;
+            } else {
+                // For roles that don't require department (e.g., Dean and Admin)
+                $data['department_id'] = null;
+            }
+
+            // Conditionally add or remove year level and section for students
+            if ($this->isRoleStudent()) {
+                $data['section_id'] = $this->selectedSection;
+            } else {
+                $data['section_id'] = null;
+            }
+
+            // Update the user
+            $this->user->update($data);
+
+            // Log the transaction
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action'  => 'update',
+                'model'   => 'User',
+                'model_id' => $this->user->id,
+                'details' => json_encode([
+                    'user'       => $this->user->full_name,
+                    'username'   => $this->user->username,
+                    'rfid_number' => $this->user->rfid_number,
+                ]),
+            ]);
+
+            // Unlock the record if currently locked by this user
+            if ($this->user && $this->user->isLockedBy(Auth::id())) {
+                $this->user->unlock();
+                // Broadcast that the user is unlocked
+                event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+            }
+
+            // Show success notification
             notyf()
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->error('An unexpected error occurred. Please try again.');
+                ->success('User updated successfully');
+
+            // Notify frontend to refresh the user table
+            $this->dispatch('refresh-user-table');
+
+            // Reset form fields
+            $this->resetFields();
+        } catch (QueryException $e) {
+            // Handle duplicate RFID number at the database level
+            if ($e->errorInfo[1] == 1062) { // MySQL duplicate entry error code
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->error('The RFID number has already been taken.');
+            } else {
+                // Handle other database exceptions
+                notyf()
+                    ->position('x', 'right')
+                    ->position('y', 'top')
+                    ->error('An unexpected error occurred. Please try again.');
+            }
         }
     }
-}
-
-
 
     /**
      * Reset all form fields and error messages.
@@ -551,54 +552,55 @@ class CreateUser extends Component
         $this->formTitle = 'Edit User';
         $this->editForm = true;
         $this->user = User::findOrFail($id);
-    
+
         // Attempt to lock the user
         if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
-            // Get the user who locked the record
-            $lockedByUser = $this->user->lockedBy(); // Assuming `lockedBy()` returns the user who locked the record
+            // Retrieve the user who locked the record
+            $lockedByUserId = $this->user->currentLockUserId();
+            $lockedByUser = User::find($lockedByUserId);
             $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
-    
+
+            // Set the lock error message
             $this->lockError = "This user is currently being edited by {$lockedByName}. You cannot edit it now.";
             return; // Stop here to prevent loading form fields.
         } else {
             // Lock the record for the current user
             $this->user->lock(Auth::id());
             $this->lockError = null;
-    
+
             // Broadcast that the user is locked
             event(new \App\Events\ModelLocked(User::class, $this->user->id, Auth::id(), Auth::user()->full_name));
-    
-            // Since we now know the user is locked by the current user, we can also
-            // dispatch a browser event to subscribe to this channel if needed
+
+            // Subscribe to lock updates for this user
             $this->dispatch('subscribe-to-lock-channel', [
                 'modelClass' => base64_encode(User::class),
                 'modelId' => $this->user->id
             ]);
         }
-    
+
         // Load user details into the form fields
         $this->first_name    = $this->user->first_name;
         $this->middle_name   = $this->user->middle_name;
         $this->last_name     = $this->user->last_name;
         $this->suffix        = $this->user->suffix;
-        $this->username      = $this->username;
+        $this->username      = $this->user->username;
         $this->role_id       = $this->user->role_id;
         $this->email         = $this->user->email;
         $this->status        = $this->user->status;
         $this->rfid_number   = $this->user->rfid_number; // Loaded RFID number
-    
+
         // Set and load the college
         if ($this->user->college_id) {
             $this->selectedCollege = $this->user->college_id;
             $this->departments = Department::where('college_id', $this->selectedCollege)->get();
         }
-    
+
         // Set and load the department if applicable
         if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
             if ($this->user->department_id) {
                 $this->selectedDepartment = $this->user->department_id;
                 $this->departments = Department::where('college_id', $this->selectedCollege)->get();
-    
+
                 // Load year levels based on selected department
                 $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
                     ->pluck('year_level')
@@ -608,13 +610,13 @@ class CreateUser extends Component
                     ->toArray();
             }
         }
-    
+
         // Set the section and year level if applicable
         if ($this->isRoleStudent()) {
             if ($this->user->section_id) {
                 $this->selectedSection = $this->user->section_id;
                 $this->selectedYearLevel = $this->user->section->year_level;
-    
+
                 // Load sections based on selected department and year level
                 $this->sections = Section::where('department_id', $this->selectedDepartment)
                     ->where('year_level', $this->selectedYearLevel)
@@ -622,7 +624,6 @@ class CreateUser extends Component
             }
         }
     }
-    
 
     /**
      * Check if the selected role is Admin.
