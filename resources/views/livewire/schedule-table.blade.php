@@ -387,7 +387,9 @@
                                     </a>
                                     <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
                                         onclick="event.stopPropagation()">
-                                        <li><button type="button" class="dropdown-item" href="#">View</button>
+                                        <li>
+                                            <a href="{{ route('schedule.view', $schedule->id) }}"
+                                                class="dropdown-item">View</a>
                                         </li>
                                         <li><button @click="$dispatch('edit-mode',{id:{{ $schedule->id }}})"
                                                 type="button" class="dropdown-item" data-bs-toggle="modal"

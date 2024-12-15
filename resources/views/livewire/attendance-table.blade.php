@@ -454,7 +454,11 @@
                                     <ul class="dropdown-menu table-action table-dropdown-menu-arrow me-3"
                                         onclick="event.stopPropagation()">
                                         <li>
-                                            <button type="button" class="dropdown-item">View</button>
+                                            <a href="{{ route('attendance.user.view', [
+                                                'user' => $attendance->user->id,
+                                                'selectedMonth' => Carbon::parse($attendance->date)->format('Y-m'),
+                                                'selectedSubject' => $attendance->schedule->subject->id ?? null, // Include subject ID
+                                            ]) }}" class="dropdown-item">View</a>
                                         </li>
                                         <li>
                                             <button
