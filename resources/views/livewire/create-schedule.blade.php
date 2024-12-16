@@ -11,6 +11,7 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    
                     @if ($lockError)
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             {{ $lockError }}
@@ -145,59 +146,70 @@
                             @enderror
                         </div>
 
-                         <!-- Days of Week Selection -->
-                    <div class="col-md-12">
-                        <label class="form-label">Days of Week</label>
-                        <div class="d-flex flex-wrap justify-content-between">
-                            @php
-                                $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                            @endphp
-                            @foreach ($days as $day)
-                                <div class="form-check">
-                                    <input class="form-check-input @error('days_of_week') is-invalid @enderror"
-                                        type="checkbox" value="{{ $day }}" id="day_{{ strtolower($day) }}"
-                                        wire:model.lazy="days_of_week">
-                                    <label class="form-check-label" for="day_{{ strtolower($day) }}">
-                                        {{ $day }}
-                                    </label>
-                                </div>
-                            @endforeach
+                        <!-- Days of Week Selection -->
+                        <div class="col-md-12">
+                            <label class="form-label">Days of Week</label>
+                            <div class="d-flex flex-wrap justify-content-between">
+                                @php
+                                    $days = [
+                                        'Monday',
+                                        'Tuesday',
+                                        'Wednesday',
+                                        'Thursday',
+                                        'Friday',
+                                        'Saturday',
+                                        'Sunday',
+                                    ];
+                                @endphp
+                                @foreach ($days as $day)
+                                    <div class="form-check">
+                                        <input class="form-check-input @error('days_of_week') is-invalid @enderror"
+                                            type="checkbox" value="{{ $day }}"
+                                            id="day_{{ strtolower($day) }}" wire:model.lazy="days_of_week">
+                                        <label class="form-check-label" for="day_{{ strtolower($day) }}">
+                                            {{ $day }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @error('days_of_week')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
                         </div>
-                        @error('days_of_week')
-                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                        @enderror
-                    </div>
 
-                    <!-- Start Time -->
-                    <div class="col-md-6">
-                        <label for="start_time" class="form-label">Start Time</label>
-                        <input type="time" wire:model.lazy="start_time"
-                            class="form-control @error('start_time') is-invalid @enderror">
-                        @error('start_time')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
-                    </div>
+                        <!-- Start Time -->
+                        <div class="col-md-6">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" wire:model.lazy="start_time"
+                                class="form-control @error('start_time') is-invalid @enderror">
+                            @error('start_time')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
 
-                    <!-- End Time -->
-                    <div class="col-md-6">
-                        <label for="end_time" class="form-label">End Time</label>
-                        <input type="time" wire:model.lazy="end_time"
-                            class="form-control @error('end_time') is-invalid @enderror">
-                        @error('end_time')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
-                    </div>
+                        <!-- End Time -->
+                        <div class="col-md-6">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" wire:model.lazy="end_time"
+                                class="form-control @error('end_time') is-invalid @enderror">
+                            @error('end_time')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
 
                 </div>
                 <div class="modal-footer">
-                        @if ($editForm)
-                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary" @if ($lockError) disabled @endif>Save Changes</button>
-                        @else
-                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Create Schedule</button>
-                        @endif
-                    </div>
+                    @if ($editForm)
+                        <button wire:click="close" type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary"
+                            @if ($lockError) disabled @endif>Save Changes</button>
+                    @else
+                        <button wire:click="close" type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Schedule</button>
+                    @endif
+                </div>
                 </form>
             </div>
         </div>

@@ -15,8 +15,9 @@ class CreateSection extends Component
 {
     public $formTitle = 'Create Section';
     public $editForm = false;
+    public $lockError = null;
     public $section;
-    public $name;          
+    public $name;
     public $college_id;
     public $department_id;
     public $year_level;
@@ -37,45 +38,45 @@ class CreateSection extends Component
     }
 
     public function rules()
-{
-    return [
-        'name' => [
-            'required',
-            Rule::unique('sections', 'name')
-                ->where(function ($query) {
-                    return $query->where('year_level', $this->year_level)
-                                 ->where('department_id', $this->department_id);
-                })
-                ->ignore($this->section ? $this->section->id : null),
-        ],
-        'college_id' => 'required|exists:colleges,id',
-        'department_id' => 'required|exists:departments,id',
-        'year_level' => [
-            'required',
-            'string', // Now accepts any string including "1, 2, 3, 4, 5, 6, irregular"
-            Rule::in(['1', '2', '3', '4', '5', '6', 'irregular']),
-        ],
-        'semester' => 'required',
-        'school_year' => [
-            'required',
-            'regex:/^\d{4}-\d{4}$/',
-            function ($attribute, $value, $fail) {
-                $years = explode('-', $value);
-                $currentYear = (int)date('Y');
-                $minYear = $currentYear - 3;
-                $maxYear = $currentYear + 3;
+    {
+        return [
+            'name' => [
+                'required',
+                Rule::unique('sections', 'name')
+                    ->where(function ($query) {
+                        return $query->where('year_level', $this->year_level)
+                            ->where('department_id', $this->department_id);
+                    })
+                    ->ignore($this->section ? $this->section->id : null),
+            ],
+            'college_id' => 'required|exists:colleges,id',
+            'department_id' => 'required|exists:departments,id',
+            'year_level' => [
+                'required',
+                'string', // Now accepts any string including "1, 2, 3, 4, 5, 6, irregular"
+                Rule::in(['1', '2', '3', '4', '5', '6', 'irregular']),
+            ],
+            'semester' => 'required',
+            'school_year' => [
+                'required',
+                'regex:/^\d{4}-\d{4}$/',
+                function ($attribute, $value, $fail) {
+                    $years = explode('-', $value);
+                    $currentYear = (int)date('Y');
+                    $minYear = $currentYear - 3;
+                    $maxYear = $currentYear + 3;
 
-                if (count($years) !== 2) {
-                    $fail('The school year must be in the format YYYY-YYYY.');
-                } elseif ((int)$years[0] >= (int)$years[1]) {
-                    $fail('The first year must be less than the second year.');
-                } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
-                    $fail("The school year must be between $minYear and $maxYear.");
+                    if (count($years) !== 2) {
+                        $fail('The school year must be in the format YYYY-YYYY.');
+                    } elseif ((int)$years[0] >= (int)$years[1]) {
+                        $fail('The first year must be less than the second year.');
+                    } elseif ((int)$years[0] < $minYear || (int)$years[1] > $maxYear) {
+                        $fail("The school year must be between $minYear and $maxYear.");
+                    }
                 }
-            }
-        ],
-    ];
-}
+            ],
+        ];
+    }
 
 
     public function save()
@@ -118,6 +119,19 @@ class CreateSection extends Component
 
     public function update()
     {
+        // Check if the section is locked by another user
+        if ($this->section->isLocked() && !$this->section->isLockedBy(Auth::id())) {
+            $lockDetails = $this->section->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error("This section is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
+            return;
+        }
+
         $this->validate($this->rules());
 
         // Update the section without combining year_level and name
@@ -146,6 +160,12 @@ class CreateSection extends Component
             ]),
         ]);
 
+        // Release lock if held by the current user
+        if ($this->section->isLockedBy(Auth::id())) {
+            $this->section->releaseLock();
+            event(new \App\Events\ModelUnlocked(Section::class, $this->section->id));
+        }
+
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
@@ -157,6 +177,13 @@ class CreateSection extends Component
     #[On('reset-modal')]
     public function close()
     {
+
+        // Release lock if held by the current user
+        if ($this->editForm && $this->section && $this->section->isLockedBy(Auth::id())) {
+            $this->section->releaseLock();
+            event(new \App\Events\ModelUnlocked(Section::class, $this->section->id));
+        }
+
         $this->resetErrorBag();
         $this->reset();
     }
@@ -167,7 +194,31 @@ class CreateSection extends Component
         $this->formTitle = 'Edit Section';
         $this->editForm = true;
         $this->section = Section::findOrFail($id);
-        $this->name = $this->section->name; // Use name directly
+
+        // Check if the section is locked by another user
+        if ($this->section->isLocked() && !$this->section->isLockedBy(Auth::id())) {
+            $lockDetails = $this->section->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            $this->lockError = "This section is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.";
+            return;
+        }
+
+        // Lock the section for the current user
+        $this->section->applyLock(Auth::id());
+        $this->lockError = null;
+
+        // Broadcast lock event
+        event(new \App\Events\ModelLocked(Section::class, $this->section->id, Auth::id(), Auth::user()->full_name));
+
+        // Subscribe to lock updates
+        $this->dispatch('subscribe-to-lock-channel', [
+            'modelClass' => base64_encode(Section::class),
+            'modelId' => $this->section->id,
+        ]);
+
+        $this->name = $this->section->name;
         $this->college_id = $this->section->college_id;
         $this->department_id = $this->section->department_id;
         $this->year_level = $this->section->year_level;
