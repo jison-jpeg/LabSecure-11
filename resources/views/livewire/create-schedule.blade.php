@@ -11,6 +11,12 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
+
                     @if ($conflicts)
                         <div class="alert alert-danger">
                             <h5>Conflicting Schedules:</h5>
@@ -184,16 +190,14 @@
 
                 </div>
                 <div class="modal-footer">
-                    @if ($editForm)
-                        <button wire:click="close" type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Close</button>
-                        <button wire:click="update" type="button" class="btn btn-primary">Save changes</button>
-                    @else
-                        <button wire:click="close" type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Close</button>
-                        <button wire:click="save" type="button" class="btn btn-primary">Create Schedule</button>
-                    @endif
-                </div>
+                        @if ($editForm)
+                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" @if ($lockError) disabled @endif>Save Changes</button>
+                        @else
+                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Create Schedule</button>
+                        @endif
+                    </div>
                 </form>
             </div>
         </div>

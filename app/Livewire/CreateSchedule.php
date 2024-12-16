@@ -12,11 +12,14 @@ use App\Models\Laboratory;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Flasher\Notyf\Prime\NotyfInterface;
+use Illuminate\Support\Facades\Auth;
+
 
 class CreateSchedule extends Component
 {
     public $formTitle = 'Create Schedule';
     public $editForm = false;
+    public $lockError = null;
     public $schedule;
 
     // Form Fields
@@ -184,6 +187,19 @@ class CreateSchedule extends Component
      */
     public function update()
     {
+        // Check if the schedule is locked by another user
+    if ($this->schedule->isLocked() && !$this->schedule->isLockedBy(Auth::id())) {
+        $lockDetails = $this->schedule->lockDetails();
+        $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+        $timeAgo = $lockDetails['timeAgo'];
+
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->error("This schedule is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
+        return;
+    }
+
         $this->validate([
             'subject_id' => 'required',
             'instructor_id' => 'required',
@@ -245,6 +261,12 @@ class CreateSchedule extends Component
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
         ]);
+
+        // Release lock if held by the current user
+    if ($this->schedule->isLockedBy(Auth::id())) {
+        $this->schedule->releaseLock();
+        event(new \App\Events\ModelUnlocked(Schedule::class, $this->schedule->id));
+    }
 
         notyf()
             ->dismissible(true)
@@ -350,6 +372,30 @@ class CreateSchedule extends Component
         $this->formTitle = 'Edit Schedule';
         $this->editForm = true;
         $this->schedule = Schedule::findOrFail($id);
+
+        // Check if the schedule is locked by another user
+    if ($this->schedule->isLocked() && !$this->schedule->isLockedBy(Auth::id())) {
+        $lockDetails = $this->schedule->lockDetails();
+        $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+        $timeAgo = $lockDetails['timeAgo'];
+
+        $this->lockError = "This schedule is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.";
+        return;
+    }
+
+    // Lock the schedule for the current user
+    $this->schedule->applyLock(Auth::id());
+    $this->lockError = null;
+
+    // Broadcast lock event
+    event(new \App\Events\ModelLocked(Schedule::class, $this->schedule->id, Auth::id(), Auth::user()->full_name));
+
+    // Subscribe to lock updates
+    $this->dispatch('subscribe-to-lock-channel', [
+        'modelClass' => base64_encode(Schedule::class),
+        'modelId' => $this->schedule->id,
+    ]);
+
         $this->subject_id = $this->schedule->subject_id;
         $this->instructor_id = $this->schedule->instructor_id;
         $this->laboratory_id = $this->schedule->laboratory_id;
