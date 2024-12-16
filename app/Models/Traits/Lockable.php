@@ -3,6 +3,7 @@
 namespace App\Models\Traits;
 
 use App\Models\Lock;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -87,5 +88,29 @@ trait Lockable
             ->first();
 
         return $lock ? $lock->locked_by : null;
+    }
+
+    /**
+     * Get the user who currently holds the lock along with the relative time since it was locked.
+     *
+     * @return array|null
+     */
+    public function lockDetails()
+    {
+        $lock = Lock::where('lockable_type', static::class)
+            ->where('lockable_id', $this->getKey())
+            ->first();
+
+        if (!$lock || !$lock->lock_expires_at->isFuture()) {
+            return null;
+        }
+
+        $user = User::find($lock->locked_by);
+        $timeAgo = Carbon::parse($lock->created_at)->diffForHumans();
+
+        return [
+            'user' => $user,
+            'timeAgo' => $timeAgo,
+        ];
     }
 }

@@ -21,7 +21,7 @@
                     <form wire:submit.prevent="{{ $editForm ? 'update' : 'save' }}" class="row g-3 needs-validation"
                         novalidate>
                         <!-- RFID Number  -->
-                        <div class="col-md-2">
+                        <div class="col-md-2 text-truncate">
                             <label for="rfid_number" class="form-label">RFID Number</label>
                             <input wire:model.lazy="rfid_number" type="text"
                                 class="form-control @error('rfid_number') is-invalid @enderror" name="rfid_number"

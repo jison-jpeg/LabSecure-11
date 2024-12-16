@@ -398,16 +398,16 @@ class CreateUser extends Component
     {
         // Before validating, check if the record is locked by someone else
         if ($this->user && $this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
-            // Retrieve the locking user
-            $lockedByUserId = $this->user->currentLockUserId();
-            $lockedByUser = User::find($lockedByUserId); // Fetch the user by their ID
-            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+            // Retrieve lock details
+            $lockDetails = $this->user->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
 
             // Notify the user that the record is locked
             notyf()
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
+                ->error("This record is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
             return;
         }
 
@@ -424,7 +424,7 @@ class CreateUser extends Component
                 'role_id'       => $this->role_id,
                 'email'         => $this->email,
                 'status'        => $this->status,
-                'rfid_number'   => $this->rfid_number, // Added RFID number
+                'rfid_number'   => $this->rfid_number,
             ];
 
             // Update password if provided
@@ -436,7 +436,6 @@ class CreateUser extends Component
             if (!$this->isRoleAdmin()) {
                 $data['college_id'] = $this->selectedCollege;
             } else {
-                // If admin, remove college, department, and section
                 $data['college_id'] = null;
             }
 
@@ -444,7 +443,6 @@ class CreateUser extends Component
             if ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) {
                 $data['department_id'] = $this->selectedDepartment;
             } else {
-                // For roles that don't require department (e.g., Dean and Admin)
                 $data['department_id'] = null;
             }
 
@@ -474,7 +472,6 @@ class CreateUser extends Component
             // Unlock the record if currently locked by this user
             if ($this->user && $this->user->isLockedBy(Auth::id())) {
                 $this->user->unlock();
-                // Broadcast that the user is unlocked
                 event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
             }
 
@@ -490,14 +487,12 @@ class CreateUser extends Component
             // Reset form fields
             $this->resetFields();
         } catch (QueryException $e) {
-            // Handle duplicate RFID number at the database level
-            if ($e->errorInfo[1] == 1062) { // MySQL duplicate entry error code
+            if ($e->errorInfo[1] == 1062) {
                 notyf()
                     ->position('x', 'right')
                     ->position('y', 'top')
                     ->error('The RFID number has already been taken.');
             } else {
-                // Handle other database exceptions
                 notyf()
                     ->position('x', 'right')
                     ->position('y', 'top')
@@ -555,13 +550,13 @@ class CreateUser extends Component
 
         // Attempt to lock the user
         if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
-            // Retrieve the user who locked the record
-            $lockedByUserId = $this->user->currentLockUserId();
-            $lockedByUser = User::find($lockedByUserId);
-            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+            // Retrieve lock details
+            $lockDetails = $this->user->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
 
             // Set the lock error message
-            $this->lockError = "This user is currently being edited by {$lockedByName}. You cannot edit it now.";
+            $this->lockError = "This user is currently being edited by {$lockedByName} ({$timeAgo}). You cannot edit it now.";
             return; // Stop here to prevent loading form fields.
         } else {
             // Lock the record for the current user
@@ -574,20 +569,20 @@ class CreateUser extends Component
             // Subscribe to lock updates for this user
             $this->dispatch('subscribe-to-lock-channel', [
                 'modelClass' => base64_encode(User::class),
-                'modelId' => $this->user->id
+                'modelId' => $this->user->id,
             ]);
         }
 
         // Load user details into the form fields
-        $this->first_name    = $this->user->first_name;
-        $this->middle_name   = $this->user->middle_name;
-        $this->last_name     = $this->user->last_name;
-        $this->suffix        = $this->user->suffix;
-        $this->username      = $this->user->username;
-        $this->role_id       = $this->user->role_id;
-        $this->email         = $this->user->email;
-        $this->status        = $this->user->status;
-        $this->rfid_number   = $this->user->rfid_number; // Loaded RFID number
+        $this->first_name = $this->user->first_name;
+        $this->middle_name = $this->user->middle_name;
+        $this->last_name = $this->user->last_name;
+        $this->suffix = $this->user->suffix;
+        $this->username = $this->user->username;
+        $this->role_id = $this->user->role_id;
+        $this->email = $this->user->email;
+        $this->status = $this->user->status;
+        $this->rfid_number = $this->user->rfid_number;
 
         // Set and load the college
         if ($this->user->college_id) {
