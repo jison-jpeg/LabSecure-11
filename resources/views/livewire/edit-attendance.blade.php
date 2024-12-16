@@ -14,7 +14,7 @@
                             {{ $lockError }}
                         </div>
                     @endif
-                    
+
                     <!-- Status Field -->
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
@@ -37,13 +37,16 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <!-- Close Button -->
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="$dispatch('reset-modal')">Close</button>
-                    <!-- Save/Update Button -->
-                    <button type="button" class="btn btn-primary" wire:click="{{ $editForm ? 'update' : 'save' }}">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="$dispatch('reset-modal')">
+                        Close
+                    </button>
+                    <button type="button" class="btn btn-primary" 
+                        wire:click="{{ $editForm ? 'update' : 'save' }}" 
+                        @if ($lockError) disabled @endif>
                         {{ $editForm ? 'Update Attendance' : 'Save Attendance' }}
-                    </button>                    
+                    </button>
                 </div>
+                
             </div>
         </div>
     </div>
