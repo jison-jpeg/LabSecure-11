@@ -13,17 +13,16 @@ class CreateLaboratory extends Component
 {
     public $formTitle = 'Create Laboratory';
     public $editForm = false;
+    public $lockError = null;
+
     public $laboratory;
     public $name;
     public $location;
     public $type;
     public $status = 'Available';  // Default status to "Available"
-    public $lockError = null;
-    protected $listeners = [
-        'edit-mode' => 'edit',
-        'externalModelLocked' => 'handleExternalLock',
-        'externalModelUnlocked' => 'handleExternalUnlock',
-    ];
+
+    protected $listeners = ['edit-mode' => 'edit'];
+
     public function render()
     {
         return view('livewire.create-laboratory');
@@ -107,47 +106,60 @@ class CreateLaboratory extends Component
     #[On('edit-mode')]
     public function edit($id)
     {
-        $this->editForm = true;
         $this->formTitle = 'Edit Laboratory';
+        $this->editForm = true;
         $this->laboratory = Laboratory::findOrFail($id);
 
+        // Attempt to lock the laboratory
         if ($this->laboratory->isLocked() && !$this->laboratory->isLockedBy(Auth::id())) {
-            $lockedByUser = $this->laboratory->lockedBy();
-            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
-            $this->lockError = "This record is currently being edited by {$lockedByName}.";
-            return;
+            // Retrieve lock details
+            $lockDetails = $this->laboratory->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            // Set the lock error message
+            $this->lockError = "This laboratory is currently being edited by {$lockedByName} ({$timeAgo}). You cannot edit it now.";
+            return; // Stop here to prevent loading form fields.
+        } else {
+            // Lock the record for the current user
+            $this->laboratory->applyLock(Auth::id());
+            $this->lockError = null;
+
+            // Broadcast that the laboratory is locked
+            event(new \App\Events\ModelLocked(Laboratory::class, $this->laboratory->id, Auth::id(), Auth::user()->full_name));
+
+            // Subscribe to lock updates for this laboratory
+            $this->dispatch('subscribe-to-lock-channel', [
+                'modelClass' => base64_encode(Laboratory::class),
+                'modelId' => $this->laboratory->id,
+            ]);
         }
 
-        $this->laboratory->lock(Auth::id());
-        $this->lockError = null;
-
-        event(new \App\Events\ModelLocked(Laboratory::class, $this->laboratory->id, Auth::id(), Auth::user()->full_name));
-
-        $this->dispatch('subscribe-to-lock-channel', [
-            'modelClass' => base64_encode(Laboratory::class),
-            'modelId' => $this->laboratory->id
-        ]);
-
+        // Load laboratory details into the form fields
         $this->name = $this->laboratory->name;
         $this->location = $this->laboratory->location;
         $this->type = $this->laboratory->type;
         $this->status = $this->laboratory->status ?? 'Available';
     }
 
+
     /**
      * Update an existing laboratory.
      */
     public function update()
     {
+        // Before validating, check if the record is locked by someone else
+        if ($this->laboratory->isLocked() && !$this->laboratory->isLockedBy(Auth::id())) {
+            // Retrieve lock details
+            $lockDetails = $this->laboratory->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
 
-        if ($this->laboratory && $this->laboratory->isLocked() && !$this->laboratory->isLockedBy(Auth::id())) {
-            $lockedByUser = $this->laboratory->lockedBy();
-            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
-
+            // Notify the user that the record is locked
             notyf()
                 ->position('x', 'right')
                 ->position('y', 'top')
-                ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
+                ->error("This laboratory is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
             return;
         }
 
@@ -193,26 +205,19 @@ class CreateLaboratory extends Component
             ]),
         ]);
 
+        // Unlock the record if currently locked by this user
+        if ($this->laboratory->isLockedBy(Auth::id())) {
+            $this->laboratory->unlock();
+            // Broadcast that the laboratory is unlocked
+            event(new \App\Events\ModelUnlocked(Laboratory::class, $this->laboratory->id));
+        }
+
         notyf()
             ->position('x', 'right')
             ->position('y', 'top')
             ->success('Laboratory updated successfully');
         $this->dispatch('refresh-laboratory-table');
         $this->reset();
-    }
-
-    public function handleExternalLock($modelClass, $modelId, $lockedBy, $lockedByName)
-    {
-        if ($this->editForm && $this->laboratory && $this->laboratory->id == $modelId && $lockedBy != Auth::id()) {
-            $this->lockError = "This record is currently being edited by {$lockedByName}.";
-        }
-    }
-
-    public function handleExternalUnlock($modelClass, $modelId)
-    {
-        if ($this->editForm && $this->laboratory && $this->laboratory->id == $modelId) {
-            $this->lockError = null;
-        }
     }
 
     /**
@@ -222,11 +227,13 @@ class CreateLaboratory extends Component
     public function close()
     {
 
-        if ($this->laboratory && $this->laboratory->isLockedBy(Auth::id())) {
+        // Unlock the record if currently locked by this user
+        if ($this->editForm && $this->laboratory && $this->laboratory->isLockedBy(Auth::id())) {
             $this->laboratory->unlock();
+            // Broadcast that the laboratory is unlocked
             event(new \App\Events\ModelUnlocked(Laboratory::class, $this->laboratory->id));
         }
-        
+
         $this->resetErrorBag();
         $this->reset();
     }

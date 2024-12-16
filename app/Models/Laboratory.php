@@ -70,12 +70,6 @@ class Laboratory extends Model
             ->first();  // Return the latest 'out' log
     }
 
-    public function lockedBy()
-    {
-        return $this->lock_user_id ? User::find($this->lock_user_id) : null;
-    }
-
-
     public function scopeSearch($query, $value)
     {
         return $query->where('name', 'like', '%' . $value . '%')

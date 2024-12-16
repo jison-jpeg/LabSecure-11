@@ -116,7 +116,7 @@
                 <table class="schedule-table">
                     <thead>
                         <tr>
-                            <th>Schedule Code</th>
+                            <th>Section Code</th>
                             <th>Section</th>
                             <th>Year Level</th>
                             <th>Subject</th>
@@ -153,7 +153,7 @@
                         <table class="schedule-table">
                             <thead>
                                 <tr>
-                                    <th>Schedule Code</th>
+                                    <th>Section Code</th>
                                     <th>Section</th>
                                     <th>Year Level</th>
                                     <th>Subject</th>

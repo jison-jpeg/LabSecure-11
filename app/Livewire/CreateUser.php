@@ -560,7 +560,7 @@ class CreateUser extends Component
             return; // Stop here to prevent loading form fields.
         } else {
             // Lock the record for the current user
-            $this->user->lock(Auth::id());
+            $this->user->applyLock(Auth::id());
             $this->lockError = null;
 
             // Broadcast that the user is locked

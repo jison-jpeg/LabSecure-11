@@ -10,18 +10,18 @@ use Illuminate\Support\Facades\Auth;
 trait Lockable
 {
     /**
-     * Locks the current model instance for editing by a given user.
+     * Applies a lock on the current model instance for editing by a given user.
      *
      * @param int|null $userId The user who is locking the record. Defaults to the currently authenticated user.
      * @param int $durationInMinutes How long the lock should last. Defaults to 5 minutes.
      * @return void
      */
-    public function lock($userId = null, $durationInMinutes = 5)
+    public function applyLock($userId = null, $durationInMinutes = 5)
     {
         $userId = $userId ?? Auth::id();
 
         // Remove any existing lock first
-        $this->unlock();
+        $this->releaseLock();
 
         Lock::create([
             'lockable_type' => static::class,
@@ -32,11 +32,11 @@ trait Lockable
     }
 
     /**
-     * Unlocks the current model instance.
+     * Releases the lock on the current model instance.
      *
      * @return void
      */
-    public function unlock()
+    public function releaseLock()
     {
         Lock::where('lockable_type', static::class)
             ->where('lockable_id', $this->getKey())
@@ -54,11 +54,7 @@ trait Lockable
             ->where('lockable_id', $this->getKey())
             ->first();
 
-        if (!$lock) {
-            return false;
-        }
-
-        return $lock->lock_expires_at && $lock->lock_expires_at->isFuture();
+        return $lock && $lock->lock_expires_at && $lock->lock_expires_at->isFuture();
     }
 
     /**
