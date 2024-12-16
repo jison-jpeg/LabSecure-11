@@ -15,6 +15,7 @@ class CreateDepartment extends Component
 {
     public $formTitle = 'Create Department';
     public $editForm = false;
+    public $lockError = null;
     public $department;
     public $description;
     public $name;
@@ -76,6 +77,13 @@ class CreateDepartment extends Component
     #[On('reset-modal')]
     public function close()
     {
+        // Release the lock if currently locked by this user
+        if ($this->editForm && $this->department && $this->department->isLockedBy(Auth::id())) {
+            $this->department->releaseLock();
+            // Broadcast that the department is unlocked
+            event(new \App\Events\ModelUnlocked(Department::class, $this->department->id));
+        }
+
         $this->resetErrorBag();
         $this->editForm = false;
         $this->formTitle = 'Create Department';
@@ -88,6 +96,32 @@ class CreateDepartment extends Component
         $this->formTitle = 'Edit Department';
         $this->editForm = true;
         $this->department = Department::findOrFail($id);
+
+        // Attempt to lock the department
+        if ($this->department->isLocked() && !$this->department->isLockedBy(Auth::id())) {
+            // Retrieve lock details
+            $lockDetails = $this->department->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            // Set the lock error message
+            $this->lockError = "This department is currently being edited by {$lockedByName} ({$timeAgo}). You cannot edit it now.";
+            return; // Stop here to prevent loading form fields.
+        } else {
+            // Lock the record for the current user
+            $this->department->applyLock(Auth::id());
+            $this->lockError = null;
+
+            // Broadcast that the department is locked
+            event(new \App\Events\ModelLocked(Department::class, $this->department->id, Auth::id(), Auth::user()->full_name));
+
+            // Subscribe to lock updates for this department
+            $this->dispatch('subscribe-to-lock-channel', [
+                'modelClass' => base64_encode(Department::class),
+                'modelId' => $this->department->id,
+            ]);
+        }
+
         $this->name = $this->department->name;
         $this->college_id = $this->department->college_id;
         $this->description = $this->department->description;
@@ -95,6 +129,20 @@ class CreateDepartment extends Component
 
     public function update()
     {
+        // Check if the department is locked by another user
+        if ($this->department->isLocked() && !$this->department->isLockedBy(Auth::id())) {
+            // Retrieve lock details
+            $lockDetails = $this->department->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            // Notify the user that the record is locked
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error("This department is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
+            return;
+        }
         $this->validate([
             'name' => 'required|unique:departments,name,' . $this->department->id,
             'college_id' => 'required|exists:colleges,id',
@@ -121,6 +169,13 @@ class CreateDepartment extends Component
                 'username' => Auth::user()->username,
             ]),
         ]);
+
+        // Release the lock if currently locked by this user
+        if ($this->department->isLockedBy(Auth::id())) {
+            $this->department->releaseLock();
+            // Broadcast that the department is unlocked
+            event(new \App\Events\ModelUnlocked(Department::class, $this->department->id));
+        }
 
         notyf()
             ->position('x', 'right')

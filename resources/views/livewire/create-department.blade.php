@@ -10,6 +10,11 @@
                     <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
                     <form wire:submit.prevent="{{ $editForm ? 'update' : 'save' }}" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-6">
                             <label for="name" class="form-label">Name</label>
@@ -46,11 +51,12 @@
                             @enderror
                         </div>
                         <div class="modal-footer">
-                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             @if ($editForm)
-                                <button type="button" class="btn btn-primary" wire:click="update">Save changes</button>
+                                <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary" @if ($lockError) disabled @endif>Save Changes</button>
                             @else
-                                <button type="button" class="btn btn-primary" wire:click="save">Create Department</button>
+                                <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Create Department</button>
                             @endif
                         </div>
                     </form>
