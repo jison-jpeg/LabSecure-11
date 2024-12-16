@@ -50,22 +50,49 @@ class CreateSubject extends Component
             'college_id' => 'required|exists:colleges,id',
             'department_id' => 'required|exists:departments,id',
         ]);
-
-        Subject::create([
-            'name' => $this->name,
-            'code' => $this->code,
-            'description' => $this->description,
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-        ]);
-
+    
+        if ($this->editForm && $this->subject) {
+            // Update the existing subject
+            $this->subject->update([
+                'name' => $this->name,
+                'code' => $this->code,
+                'description' => $this->description,
+                'college_id' => $this->college_id,
+                'department_id' => $this->department_id,
+            ]);
+    
+            // Release the lock if held by this user
+            if ($this->subject->isLockedBy(Auth::id())) {
+                $this->subject->releaseLock();
+                event(new \App\Events\ModelUnlocked(Subject::class, $this->subject->id));
+            }
+    
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Subject updated successfully');
+        } else {
+            // Create a new subject
+            Subject::create([
+                'name' => $this->name,
+                'code' => $this->code,
+                'description' => $this->description,
+                'college_id' => $this->college_id,
+                'department_id' => $this->department_id,
+            ]);
+    
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Subject created successfully');
+        }
+    
         $this->dispatch('refresh-subject-table');
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Subject created successfully');
         $this->reset();
+        $this->editForm = false;
+        $this->formTitle = 'Create Subject';
     }
+    
 
     #[On('reset-modal')]
     public function close()
