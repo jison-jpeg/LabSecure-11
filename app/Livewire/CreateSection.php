@@ -83,38 +83,80 @@ class CreateSection extends Component
     {
         $this->validate($this->rules());
 
-        // Create the section without combining year_level and name
-        $section = Section::create([
-            'name' => $this->name,
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-            'year_level' => $this->year_level,
-            'semester' => $this->semester,
-            'school_year' => $this->school_year,
-        ]);
-
-        // Create transaction log for section creation
-        TransactionLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'create',
-            'model' => 'Section',
-            'model_id' => $section->id,
-            'details' => json_encode([
-                'section_name' => $this->name, // Use name directly
-                'college' => College::find($this->college_id)->name,
-                'department' => Department::find($this->department_id)->name,
+        if ($this->editForm && $this->section) {
+            // Update the existing section
+            $this->section->update([
+                'name' => $this->name,
+                'college_id' => $this->college_id,
+                'department_id' => $this->department_id,
                 'year_level' => $this->year_level,
                 'semester' => $this->semester,
                 'school_year' => $this->school_year,
-            ]),
-        ]);
+            ]);
+
+            // Log the update action
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'update',
+                'model' => 'Section',
+                'model_id' => $this->section->id,
+                'details' => json_encode([
+                    'section_name' => $this->name,
+                    'college' => College::find($this->college_id)->name,
+                    'department' => Department::find($this->department_id)->name,
+                    'year_level' => $this->year_level,
+                    'semester' => $this->semester,
+                    'school_year' => $this->school_year,
+                ]),
+            ]);
+
+            // Release lock if held by the current user
+            if ($this->section->isLockedBy(Auth::id())) {
+                $this->section->releaseLock();
+                event(new \App\Events\ModelUnlocked(Section::class, $this->section->id));
+            }
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Section updated successfully');
+        } else {
+            // Create a new section
+            $section = Section::create([
+                'name' => $this->name,
+                'college_id' => $this->college_id,
+                'department_id' => $this->department_id,
+                'year_level' => $this->year_level,
+                'semester' => $this->semester,
+                'school_year' => $this->school_year,
+            ]);
+
+            // Log the creation action
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'create',
+                'model' => 'Section',
+                'model_id' => $section->id,
+                'details' => json_encode([
+                    'section_name' => $this->name,
+                    'college' => College::find($this->college_id)->name,
+                    'department' => Department::find($this->department_id)->name,
+                    'year_level' => $this->year_level,
+                    'semester' => $this->semester,
+                    'school_year' => $this->school_year,
+                ]),
+            ]);
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Section created successfully');
+        }
 
         $this->dispatch('refresh-section-table');
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Section created successfully');
         $this->reset();
+        $this->editForm = false; // Exit edit mode
+        $this->formTitle = 'Create Section'; // Reset the form title
     }
 
     public function update()

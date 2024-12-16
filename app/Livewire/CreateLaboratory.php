@@ -59,44 +59,85 @@ class CreateLaboratory extends Component
                 Rule::unique('laboratories')
                     ->where(function ($query) {
                         return $query->where('type', $this->type);
-                    }),
+                    })
+                    ->ignore($this->laboratory?->id), // Ignore the current laboratory ID if editing
             ],
             'location' => 'required',
             'type' => 'required',
         ]);
-
-        // Set status to 'Available' if it's null or not set
-        $this->status = $this->status ?? 'Available';
-
-        $laboratory = Laboratory::create([
-            'name' => $this->name,
-            'location' => $this->location,
-            'type' => $this->type,
-            'status' => $this->status,
-        ]);
-
-        // Log the transaction with user details
-        TransactionLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'create',
-            'model' => 'Laboratory',
-            'model_id' => $laboratory->id,
-            'details' => json_encode([
-                'user' => Auth::user()->full_name,
-                'laboratory_name' => $this->name,
+    
+        // Check if in edit mode
+        if ($this->editForm && $this->laboratory) {
+            // Update the existing laboratory
+            $this->laboratory->update([
+                'name' => $this->name,
                 'location' => $this->location,
                 'type' => $this->type,
-                'status' => $this->status,
-            ]),
-        ]);
-
+                'status' => $this->status ?? 'Available',
+            ]);
+    
+            // Log the update action
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'update',
+                'model' => 'Laboratory',
+                'model_id' => $this->laboratory->id,
+                'details' => json_encode([
+                    'user' => Auth::user()->full_name,
+                    'laboratory_name' => $this->name,
+                    'location' => $this->location,
+                    'type' => $this->type,
+                    'status' => $this->status,
+                ]),
+            ]);
+    
+            // Release the lock if currently locked by this user
+            if ($this->laboratory->isLockedBy(Auth::id())) {
+                $this->laboratory->releaseLock();
+                event(new \App\Events\ModelUnlocked(Laboratory::class, $this->laboratory->id));
+            }
+    
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Laboratory updated successfully');
+        } else {
+            // Create a new laboratory
+            $laboratory = Laboratory::create([
+                'name' => $this->name,
+                'location' => $this->location,
+                'type' => $this->type,
+                'status' => $this->status ?? 'Available',
+            ]);
+    
+            // Log the creation action
+            TransactionLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'create',
+                'model' => 'Laboratory',
+                'model_id' => $laboratory->id,
+                'details' => json_encode([
+                    'user' => Auth::user()->full_name,
+                    'laboratory_name' => $this->name,
+                    'location' => $this->location,
+                    'type' => $this->type,
+                    'status' => $this->status,
+                ]),
+            ]);
+    
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->success('Laboratory created successfully');
+        }
+    
+        // Refresh the table and reset the form
         $this->dispatch('refresh-laboratory-table');
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->success('Laboratory created successfully');
         $this->reset();
+        $this->editForm = false; // Exit edit mode
+        $this->formTitle = 'Create Laboratory'; // Reset form title
     }
+    
 
     /**
      * Enter edit mode for a laboratory.

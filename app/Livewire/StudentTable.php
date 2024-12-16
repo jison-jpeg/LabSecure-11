@@ -21,6 +21,8 @@ class StudentTable extends Component
     use WithPagination, WithFileUploads;
 
     protected $paginationTheme = 'bootstrap';
+    protected $listeners = ['refresh-student-table' => '$refresh'];
+
 
     public $title = 'Manage Students';
     public $event = 'create-student';
