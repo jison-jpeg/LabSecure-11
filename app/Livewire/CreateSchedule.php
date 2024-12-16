@@ -55,16 +55,16 @@ class CreateSchedule extends Component
         // Fetch unique year levels based on selected department
         $yearLevels = $this->department_id
             ? Section::where('department_id', $this->department_id)
-                ->pluck('year_level')
-                ->unique()
-                ->sort()
+            ->pluck('year_level')
+            ->unique()
+            ->sort()
             : collect(); // Empty list if no department is selected
 
         // Fetch sections based on selected department and year level
         $sections = ($this->department_id && $this->year_level)
             ? Section::where('department_id', $this->department_id)
-                ->where('year_level', $this->year_level)
-                ->get()
+            ->where('year_level', $this->year_level)
+            ->get()
             : collect(); // Empty list if department or year level not selected
 
         return view('livewire.create-schedule', [
@@ -188,17 +188,17 @@ class CreateSchedule extends Component
     public function update()
     {
         // Check if the schedule is locked by another user
-    if ($this->schedule->isLocked() && !$this->schedule->isLockedBy(Auth::id())) {
-        $lockDetails = $this->schedule->lockDetails();
-        $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
-        $timeAgo = $lockDetails['timeAgo'];
+        if ($this->schedule->isLocked() && !$this->schedule->isLockedBy(Auth::id())) {
+            $lockDetails = $this->schedule->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
 
-        notyf()
-            ->position('x', 'right')
-            ->position('y', 'top')
-            ->error("This schedule is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
-        return;
-    }
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error("This schedule is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
+            return;
+        }
 
         $this->validate([
             'subject_id' => 'required',
@@ -263,10 +263,10 @@ class CreateSchedule extends Component
         ]);
 
         // Release lock if held by the current user
-    if ($this->schedule->isLockedBy(Auth::id())) {
-        $this->schedule->releaseLock();
-        event(new \App\Events\ModelUnlocked(Schedule::class, $this->schedule->id));
-    }
+        if ($this->schedule->isLockedBy(Auth::id())) {
+            $this->schedule->releaseLock();
+            event(new \App\Events\ModelUnlocked(Schedule::class, $this->schedule->id));
+        }
 
         notyf()
             ->dismissible(true)
@@ -303,9 +303,9 @@ class CreateSchedule extends Component
     public function getConflicts($instructor_id, $section_id, $days_of_week, $start_time, $end_time, $ignoreScheduleId = null)
     {
         $query = Schedule::where(function ($query) use ($instructor_id, $section_id) {
-                $query->where('instructor_id', $instructor_id)
-                      ->orWhere('section_id', $section_id);
-            })
+            $query->where('instructor_id', $instructor_id)
+                ->orWhere('section_id', $section_id);
+        })
             ->where(function ($query) use ($days_of_week) {
                 foreach ($days_of_week as $day) {
                     $query->orWhereJsonContains('days_of_week', $day);
@@ -313,7 +313,7 @@ class CreateSchedule extends Component
             })
             ->where(function ($query) use ($start_time, $end_time) {
                 $query->where('start_time', '<', $end_time)
-                      ->where('end_time', '>', $start_time);
+                    ->where('end_time', '>', $start_time);
             });
 
         if ($ignoreScheduleId) {
@@ -357,6 +357,12 @@ class CreateSchedule extends Component
     #[On('reset-modal')]
     public function close()
     {
+        // Release lock if held by the current user
+        if ($this->editForm && $this->schedule && $this->schedule->isLockedBy(Auth::id())) {
+            $this->schedule->releaseLock();
+            event(new \App\Events\ModelUnlocked(Schedule::class, $this->schedule->id));
+        }
+
         $this->resetForm();
     }
 
@@ -374,27 +380,27 @@ class CreateSchedule extends Component
         $this->schedule = Schedule::findOrFail($id);
 
         // Check if the schedule is locked by another user
-    if ($this->schedule->isLocked() && !$this->schedule->isLockedBy(Auth::id())) {
-        $lockDetails = $this->schedule->lockDetails();
-        $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
-        $timeAgo = $lockDetails['timeAgo'];
+        if ($this->schedule->isLocked() && !$this->schedule->isLockedBy(Auth::id())) {
+            $lockDetails = $this->schedule->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
 
-        $this->lockError = "This schedule is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.";
-        return;
-    }
+            $this->lockError = "This schedule is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.";
+            return;
+        }
 
-    // Lock the schedule for the current user
-    $this->schedule->applyLock(Auth::id());
-    $this->lockError = null;
+        // Lock the schedule for the current user
+        $this->schedule->applyLock(Auth::id());
+        $this->lockError = null;
 
-    // Broadcast lock event
-    event(new \App\Events\ModelLocked(Schedule::class, $this->schedule->id, Auth::id(), Auth::user()->full_name));
+        // Broadcast lock event
+        event(new \App\Events\ModelLocked(Schedule::class, $this->schedule->id, Auth::id(), Auth::user()->full_name));
 
-    // Subscribe to lock updates
-    $this->dispatch('subscribe-to-lock-channel', [
-        'modelClass' => base64_encode(Schedule::class),
-        'modelId' => $this->schedule->id,
-    ]);
+        // Subscribe to lock updates
+        $this->dispatch('subscribe-to-lock-channel', [
+            'modelClass' => base64_encode(Schedule::class),
+            'modelId' => $this->schedule->id,
+        ]);
 
         $this->subject_id = $this->schedule->subject_id;
         $this->instructor_id = $this->schedule->instructor_id;
