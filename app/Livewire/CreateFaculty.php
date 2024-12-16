@@ -154,10 +154,11 @@ class CreateFaculty extends Component
     #[On('reset-modal')]
     public function close()
     {
-        if ($this->editForm && $this->user && $this->user->isLockedBy(Auth::id())) {
-            $this->user->unlock();
-            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
-        }
+        // Release the lock if held by the current user
+    if ($this->editForm && $this->user && $this->user->isLockedBy(Auth::id())) {
+        $this->user->releaseLock();
+        event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+    }
         
         $this->resetErrorBag();
         $this->resetForm();
@@ -173,16 +174,29 @@ class CreateFaculty extends Component
         $this->editForm = true;
         $this->user = User::findOrFail($id);
 
-        if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
-            $lockedByUser = User::find($this->user->currentLockUserId());
-            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+        // Check if the record is locked by another user
+    if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+        $lockDetails = $this->user->lockDetails();
+        $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+        $timeAgo = $lockDetails['timeAgo'];
 
-            $this->lockError = "This record is currently being edited by {$lockedByName}. Please try again later.";
-            return;
-        }
+        $this->lockError = "This faculty record is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.";
+        return;
+    }
 
-        $this->user->lock(Auth::id());
-        $this->lockError = null;
+    // Lock the record for the current user
+    $this->user->applyLock(Auth::id());
+    $this->lockError = null;
+
+    // Broadcast lock event
+    event(new \App\Events\ModelLocked(User::class, $this->user->id, Auth::id(), Auth::user()->full_name));
+
+    // Subscribe to lock updates
+    $this->dispatch('subscribe-to-lock-channel', [
+        'modelClass' => base64_encode(User::class),
+        'modelId' => $this->user->id,
+    ]);
+
 
         $this->first_name = $this->user->first_name;
         $this->middle_name = $this->user->middle_name;
@@ -206,16 +220,18 @@ class CreateFaculty extends Component
      */
     public function update()
     {
-        if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
-            $lockedByUser = User::find($this->user->currentLockUserId());
-            $lockedByName = $lockedByUser ? $lockedByUser->full_name : 'another user';
+        // Check if the record is locked by another user
+    if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+        $lockDetails = $this->user->lockDetails();
+        $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+        $timeAgo = $lockDetails['timeAgo'];
 
-            notyf()
-                ->position('x', 'right')
-                ->position('y', 'top')
-                ->error("This record is currently being edited by {$lockedByName}. Please try again later.");
-            return;
-        }
+        notyf()
+            ->position('x', 'right')
+            ->position('y', 'top')
+            ->error("This faculty record is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
+        return;
+    }
 
         $rules = [
             'first_name' => 'required',
@@ -261,10 +277,11 @@ class CreateFaculty extends Component
             ]),
         ]);
 
-        if ($this->user->isLockedBy(Auth::id())) {
-            $this->user->unlock();
-            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
-        }
+        // Release the lock if held by the current user
+    if ($this->user->isLockedBy(Auth::id())) {
+        $this->user->releaseLock();
+        event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+    }
 
         notyf()
             ->position('x', 'right')

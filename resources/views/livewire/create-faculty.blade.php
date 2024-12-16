@@ -136,13 +136,10 @@
 
                 <div class="modal-footer">
                     @if ($editForm)
-                        <button wire:click="close" type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary"
-                            @if ($lockError) disabled @endif>Save Changes</button>
+                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" @if ($lockError) disabled @endif>Save Changes</button>
                     @else
-                        <button wire:click="close" type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">Close</button>
+                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Create Faculty</button>
                     @endif
                 </div>
