@@ -7,9 +7,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ $formTitle }}</h5>
-                    <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
+
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-3">
                             <label for="first_name" class="form-label">First Name</label>
@@ -53,7 +61,8 @@
                         </div>
                         <div class="col-md-2">
                             <label for="status" class="form-label">Status</label>
-                            <select wire:model.lazy="status" class="form-select @error('status') is-invalid @enderror" name="status">
+                            <select wire:model.lazy="status" class="form-select @error('status') is-invalid @enderror"
+                                name="status">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
@@ -61,7 +70,7 @@
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
-                        
+
                         <div class="col-md-4">
                             <label for="username" class="form-label">Username</label>
                             <input wire:model.lazy="username" type="text"
@@ -98,7 +107,8 @@
                                 class="form-select @error('selectedCollege') is-invalid @enderror" name="college_id">
                                 <option value="">Select College</option>
                                 @foreach ($colleges as $college)
-                                    <option value="{{ $college->id }}" @if ($selectedCollege == $college->id) selected @endif>{{ $college->name }}</option>
+                                    <option value="{{ $college->id }}"
+                                        @if ($selectedCollege == $college->id) selected @endif>{{ $college->name }}</option>
                                 @endforeach
                             </select>
                             @error('selectedCollege')
@@ -113,7 +123,9 @@
                                 name="department_id">
                                 <option value="">Select Department</option>
                                 @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}" @if ($selectedDepartment == $department->id) selected @endif>{{ $department->name }}</option>
+                                    <option value="{{ $department->id }}"
+                                        @if ($selectedDepartment == $department->id) selected @endif>{{ $department->name }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('selectedDepartment')
@@ -127,23 +139,28 @@
                                 class="form-select @error('selectedSection') is-invalid @enderror" name="section_id">
                                 <option value="">Select Section</option>
                                 @foreach ($sections as $section)
-                                    <option value="{{ $section->id }}" @if ($selectedSection == $section->id) selected @endif>{{ $section->name }}</option>
+                                    <option value="{{ $section->id }}"
+                                        @if ($selectedSection == $section->id) selected @endif>{{ $section->name }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('selectedSection')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        @if ($editForm)
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button wire:click="update" type="button" class="btn btn-primary">Save changes</button>
-                        @else
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button wire:click="save" type="button" class="btn btn-primary">Create Student</button>
-                        @endif
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    @if ($editForm)
+                        <button wire:click="close" type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary"
+                            @if ($lockError) disabled @endif>Save Changes</button>
+                    @else
+                        <button wire:click="close" type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Student</button>
+                    @endif
+                </div>
                 </form>
             </div>
         </div>
