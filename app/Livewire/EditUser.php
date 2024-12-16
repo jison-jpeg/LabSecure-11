@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 class EditUser extends Component
 {
     public $formTitle = 'Edit User';
+    public $lockError = null;
     public $user;
     public $first_name;
     public $middle_name;

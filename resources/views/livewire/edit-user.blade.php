@@ -9,6 +9,13 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
+
                     <form wire:submit.prevent="update" class="row g-3 needs-validation" novalidate>
                         <!-- First Name -->
                         <div class="col-md-3">
@@ -192,7 +199,9 @@
                 <div class="modal-footer">
                     <button wire:click="close" type="button" class="btn btn-secondary"
                         data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="submit"
+                        class="btn btn-primary @if ($lockError) disabled @endif">Save
+                        Changes</button>
                 </div>
                 </form>
             </div>
@@ -202,7 +211,13 @@
 
 <script>
     window.addEventListener('show-edit-user-modal', () => {
-        new bootstrap.Modal(document.getElementById('editUserModal')).show();
+        const modalElement = document.getElementById('editUserModal');
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Notify Livewire to trigger the lock mechanism
+        Livewire.emit('triggerModalLock');
+
+        modal.show();
     });
 
     window.addEventListener('close-modal', () => {
@@ -213,4 +228,3 @@
         }
     });
 </script>
-
