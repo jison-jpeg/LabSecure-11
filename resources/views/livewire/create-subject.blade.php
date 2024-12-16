@@ -10,6 +10,13 @@
                     <button wire:click="close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
+                    
                     <form wire:submit.prevent="save" class="row g-3 needs-validation" novalidate>
                         <div class="col-md-4">
                             <label for="name" class="form-label">Name</label>
@@ -72,11 +79,11 @@
                     </div>
                     <div class="modal-footer">
                         @if ($editForm)
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button wire:click="update" type="button" class="btn btn-primary">Save changes</button>
+                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" @if ($lockError) disabled @endif>Save Changes</button>
                         @else
-                        <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button wire:click="save" type="button" class="btn btn-primary">Create Subject</button>
+                            <button wire:click="close" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Create Subject</button>
                         @endif
                     </div>
                 </form>
