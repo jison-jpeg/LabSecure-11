@@ -8,6 +8,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$dispatch('reset-modal')"></button>
                 </div>
                 <div class="modal-body">
+
+                    @if ($lockError)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ $lockError }}
+                        </div>
+                    @endif
+                    
                     <!-- Status Field -->
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
