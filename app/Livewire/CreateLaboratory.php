@@ -205,9 +205,9 @@ class CreateLaboratory extends Component
             ]),
         ]);
 
-        // Unlock the record if currently locked by this user
+        // Release the lock if currently locked by this user
         if ($this->laboratory->isLockedBy(Auth::id())) {
-            $this->laboratory->unlock();
+            $this->laboratory->releaseLock();
             // Broadcast that the laboratory is unlocked
             event(new \App\Events\ModelUnlocked(Laboratory::class, $this->laboratory->id));
         }
@@ -220,6 +220,7 @@ class CreateLaboratory extends Component
         $this->reset();
     }
 
+
     /**
      * Close the modal and reset form data.
      */
@@ -227,9 +228,9 @@ class CreateLaboratory extends Component
     public function close()
     {
 
-        // Unlock the record if currently locked by this user
+        // Release the lock if currently locked by this user
         if ($this->editForm && $this->laboratory && $this->laboratory->isLockedBy(Auth::id())) {
-            $this->laboratory->unlock();
+            $this->laboratory->releaseLock();
             // Broadcast that the laboratory is unlocked
             event(new \App\Events\ModelUnlocked(Laboratory::class, $this->laboratory->id));
         }

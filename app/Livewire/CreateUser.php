@@ -471,7 +471,7 @@ class CreateUser extends Component
 
             // Unlock the record if currently locked by this user
             if ($this->user && $this->user->isLockedBy(Auth::id())) {
-                $this->user->unlock();
+                $this->user->releaseLock();
                 event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
             }
 
@@ -532,7 +532,7 @@ class CreateUser extends Component
     {
         // If currently editing, unlock before resetting fields.
         if ($this->editForm && $this->user && $this->user->isLockedBy(Auth::id())) {
-            $this->user->unlock();
+            $this->user->releaseLock();
             // Broadcast that the user is unlocked
             event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
         }
