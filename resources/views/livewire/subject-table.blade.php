@@ -144,18 +144,19 @@
 
     <div class="row mb-4">
         <div class="col-md-10">
-            @if (Auth::user()->isAdmin())
-                <div class="filter">
-                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                        <li class="dropdown-header text-start">
-                            <h6>Option</h6>
-                        </li>
+            <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                        <h6>Option</h6>
+                    </li>
+                    @if (Auth::user()->isAdmin())
                         <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
                                 data-bs-target="#subjectImportModal">Import Subject</a></li>
-                        <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                data-bs-target="#subjectExportModal">Export Subject</a></li>
-                        {{-- <li class="dropdown-submenu position-relative">
+                    @endif
+                    <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
+                            data-bs-target="#subjectExportModal">Export Subject</a></li>
+                    {{-- <li class="dropdown-submenu position-relative">
                         <a class="dropdown-item dropdown-toggle" href="#">Export As</a>
                         <ul class="dropdown-menu position-absolute">
                             <li><a wire:click.prevent="exportAs('csv')" href="#" class="dropdown-item">CSV</a>
@@ -167,9 +168,8 @@
                         </ul>
                     </li>
                     <li><a class="dropdown-item text-danger" href="#">Delete Selected</a></li> --}}
-                    </ul>
-                </div>
-            @endif
+                </ul>
+            </div>
             {{-- Per Page --}}
             <div class="row g-1">
                 <div class="col-md-1">

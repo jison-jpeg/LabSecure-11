@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Subject;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -13,14 +14,12 @@ use Carbon\Carbon;
 class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     protected $search;
-    protected $college;
-    protected $department;
+    protected $user;
 
-    public function __construct($search, $college, $department)
+    public function __construct($search, $user)
     {
         $this->search = $search;
-        $this->college = $college;
-        $this->department = $department;
+        $this->user = $user;
     }
 
     public function query()
@@ -29,11 +28,15 @@ class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             ->when($this->search, function ($query) {
                 $query->search($this->search);
             })
-            ->when($this->college, function ($query) {
-                $query->where('college_id', $this->college);
+            ->when($this->user->isStudent(), function ($query) {
+                $query->whereHas('schedules.section', function ($q) {
+                    $q->where('id', $this->user->section_id);
+                });
             })
-            ->when($this->department, function ($query) {
-                $query->where('department_id', $this->department);
+            ->when($this->user->isInstructor(), function ($query) {
+                $query->whereHas('schedules', function ($q) {
+                    $q->where('instructor_id', $this->user->id);
+                });
             });
     }
 
@@ -47,7 +50,7 @@ class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             'Instructor',
             'Schedule',
             'Laboratory',
-            'Total Students'
+            'Total Students',
         ];
     }
 
@@ -55,22 +58,19 @@ class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     {
         $rows = [];
         foreach ($subject->schedules as $schedule) {
-            $studentsCount = $schedule->section ? $schedule->section->users->count() : 0; // Fetch total students from section
-            $studentsCount = $studentsCount ?: '0'; // Ensure it's always a string '0' if empty
-
-            // Format time to 12-hour format with AM/PM
+            $studentsCount = $schedule->section ? $schedule->section->users->count() : 0;
             $scheduleTime = Carbon::parse($schedule->start_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->end_time)->format('h:i A');
             $daysOfWeek = implode(', ', json_decode($schedule->days_of_week));
 
             $rows[] = [
-                $subject->code, // Subject Code first
-                $subject->name, // Then Subject Name
+                $subject->code,
+                $subject->name,
                 $subject->description,
                 optional($schedule->section)->name,
                 optional($schedule->instructor)->full_name,
-                $daysOfWeek . ' (' . $scheduleTime . ')', // 12-hour format for schedule time
+                $daysOfWeek . ' (' . $scheduleTime . ')',
                 optional($schedule->laboratory)->name,
-                $studentsCount,  // Ensures "0" is displayed when no students
+                $studentsCount,
             ];
         }
 
@@ -81,12 +81,11 @@ class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Apply header style with the specified color and white font
                 $headerStyle = [
-                    'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']], // White font
+                    'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                        'startColor' => ['argb' => 'FF4F81BD'], // Blue background
+                        'startColor' => ['argb' => 'FF4F81BD'],
                     ],
                     'borders' => [
                         'allBorders' => [
@@ -95,7 +94,6 @@ class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                     ],
                 ];
 
-                // Style for the data cells
                 $contentStyle = [
                     'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT],
                     'borders' => [
@@ -105,14 +103,11 @@ class SubjectExport implements FromQuery, WithHeadings, WithMapping, WithEvents
                     ],
                 ];
 
-                // Apply header style
                 $event->sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
 
-                // Apply content style
                 $highestRow = $event->sheet->getHighestRow();
                 $event->sheet->getStyle('A2:H' . $highestRow)->applyFromArray($contentStyle);
 
-                // Auto-size columns
                 foreach (range('A', 'H') as $columnID) {
                     $event->sheet->getColumnDimension($columnID)->setAutoSize(true);
                 }

@@ -134,45 +134,40 @@ class SubjectTable extends Component
     {
         $timestamp = now()->format('Y_m_d_H_i_s'); // Include date and time in filenames
         $fileName = "Subject_Export_{$timestamp}";
-
+        $user = Auth::user();
+    
         switch ($format) {
             case 'csv':
-                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.csv");
+                return Excel::download(new SubjectExport($this->search, $user), "{$fileName}.csv");
             case 'excel':
-                return Excel::download(new SubjectExport($this->search, $this->college, $this->department), "{$fileName}.xlsx");
+                return Excel::download(new SubjectExport($this->search, $user), "{$fileName}.xlsx");
             case 'pdf':
-                // Fetch colleges with filtered departments and subjects
-                $colleges = College::with(['departments' => function ($query) {
-                    $query->when($this->department !== '', function ($query) {
-                        $query->where('id', $this->department); // Filter by department
-                    })->with(['subjects' => function ($query) {
-                        $query->when($this->college !== '', function ($query) {
-                            $query->where('college_id', $this->college); // Filter by college
-                        });
-                    }]);
-                }])->when($this->college !== '', function ($query) {
-                    $query->where('id', $this->college); // Filter by college
-                })->get();
-
-                // Generate the PDF view
+                $subjects = Subject::query()
+                    ->when($user->isStudent(), function ($query) use ($user) {
+                        $query->whereHas('schedules.section', fn($q) => $q->where('id', $user->section_id));
+                    })
+                    ->when($user->isInstructor(), function ($query) use ($user) {
+                        $query->whereHas('schedules', fn($q) => $q->where('instructor_id', $user->id));
+                    })
+                    ->get();
+    
                 $pdf = Pdf::loadView('exports.subject_report', [
-                    'colleges' => $colleges,
-                    'collegeFilter' => $this->college ? College::find($this->college)->name : 'All Colleges',
-                    'departmentFilter' => $this->department ? Department::find($this->department)->name : 'All Departments',
-                    'generatedBy' => Auth::user()->full_name,
+                    'user' => $user,
+                    'subjects' => $subjects,
+                    'colleges' => !$user->isStudent() && !$user->isInstructor() ? $this->getColleges() : [],
+                    'generatedBy' => $user->full_name,
                 ])->setPaper('a4', 'portrait');
-
-                // Stream the PDF download
+    
                 return response()->streamDownload(function () use ($pdf) {
                     echo $pdf->output();
                 }, "{$fileName}.pdf");
-
+    
             default:
                 notyf()->error('Unsupported export format.');
                 break;
         }
     }
-
+    
 
     public function render()
     {
