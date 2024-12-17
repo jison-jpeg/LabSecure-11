@@ -38,6 +38,12 @@ class EditUser extends Component
     public $sections = [];
     public $roles = [];
 
+    protected $listeners = [
+        'show-edit-user-modal' => 'openEditModal',
+        'externalModelLocked' => 'handleExternalLock',
+        'externalModelUnlocked' => 'handleExternalUnlock',
+    ];
+
     public function mount(User $user)
     {
         $this->user = $user;
@@ -71,7 +77,6 @@ class EditUser extends Component
         $this->selectedDepartment = $this->user->department_id;
         $this->selectedSection = $this->user->section_id;
         
-        // Load year levels based on the selected department
         if ($this->selectedDepartment) {
             $this->yearLevels = Section::where('department_id', $this->selectedDepartment)
                                        ->pluck('year_level')
@@ -81,14 +86,58 @@ class EditUser extends Component
                                        ->toArray();
         }
 
-        // Set the selected year level based on the user's section
         $this->selectedYearLevel = $this->user->section ? $this->user->section->year_level : null;
 
-        // If a year level is selected, load the corresponding sections
         if ($this->selectedYearLevel) {
             $this->sections = Section::where('department_id', $this->selectedDepartment)
                                      ->where('year_level', $this->selectedYearLevel)
                                      ->get();
+        }
+    }
+
+    public function openEditModal()
+    {
+        // Attempt to lock the user record only when the modal is about to be shown.
+        if ($this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+            // The record is locked by another user
+            $lockDetails = $this->user->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            $this->lockError = "This user is currently being edited by {$lockedByName} ({$timeAgo}). You cannot edit it now.";
+            return;
+        }
+
+        // Lock the record for the current user
+        $this->user->applyLock(Auth::id());
+        $this->lockError = null;
+
+        // Broadcast that the user is locked
+        event(new \App\Events\ModelLocked(User::class, $this->user->id, Auth::id(), Auth::user()->full_name));
+
+        // Subscribe to lock channel for real-time updates
+        $this->dispatch('subscribe-to-lock-channel', [
+            'modelClass' => base64_encode(User::class),
+            'modelId' => $this->user->id,
+        ]);
+
+        // Now that we have locked the record successfully, show the modal on the frontend
+        $this->dispatch('show-edit-user-modal-trigger');
+    }
+
+    public function handleExternalLock($modelClass, $modelId, $lockedBy, $lockedByName)
+    {
+        // If we are editing the same user and another user locks it externally, show warning
+        if ($this->user && $this->user->id == $modelId && $lockedBy != Auth::id()) {
+            $this->lockError = "User {$lockedByName} is currently editing this record.";
+        }
+    }
+
+    public function handleExternalUnlock($modelClass, $modelId)
+    {
+        // If the record was unlocked externally, clear the warning if we're editing it
+        if ($this->user && $this->user->id == $modelId) {
+            $this->lockError = null;
         }
     }
 
@@ -190,6 +239,19 @@ class EditUser extends Component
 
     public function update()
     {
+        // Check if locked by another user
+        if ($this->user && $this->user->isLocked() && !$this->user->isLockedBy(Auth::id())) {
+            $lockDetails = $this->user->lockDetails();
+            $lockedByName = $lockDetails['user'] ? $lockDetails['user']->full_name : 'another user';
+            $timeAgo = $lockDetails['timeAgo'];
+
+            notyf()
+                ->position('x', 'right')
+                ->position('y', 'top')
+                ->error("This record is currently being edited by {$lockedByName} ({$timeAgo}). Please try again later.");
+            return;
+        }
+
         $this->validate($this->getValidationRules());
 
         $data = [
@@ -201,9 +263,9 @@ class EditUser extends Component
             'role_id'       => $this->role_id,
             'email'         => $this->email,
             'status'        => $this->status,
-            'college_id'    => $this->selectedCollege,
-            'department_id' => $this->selectedDepartment,
-            'section_id'    => $this->selectedSection,
+            'college_id'    => $this->isRoleAdmin() ? null : $this->selectedCollege,
+            'department_id' => ($this->isRoleChairperson() || $this->isRoleInstructor() || $this->isRoleStudent()) ? $this->selectedDepartment : null,
+            'section_id'    => $this->isRoleStudent() ? $this->selectedSection : null,
         ];
 
         if (!empty($this->password)) {
@@ -223,14 +285,25 @@ class EditUser extends Component
             ]),
         ]);
 
-        notyf()->position('x', 'right')->position('y', 'top')->success('User updated successfully');
+        // Release the lock if currently held
+        if ($this->user->isLockedBy(Auth::id())) {
+            $this->user->releaseLock();
+            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+        }
 
-        
+        notyf()->position('x', 'right')->position('y', 'top')->success('User updated successfully');
         $this->dispatch('close-modal');
     }
 
     public function close()
     {
+        // If currently holding lock, release it
+        if ($this->user && $this->user->isLockedBy(Auth::id())) {
+            $this->user->releaseLock();
+            event(new \App\Events\ModelUnlocked(User::class, $this->user->id));
+        }
+
+        // Dispatch close event if needed
         $this->dispatch('close-modal');
     }
 
